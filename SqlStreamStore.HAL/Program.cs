@@ -26,7 +26,13 @@ namespace SqlStreamStore.HAL
 
             streamStore.AppendToStream("SomeStream", ExpectedVersion.Any, messages);
 
-            var settings = new HALSettings { Url = "", Store = streamStore };
+            var settings = new HALSettings
+            {
+                Url = "Something",
+                Store = streamStore,
+                PageSize = 20
+            };
+
             var baseUrl = "http://localhost:8080";
 
             using (WebApp.Start(baseUrl, app => app.Use(HALMiddleware.Handle(settings))))
@@ -46,18 +52,16 @@ namespace SqlStreamStore.HAL
                 var config = new HttpConfiguration();
 
                 var container = new TinyIoCContainer();
-                container.Register(settings.Store);
-
+                container.Register(settings);
 
                 config.DependencyResolver = new Resolver(container);
 
                 config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-
                 config.Routes.MapHttpRoute(
                    name: "SqlStreamStoreHAL",
-                   routeTemplate: settings.Url + "stream/{position}",
-                   defaults: new { controller = "SqlStreamStoreHAL", position = RouteParameter.Optional, action = "index" }
+                   routeTemplate: settings.Url + "/stream/{direction}/{position}",
+                   defaults: new { controller = "SqlStreamStoreHAL", position = RouteParameter.Optional, action = "index", direction = "forwards" }
                );
 
 
@@ -71,34 +75,49 @@ namespace SqlStreamStore.HAL
 
     public class SqlStreamStoreHALController : ApiController
     {
-        private IReadonlyStreamStore _stream;
-
-        public SqlStreamStoreHALController(IReadonlyStreamStore stream)
+        private readonly Dictionary<string, int> _directionLookup = new Dictionary<string, int>
         {
-            _stream = stream;
+            {"forwards", 1},
+            {"backwards", -1}
+
+        };
+
+        private readonly IReadonlyStreamStore _store;
+
+        private readonly int _pageSize;
+
+        public SqlStreamStoreHALController(HALSettings settings)
+        {
+            _store = settings.Store;
+            _pageSize = settings.PageSize;
         }
 
         [HttpGet]
-        public IHttpActionResult Index(long? position = null)
+        public IHttpActionResult Index(string direction, long? position = null)
         {
-            
+            var dir = _directionLookup[direction];
 
-            var readAllPage = _stream.ReadAllForwards(position ?? Position.Start, 20).GetAwaiter().GetResult();
+            var readAllPage = GetStream(position, dir);
 
-            var stringBuilder = new StringBuilder();
-
-            foreach (var e in readAllPage.Messages)
-            {
-                stringBuilder.AppendLine(e.JsonData + Environment.NewLine);
-            }
-
-            var response = new HALStream
-            {
-                Links = Links.CreateLinks(Request.RequestUri.AbsolutePath, position ?? Position.Start, 20),
-                Embedded = new Embedded { Stream = readAllPage.Messages.Select(m => m).Cast<object>().ToList() }
-            };
+            var response = HALResponse.Create(readAllPage.Messages, _pageSize, Request.RequestUri.AbsolutePath, dir);
 
             return Ok(response);
+        }
+
+        private ReadAllPage GetStream(long? position, int direction)
+        {
+            ReadAllPage readAllPage;
+
+            if (direction == Direction.Forwards)
+            {
+                readAllPage = _store.ReadAllForwards(position ?? Position.Start, _pageSize).GetAwaiter().GetResult();
+            }
+            else
+            {
+                readAllPage = _store.ReadAllBackwards(position ?? Position.End, _pageSize).GetAwaiter().GetResult();
+            }
+
+            return readAllPage;
         }
     }
 
@@ -141,51 +160,12 @@ namespace SqlStreamStore.HAL
         }
     }
 
-    class HALSettings
+    public class HALSettings
     {
         public IReadonlyStreamStore Store { get; set; }
+
         public string Url { get; set; }
-    }
 
-    class HALStream
-    {
-        [JsonProperty(PropertyName = "_links")]
-        public Links Links { get; set; }
-
-        [JsonProperty(PropertyName = "_embedded")]
-        public Embedded Embedded { get; set; }
-    }
-    class Links
-    {
-        public Link Self { get; set; }
-
-        public Link Next { get; set; }
-
-        public Link Prev { get; set; }
-
-        public class Link
-        {
-            public string Href { get; private set; }
-
-            public static Link Create(string href)
-            {
-                return new Link { Href = href };
-            }
-        }
-
-        public static Links CreateLinks(string path, long position, long pageSize)
-        {
-            return new Links
-            {
-                Self = Link.Create(path + (position != Position.Start ? "?position=" + position : "")),
-                Next = Link.Create(path + "?position=" + (position + 1 + pageSize)),
-                Prev = Link.Create(position == Position.Start ? (string)null : path + "?position=" + (position - 1))
-            };
-        }
-    }    
-
-    class Embedded
-    {
-       public List<object> Stream { get; set; }
+        public int PageSize { get; set; }
     }
 }
