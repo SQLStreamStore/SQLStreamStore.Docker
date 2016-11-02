@@ -5,25 +5,24 @@ using SqlStreamStore.Streams;
 
 namespace SqlStreamStore.HAL
 {
-    class HALResponse
+    class HalResponse
     {
         [JsonProperty(PropertyName = "_links")]
         public Links Links { get; private set; }
 
-        public int Count { get; set; }
-
+        public int Count { get; private set; }
 
         [JsonProperty(PropertyName = "_embedded")]
-        public Embedded Embedded { get; private set; }
+        public object Embedded { get; private set; }
 
-        public static HALResponse Create(StreamMessage[] messages, int pageSize, string path, int direction)
+        public static HalResponse GetPage(StreamMessage[] messages, int pageSize, string path, int direction)
         {
             if (messages.Length <= 0)
             {
                 return null;
             }
 
-            var links = Links.CreateLinks(
+            var links = Links.CreatePaginationLinks(
                 path,
                 messages.First().Position,
                 messages.Last().Position,
@@ -32,65 +31,58 @@ namespace SqlStreamStore.HAL
                 direction
             );
 
-            return new HALResponse
+            return new HalResponse
             {
                 Links = links,
-                Embedded = new Embedded { Page = messages.Select(m => m).Cast<object>().ToList() },
+                Embedded = new { Page = messages.Select(ToResponse).ToList() },
                 Count = messages.Length
+            };
+        }
+
+        public static object GetMessage(StreamMessage message)
+        {
+            return ToResponse(message);
+        }
+
+        static object ToResponse(StreamMessage m)
+        {
+            return new
+            {
+                Links = Links.CreateItemLink(m.Position),
+                m.Position,
+                m.CreatedUtc,
+                m.MessageId,
+                JsonData = JsonConvert.DeserializeObject(m.JsonData),
+                m.JsonMetadata,
+                m.StreamVersion,
+                m.StreamId,
+                m.Type
             };
         }
     }
 
     class Links
     {
-        public Link Self { get; private set; }
+        public object Self { get; private set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public Link Next { get; private set; }
+        public object Next { get; private set; }
 
-        public static Links CreateLinks(string path, long positionOfFirstEvent, long positionOfLastEvent, int numberOfEvents, int pageSize, int direction)
+        public static Links CreatePaginationLinks(string path, long positionOfFirstEvent, long positionOfLastEvent, int numberOfEvents, int pageSize, int direction)
         {
             return new Links
             {
-                Self = Link.CreateSelfLink(path, positionOfFirstEvent),
-                Next = Link.CreateNextLink(path, positionOfLastEvent + direction, pageSize, numberOfEvents),
+                Self = new { Href = path + "?position=" + positionOfFirstEvent },
+                Next = numberOfEvents < pageSize ? null : new { Href = path + "?position=" + positionOfLastEvent + direction }
+            };
+        }
+
+        public static Links CreateItemLink(long position)
+        {
+            return new Links
+            {
+                Self = new { Href = "/streamMessage?position=" + position },
             };
         }
     }
-
-    class Link
-    {
-        public string Href { get; }
-
-        Link(string path, long position)
-        {
-            Href = path + "?position=" + position;
-        }
-
-        public static Link CreateSelfLink(string path, long position)
-        {
-            return new Link(path, position);
-        }
-
-        public static Link CreateNextLink(string path, long position, int pageSize, int actualPageSize)
-        {
-            if (actualPageSize < pageSize)
-            {
-                return null;
-            }
-
-            return new Link(path, position);
-        }
-    }
-
-    class Embedded
-    {
-        public List<object> Page { get; set; }
-    }
-
-    public static class Direction
-    {
-        public static int Forwards => 1;
-        public static int Backwards => -1;
-    }
-}
+}   

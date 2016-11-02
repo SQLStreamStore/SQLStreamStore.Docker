@@ -10,9 +10,8 @@ using MidFunc = System.Func<
     System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>,
     System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>>;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace SqlStreamStore.HAL
@@ -28,7 +27,6 @@ namespace SqlStreamStore.HAL
 
             var settings = new HALSettings
             {
-                Url = "Something",
                 Store = streamStore,
                 PageSize = 20
             };
@@ -55,69 +53,27 @@ namespace SqlStreamStore.HAL
                 container.Register(settings);
 
                 config.DependencyResolver = new Resolver(container);
-
                 config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-                config.Routes.MapHttpRoute(
-                   name: "SqlStreamStoreHAL",
-                   routeTemplate: settings.Url + "/stream/{direction}/{position}",
-                   defaults: new { controller = "SqlStreamStoreHAL", position = RouteParameter.Optional, action = "index", direction = "forwards" }
-               );
+                var baseUrl = settings.BaseUrl == null ? "" : settings.BaseUrl + "/";
 
+                config.Routes.MapHttpRoute(
+                    "SqlStreamStoreHAL.Paged",
+                   Path.Combine(baseUrl, "stream/{direction}/{position}"),
+                   new { controller = "SqlStreamStoreHAL", position = RouteParameter.Optional, action = "index", direction = "forwards" }
+                );
+
+                config.Routes.MapHttpRoute(
+                    "SqlStreamStoreHAL.Message",
+                   Path.Combine(baseUrl, "streanMessage/{position}"),
+                   new { controller = "SqlStreamStoreHAL", action = "message", position = RouteParameter.Optional }
+                );
 
                 var appBuilder = new AppBuilder();
                 appBuilder.UseWebApi(config);
 
                 return appBuilder.Build();
             };
-        }
-    }
-
-    public class SqlStreamStoreHALController : ApiController
-    {
-        private readonly Dictionary<string, int> _directionLookup = new Dictionary<string, int>
-        {
-            {"forwards", 1},
-            {"backwards", -1}
-
-        };
-
-        private readonly IReadonlyStreamStore _store;
-
-        private readonly int _pageSize;
-
-        public SqlStreamStoreHALController(HALSettings settings)
-        {
-            _store = settings.Store;
-            _pageSize = settings.PageSize;
-        }
-
-        [HttpGet]
-        public IHttpActionResult Index(string direction, long? position = null)
-        {
-            var dir = _directionLookup[direction];
-
-            var readAllPage = GetStream(position, dir);
-
-            var response = HALResponse.Create(readAllPage.Messages, _pageSize, Request.RequestUri.AbsolutePath, dir);
-
-            return Ok(response);
-        }
-
-        private ReadAllPage GetStream(long? position, int direction)
-        {
-            ReadAllPage readAllPage;
-
-            if (direction == Direction.Forwards)
-            {
-                readAllPage = _store.ReadAllForwards(position ?? Position.Start, _pageSize).GetAwaiter().GetResult();
-            }
-            else
-            {
-                readAllPage = _store.ReadAllBackwards(position ?? Position.End, _pageSize).GetAwaiter().GetResult();
-            }
-
-            return readAllPage;
         }
     }
 
@@ -139,7 +95,7 @@ namespace SqlStreamStore.HAL
         {
         }
 
-        public Object GetService(Type serviceType)
+        public object GetService(Type serviceType)
         {
             if (!_container.CanResolve(serviceType))
             {
@@ -149,7 +105,7 @@ namespace SqlStreamStore.HAL
             return _container.Resolve(serviceType);
         }
 
-        public IEnumerable<Object> GetServices(Type serviceType)
+        public IEnumerable<object> GetServices(Type serviceType)
         {
             if (!_container.CanResolve(serviceType))
             {
@@ -164,7 +120,7 @@ namespace SqlStreamStore.HAL
     {
         public IReadonlyStreamStore Store { get; set; }
 
-        public string Url { get; set; }
+        public string BaseUrl { get; set; }
 
         public int PageSize { get; set; }
     }
