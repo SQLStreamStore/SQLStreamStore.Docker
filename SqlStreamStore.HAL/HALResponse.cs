@@ -1,17 +1,17 @@
 ﻿using System.Linq;
-using Newtonsoft.Json;
+using Jil;
 using SqlStreamStore.Streams;
 
 namespace SqlStreamStore.HAL
 {
     class HalResponse
     {
-        [JsonProperty(PropertyName = "_links")]
+        [JilDirective(Name = "_links")]
         public Links Links { get; private set; }
 
         public int Count { get; private set; }
 
-        [JsonProperty(PropertyName = "_embedded")]
+        [JilDirective(Name = "_embedded")]
         public object Embedded { get; private set; }
 
         public static HalResponse GetPage(StreamMessage[] messages, int pageSize, string path, int direction)
@@ -33,25 +33,35 @@ namespace SqlStreamStore.HAL
             return new HalResponse
             {
                 Links = links,
-                Embedded = new { Page = messages.Select(ToResponse).ToList() },
+                Embedded = new { Page = messages.Select(ToPageResponse).ToList() },
                 Count = messages.Length
             };
         }
 
-        public static object GetMessage(StreamMessage message)
-        {
-            return ToResponse(message);
-        }
-
-        static object ToResponse(StreamMessage m)
+        public static object GetMessage(StreamMessage m)
         {
             return new
             {
-                Links = Links.CreateItemLink(m.Position),
+                _links = Links.CreateItemLink(m.Position),
                 m.Position,
                 m.CreatedUtc,
                 m.MessageId,
-                JsonData = JsonConvert.DeserializeObject(m.JsonData),
+                JsonData = JSON.DeserializeDynamic(m.JsonData),
+                m.JsonMetadata,
+                m.StreamVersion,
+                m.StreamId,
+                m.Type
+            };
+        }
+
+        static object ToPageResponse(StreamMessage m)
+        {
+            return new
+            {
+                _links = Links.CreateItemLink(m.Position),
+                m.Position,
+                m.CreatedUtc,
+                m.MessageId,
                 m.JsonMetadata,
                 m.StreamVersion,
                 m.StreamId,
@@ -64,15 +74,14 @@ namespace SqlStreamStore.HAL
     {
         public object Self { get; private set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public object Next { get; private set; }
 
         public static Links CreatePaginationLinks(string path, long positionOfFirstEvent, long positionOfLastEvent, int numberOfEvents, int pageSize, int direction)
         {
             return new Links
             {
-                Self = new { Href = path + "?position=" + positionOfFirstEvent },
-                Next = numberOfEvents < pageSize ? null : new { Href = path + "?position=" + positionOfLastEvent + direction }
+                Self = new { Href = path + $"?position={positionOfFirstEvent}&direction={(direction == 1 ? "forwards" : "backwards")}" },
+                Next = numberOfEvents < pageSize ? null : new { Href = $"{path}?position={positionOfLastEvent + direction}&direction={(direction == 1 ? "forwards" : "backwards")}" }
             };
         }
 
@@ -84,4 +93,4 @@ namespace SqlStreamStore.HAL
             };
         }
     }
-}   
+}

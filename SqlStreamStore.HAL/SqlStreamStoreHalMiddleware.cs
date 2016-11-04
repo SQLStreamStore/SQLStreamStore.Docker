@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Jil;
 using Microsoft.Owin.Builder;
 using Nancy;
 using Nancy.Bootstrapper;
+using Nancy.IO;
 using Nancy.TinyIoc;
 using Owin;
 
 namespace SqlStreamStore.HAL
 {
-    internal static class SqlStreamStoreHalMiddleware
+    public static class SqlStreamStoreHalMiddleware
     {
         public static void UseSqlStreamStoreHal(this IAppBuilder app, SqlStreamStoreHalSettings settings)
         {
@@ -48,10 +51,33 @@ namespace SqlStreamStore.HAL
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             container.Register(_settings);
+            container.Register<ISerializer, JilSerializer>();
             base.ApplicationStartup(container, pipelines);
         }
     }
-    
+
+    public class JilSerializer : ISerializer
+    {
+        private static readonly Options Options = new Options(
+            excludeNulls: true,
+            serializationNameFormat: SerializationNameFormat.CamelCase);
+
+        public bool CanSerialize(string contentType)
+        {
+            return true;
+        }
+
+        public void Serialize<TModel>(string contentType, TModel model, Stream outputStream)
+        {
+            using (var output = new StreamWriter(new UnclosableStreamWrapper(outputStream)))
+            {
+                JSON.SerializeDynamic(model, output, Options);
+            }
+        }
+
+        public IEnumerable<string> Extensions => new List<string> { "json" };
+    }
+
     public class SqlStreamStoreHalSettings
     {
         public IReadonlyStreamStore Store { get; set; }

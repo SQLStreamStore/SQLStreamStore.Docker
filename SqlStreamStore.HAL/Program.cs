@@ -1,6 +1,7 @@
 ﻿using Microsoft.Owin.Hosting;
 using SqlStreamStore.Streams;
 using System;
+using System.Linq;
 
 namespace SqlStreamStore.HAL
 {
@@ -9,17 +10,18 @@ namespace SqlStreamStore.HAL
         static void Main()
         {
             var streamStore = new InMemoryStreamStore();
-            var messages = SeedData.Get(1000);
+            var messages = SeedData.Get(40);
 
-            streamStore.AppendToStream("SomeStream", ExpectedVersion.Any, messages);
+            streamStore.AppendToStream("SomeStream", ExpectedVersion.Any, messages).GetAwaiter().GetResult();
+            streamStore.AppendToStream("SomeOtherStream", ExpectedVersion.Any, messages).GetAwaiter().GetResult();
 
             var settings = new SqlStreamStoreHalSettings
             {
                 Store = streamStore,
-                PageSize = 20
+                PageSize = 100
             };
 
-            var baseUrl = "http://+:8080";
+            var baseUrl = "http://localhost:8080";
 
             using (WebApp.Start(baseUrl, app => app.UseSqlStreamStoreHal(settings)))
             {
