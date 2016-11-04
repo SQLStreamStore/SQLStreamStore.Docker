@@ -25,7 +25,7 @@ namespace SqlStreamStore.HAL
 
                 yield return new NewStreamMessage(
                     Guid.NewGuid(),
-                    message.GetType().FullName.ToString(),
+                    message.GetType().FullName,
                     SimpleJson.SerializeObject(message)
                 );
             }

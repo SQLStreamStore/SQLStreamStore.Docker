@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Newtonsoft.Json;
 using SqlStreamStore.Streams;
 
@@ -81,7 +80,7 @@ namespace SqlStreamStore.HAL
         {
             return new Links
             {
-                Self = new { Href = "/streamMessage?position=" + position },
+                Self = new { Href = "/stream/" + position },
             };
         }
     }
