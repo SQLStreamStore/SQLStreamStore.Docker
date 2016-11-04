@@ -19,32 +19,32 @@ namespace SqlStreamStore.HAL
             Get["stream", true] = async (_, ct) =>
             {
                 var direction = GetDirection();
-                var position = GetPosition();
+                var position = GetPosition("position");
 
                 var readAllPage = await GetReadAllPage(settings.Store, settings.PageSize, position, direction);
-                return Response.AsJson(HalResponse.GetPage(readAllPage.Messages, settings.PageSize, Request.Path, direction));
+                return Response.AsJson(HalResponse.GetPage(readAllPage.Messages, settings.PageSize, Request.Url.SiteBase + Request.Path, direction));
             };
             
             Get["stream/{position}", true] = async (args, ct) =>
             {
                 var message = await settings.Store.ReadAllForwards(args.Position, 1);
-                var model = HalResponse.GetMessage(message.Messages[0]);
+                var model = HalResponse.GetMessage(Request.Url.SiteBase + Request.Path, message.Messages[0]);
                 return FormatterExtensions.AsJson(Response, model);
             };
 
             Get["streams/{streamId}", true] = async (args, ct) =>
             {
                 var direction = GetDirection();
-                var position = GetPosition();
+                var position = GetPosition("version");
 
                 ReadStreamPage readAllPage = await GetReadStreamPage(args.StreamId, settings.Store, settings.PageSize, (int?)position, direction);
-                return Response.AsJson(HalResponse.GetPage(readAllPage.Messages, settings.PageSize, Request.Path, direction));
+                return Response.AsJson(HalResponse.GetPage(readAllPage.Messages, settings.PageSize, Request.Url.SiteBase + Request.Path, direction));
             };
         }
 
-        private long? GetPosition()
+        private long? GetPosition(string parameterName)
         {
-            string position = Request.Query.Position;
+            string position = Request.Query[parameterName];
 
             if (position == null)
             {

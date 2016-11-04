@@ -1,6 +1,7 @@
 ﻿using Microsoft.Owin.Hosting;
 using SqlStreamStore.Streams;
 using System;
+using System.Configuration;
 using System.Linq;
 
 namespace SqlStreamStore.HAL
@@ -10,10 +11,13 @@ namespace SqlStreamStore.HAL
         static void Main()
         {
             var streamStore = new InMemoryStreamStore();
-            var messages = SeedData.Get(40);
+
+            var messages = SeedData.Get(40).ToList();
+            var messages2 = SeedData.Get(40).ToList();
 
             streamStore.AppendToStream("SomeStream", ExpectedVersion.Any, messages).GetAwaiter().GetResult();
-            streamStore.AppendToStream("SomeOtherStream", ExpectedVersion.Any, messages).GetAwaiter().GetResult();
+            streamStore.AppendToStream("SomeOtherStream", ExpectedVersion.Any, messages2).GetAwaiter().GetResult();
+            streamStore.DeleteMessage("SomeStream", messages.ToList()[21].MessageId).GetAwaiter().GetResult();
 
             var settings = new SqlStreamStoreHalSettings
             {

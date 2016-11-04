@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Jil;
+using Nancy.Helpers;
 using SqlStreamStore.Streams;
 
 namespace SqlStreamStore.HAL
@@ -33,16 +35,16 @@ namespace SqlStreamStore.HAL
             return new HalResponse
             {
                 Links = links,
-                Embedded = new { Page = messages.Select(ToPageResponse).ToList() },
+                Embedded = new { Page = messages.Select(m => ToPageResponse(path, m)).ToList() },
                 Count = messages.Length
             };
         }
 
-        public static object GetMessage(StreamMessage m)
+        public static object GetMessage(string path, StreamMessage m)
         {
             return new
             {
-                _links = Links.CreateItemLink(m.Position),
+                _links = Links.CreateItemLink(path, m.Position),
                 m.Position,
                 m.CreatedUtc,
                 m.MessageId,
@@ -54,11 +56,11 @@ namespace SqlStreamStore.HAL
             };
         }
 
-        static object ToPageResponse(StreamMessage m)
+        static object ToPageResponse(string path, StreamMessage m)
         {
             return new
             {
-                _links = Links.CreateItemLink(m.Position),
+                _links = Links.CreateItemLink(path, m.Position),
                 m.Position,
                 m.CreatedUtc,
                 m.MessageId,
@@ -78,19 +80,51 @@ namespace SqlStreamStore.HAL
 
         public static Links CreatePaginationLinks(string path, long positionOfFirstEvent, long positionOfLastEvent, int numberOfEvents, int pageSize, int direction)
         {
+            var self = new Uri(path)
+                .AddQuery("position", positionOfFirstEvent)
+                .AddQuery("direction", direction == 1 ? "forwards" : "backwards")
+                .ToString();
+
+            var next = new Uri(path)
+                .AddQuery("position", positionOfLastEvent + direction)
+                .AddQuery("direction", direction == 1 ? "forwards" : "backwards")
+                .ToString();
+
             return new Links
             {
-                Self = new { Href = path + $"?position={positionOfFirstEvent}&direction={(direction == 1 ? "forwards" : "backwards")}" },
-                Next = numberOfEvents < pageSize ? null : new { Href = $"{path}?position={positionOfLastEvent + direction}&direction={(direction == 1 ? "forwards" : "backwards")}" }
+                Self = new { Href = self },
+                Next = numberOfEvents < pageSize ? null : new { Href = next }
             };
         }
 
-        public static Links CreateItemLink(long position)
+        public static Links CreateItemLink(string path, long position)
         {
+            var self = new Uri(path)
+                .AddQuery("position", position)
+                .ToString();
+
             return new Links
             {
-                Self = new { Href = "/stream/" + position },
+                Self = new { Href = self }
             };
+        }
+    }
+
+    public static class HttpExtensions
+    {
+        public static Uri AddQuery(this Uri uri, string name, object value)
+        {
+            var ub = new UriBuilder(uri);
+
+            // decodes urlencoded pairs from uri.Query to HttpValueCollection
+            var httpValueCollection = HttpUtility.ParseQueryString(uri.Query);
+
+            httpValueCollection.Add(name, value.ToString());
+
+            // urlencodes the whole HttpValueCollection
+            ub.Query = httpValueCollection.ToString();
+
+            return ub.Uri;
         }
     }
 }

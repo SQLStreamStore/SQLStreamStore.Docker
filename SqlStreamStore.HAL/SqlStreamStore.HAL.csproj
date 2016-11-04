@@ -73,9 +73,15 @@
       <HintPath>..\packages\SqlStreamStore.0.4.3\lib\Portable-Net45+Win8+WP8+WPA81\SqlStreamStore.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SqlStreamStore.MsSql, Version=0.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SqlStreamStore.MsSql.0.4.3\lib\net451\SqlStreamStore.MsSql.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
