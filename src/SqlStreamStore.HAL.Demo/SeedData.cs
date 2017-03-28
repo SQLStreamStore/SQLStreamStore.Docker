@@ -1,24 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using SqlStreamStore.Streams;
-using StreamStoreStore.Json;
-
-namespace SqlStreamStore.HAL
+﻿namespace SqlStreamStore.HAL.Demo
 {
+    using System;
+    using System.Collections.Generic;
+    using SqlStreamStore.Streams;
+    using StreamStoreStore.Json;
+
     public static class SeedData
     {
         static readonly Dictionary<int, Func<object>> Factory = new Dictionary<int, Func<object>>
         {
-            {0, Fizz.Get},
-            {1, FizzBuzz.Get},
-            {2, Buzz.Get}
+            { 0, Fizz.Get },
+            { 1, FizzBuzz.Get },
+            { 2, Buzz.Get }
         };
 
         public static IEnumerable<NewStreamMessage> Get(int count)
         {
             var rand = new Random();
 
-            for (var i = 0; i < count; i++)
+            for(var i = 0; i < count; i++)
             {
                 var random = rand.Next(0, 3);
                 var message = Factory[random]();
