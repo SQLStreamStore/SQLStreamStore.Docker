@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL", "SqlSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL.Tests", "SqlStreamStore.HAL.Tests\SqlStreamStore.HAL.Tests.csproj", "{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL.Demo", "SqlStreamStore.HAL.Demo\SqlStreamStore.HAL.Demo.csproj", "{40942079-7C9C-4CC4-A8DA-A6643F03D82A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{40942079-7C9C-4CC4-A8DA-A6643F03D82A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40942079-7C9C-4CC4-A8DA-A6643F03D82A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40942079-7C9C-4CC4-A8DA-A6643F03D82A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40942079-7C9C-4CC4-A8DA-A6643F03D82A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
