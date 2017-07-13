@@ -6,8 +6,6 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("SqlStreamStore.HAL")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("SqlStreamStore.HAL")]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2016")]
