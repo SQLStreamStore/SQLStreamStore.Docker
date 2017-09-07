@@ -14,9 +14,8 @@ namespace SqlStreamStore.HAL
             var pieces = request.Path.Value.Split('/').Reverse().Take(2).ToArray();
 
             StreamId = pieces.LastOrDefault();
-            int streamVersion;
 
-            if(int.TryParse(pieces.FirstOrDefault(), out streamVersion))
+            if(int.TryParse(pieces.FirstOrDefault(), out var streamVersion))
             {
                 StreamVersion = streamVersion;
             }

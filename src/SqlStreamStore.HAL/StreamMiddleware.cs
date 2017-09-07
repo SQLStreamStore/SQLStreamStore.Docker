@@ -17,9 +17,8 @@ namespace SqlStreamStore.HAL
             var streams = new StreamResource(streamStore);
 
             var builder = new AppBuilder()
-                .MapWhen(context => context.Request.Path.Value?.Split('/')?.Length == 3,
-                    inner => inner.Use(GetStreamMessage(streams)))
-                .MapWhen(context => context.Request.Path.Value?.Length > 1, inner => inner.Use(GetStream(streams)));
+                .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(streams)))
+                .MapWhen(IsStream, inner => inner.Use(GetStream(streams)));
 
             return next =>
             {
@@ -28,6 +27,12 @@ namespace SqlStreamStore.HAL
                 return builder.Build();
             };
         }
+
+        private static bool IsStream(IOwinContext context)
+            => context.Request.Path.Value?.Length > 1;
+
+        private static bool IsStreamMessage(IOwinContext context)
+            => context.Request.Path.Value?.Split('/')?.Length == 3;
 
         private static MidFunc GetStream(StreamResource stream) => next => async env =>
         {
