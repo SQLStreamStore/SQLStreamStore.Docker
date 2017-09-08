@@ -19,7 +19,7 @@ namespace SqlStreamStore.HAL.Tests
         private static Resource ParseResource(JObject outer)
         {
             var links = new List<Link>();
-            var embedded = new List<Tuple<string, Resource>>();
+            var embedded = new List<(string, Resource)>();
             var state = new JObject();
 
             foreach(var inner in outer.Properties())
@@ -67,8 +67,8 @@ namespace SqlStreamStore.HAL.Tests
             return new Resource(state, links.ToArray(), embedded.ToArray());
         }
 
-        private static Tuple<string, Resource> ParseEmbeddedResource(JObject outer, string rel)
-            => Tuple.Create(rel, ParseResource(outer));
+        private static (string, Resource) ParseEmbeddedResource(JObject outer, string rel)
+            => (rel, ParseResource(outer));
 
         private static Link ParseLink(JObject outer, string rel)
         {
