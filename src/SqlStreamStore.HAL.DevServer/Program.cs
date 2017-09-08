@@ -1,42 +1,44 @@
-﻿namespace SqlStreamStore.HAL.Demo
+﻿namespace SqlStreamStore.HAL.DevServer
 {
     using System;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
-    using Microsoft.Owin.Builder;
-    using Nowin;
-    using Serilog;
+    using KestrelPureOwin;
+    using Microsoft.AspNetCore.Server.Kestrel;
     using SqlStreamStore.Streams;
+    using BuildFunc = System.Action<
+        System.Func<
+            System.Func<
+                System.Collections.Generic.IDictionary<string, object>,
+                System.Threading.Tasks.Task>,
+            System.Func<
+                System.Collections.Generic.IDictionary<string, object>,
+                System.Threading.Tasks.Task>>>;
 
-    internal class Program
+    internal static class Program
     {
-        public static void Main(string[] args)
+        private static readonly Random s_random = new Random();
+
+        public static int Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo
-                .ColoredConsole()
-                .MinimumLevel.Verbose()
-                .CreateLogger();
-
-            var streamStore = new InMemoryStreamStore();
-
-            var builder = new AppBuilder();
-
-            builder.Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
-
-            var server = ServerBuilder.New()
-                .SetEndPoint(new IPEndPoint(IPAddress.Loopback, 8080))
-                .SetOwinApp(builder.Build());
-
-
-            using(streamStore)
-            using(server.Build())
-            using(server.Start())
+            var options = new KestrelServerOptions
             {
+                AddServerHeader = false
+            };
+
+            using(var server = new KestrelOwinServer(options))
+            using(var streamStore = new InMemoryStreamStore())
+            {
+                server.Start("http://localhost:80", Configure(streamStore));
+
                 DisplayMenu(streamStore);
             }
+
+            return 0;
         }
+
+        private static Action<BuildFunc> Configure(IStreamStore streamStore)
+            => builder => builder.Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
 
         private static void DisplayMenu(IStreamStore streamStore)
         {
@@ -74,7 +76,12 @@
 
         private static NewStreamMessage[] GenerateMessages(int messageCount)
             => Enumerable.Range(0, messageCount)
-                .Select(_ => new NewStreamMessage(Guid.NewGuid(), "test", "{}", "{}"))
+                .Select(_ => new NewStreamMessage(
+                    Guid.NewGuid(),
+                    "test",
+                    $@"{{ ""foo"": ""{Guid.NewGuid()}"", ""baz"": {{  }}, ""qux"": [ {string.Join(", ", Enumerable
+                        .Range(0, messageCount).Select(max => s_random.Next(max)))} ] }}",
+                    "{}"))
                 .ToArray();
     }
 }

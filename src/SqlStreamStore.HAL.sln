@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL", "SqlSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL.Tests", "SqlStreamStore.HAL.Tests\SqlStreamStore.HAL.Tests.csproj", "{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL.DevServer", "SqlStreamStore.HAL.DevServer\SqlStreamStore.HAL.DevServer.csproj", "{2A6776A3-1495-4106-8C6B-9AE1A1E63976}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KestrelPureOwin", "KestrelPureOwin\KestrelPureOwin.csproj", "{005FF97F-542D-4B2B-A338-BAC82C3A7393}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Release|Any CPU.Build.0 = Release|Any CPU
+		{005FF97F-542D-4B2B-A338-BAC82C3A7393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{005FF97F-542D-4B2B-A338-BAC82C3A7393}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{005FF97F-542D-4B2B-A338-BAC82C3A7393}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{005FF97F-542D-4B2B-A338-BAC82C3A7393}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
