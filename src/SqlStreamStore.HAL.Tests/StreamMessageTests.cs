@@ -14,7 +14,7 @@
 
         public void Dispose() => _fixture.Dispose();
         private readonly MiddlewareFixture _fixture;
-        private const string HeadOfStream = "../a-stream?d=b&m=20&p=-1";
+        private const string HeadOfStream = "a-stream?d=b&m=20&p=-1";
 
         [Fact]
         public async Task read_single_message_stream()

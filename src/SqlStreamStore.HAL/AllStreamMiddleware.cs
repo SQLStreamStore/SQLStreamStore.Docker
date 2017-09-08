@@ -16,13 +16,8 @@ namespace SqlStreamStore.HAL
             var allStream = new AllStreamResource(streamStore);
 
             var builder = new AppBuilder()
-                .MapWhen(context => !context.Request.Path.HasValue, inner => inner.Use(GetStream(allStream)))
-                .MapWhen(context =>
-                    {
-                        long _;
-                        return long.TryParse(context.Request.Path.Value?.Remove(0, 1), out _);
-                    },
-                    inner => inner.Use(GetStreamMessage(allStream)));
+                .MapWhen(IsStream, inner => inner.Use(GetStream(allStream)))
+                .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(allStream)));
 
             return next =>
             {
@@ -31,6 +26,12 @@ namespace SqlStreamStore.HAL
                 return builder.Build();
             };
         }
+
+        private static bool IsStream(IOwinContext context)
+            => !context.Request.Path.HasValue;
+
+        private static bool IsStreamMessage(IOwinContext context)
+            => long.TryParse(context.Request.Path.Value?.Remove(0, 1), out var _);
 
         private static MidFunc GetStream(AllStreamResource allStream) => next => async env =>
         {

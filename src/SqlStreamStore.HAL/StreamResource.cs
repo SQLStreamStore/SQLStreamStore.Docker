@@ -175,7 +175,7 @@ namespace SqlStreamStore.HAL
 
             public static Link Feed(ReadStreamMessageOptions options) => new Link(
                 Relations.Feed,
-                LinkFormatter.FormatBackwardLink($"../{options.StreamId}", 20, StreamVersion.End));
+                LinkFormatter.FormatBackwardLink(options.StreamId, 20, StreamVersion.End));
 
             public static IEnumerable<Link> Navigation(ReadStreamPage page, string self)
             {
