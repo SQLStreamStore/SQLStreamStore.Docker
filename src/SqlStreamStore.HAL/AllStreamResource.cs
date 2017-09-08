@@ -96,7 +96,7 @@
 
             public static Link Self(StreamMessage message) => new Link(
                 Relations.Self,
-                $"../streams/{message.StreamId}/{message.StreamVersion}");
+                $"streams/{message.StreamId}/{message.StreamVersion}");
 
             public static Link SelfAll(StreamMessage message) => new Link(Relations.Self, $"/{StreamId}/{message.Position}");
 
