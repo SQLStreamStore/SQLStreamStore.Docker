@@ -12,11 +12,11 @@
         private const string FirstLinkQuery = "d=f&m=20&p=0";
         private const string LastLinkQuery = "d=b&m=20&p=-1";
 
-        private readonly MiddlewareFixture _fixture;
+        private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
         public StreamNavigationTests()
         {
-            _fixture = new MiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture();
         }
 
 

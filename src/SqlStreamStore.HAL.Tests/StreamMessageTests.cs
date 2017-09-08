@@ -9,11 +9,11 @@
     {
         public StreamMessageTests()
         {
-            _fixture = new MiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture();
         }
 
         public void Dispose() => _fixture.Dispose();
-        private readonly MiddlewareFixture _fixture;
+        private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
         private const string HeadOfStream = "a-stream?d=b&m=20&p=-1";
 
         [Fact]

@@ -10,7 +10,7 @@ namespace SqlStreamStore.HAL
             System.Threading.Tasks.Task>
     >;
 
-    internal static class StreamMiddleware
+    internal static class ReadStreamMiddleware
     {
         public static MidFunc UseStreamStore(IReadonlyStreamStore streamStore)
         {
@@ -29,10 +29,10 @@ namespace SqlStreamStore.HAL
         }
 
         private static bool IsStream(IOwinContext context)
-            => context.Request.Path.Value?.Length > 1;
+            => context.IsGetOrHead() && context.Request.Path.Value?.Length > 1;
 
         private static bool IsStreamMessage(IOwinContext context)
-            => context.Request.Path.Value?.Split('/')?.Length == 3;
+            => context.IsGetOrHead() && context.Request.Path.Value?.Split('/')?.Length == 3;
 
         private static MidFunc GetStream(StreamResource stream) => next => async env =>
         {

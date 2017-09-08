@@ -1,6 +1,8 @@
 ﻿namespace SqlStreamStore.HAL
 {
     using System;
+    using System.Linq;
+    using System.Threading.Tasks;
     using Halcyon.HAL;
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
@@ -51,8 +53,12 @@
             var builder = new AppBuilder()
                 .Use(AccessControl)
                 .Use(Index)
-                .Map("/stream", inner => inner.Use(AllStreamMiddleware.UseStreamStore(streamStore)))
-                .Map("/streams", inner => inner.Use(StreamMiddleware.UseStreamStore(streamStore)));
+                .Map("/stream", inner => inner
+                    .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
+                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")))
+                .Map("/streams", inner => inner
+                    .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
+                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")));
 
             return next =>
             {
@@ -61,5 +67,21 @@
                 return builder.Build();
             };
         }
+
+        private static MidFunc MethodsNotAllowed(params string[] methods)
+            => next => env =>
+            {
+                var context = new OwinContext(env);
+
+                if(!methods.Contains(context.Request.Method))
+                {
+                    return next(env);
+                }
+
+                context.Response.StatusCode = 405;
+                context.Response.ReasonPhrase = "Method Not Allowed";
+
+                return Task.CompletedTask;
+            };
     }
 }

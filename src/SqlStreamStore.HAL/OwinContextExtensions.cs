@@ -9,7 +9,7 @@ namespace SqlStreamStore.HAL
 
     internal static class OwinContextExtensions
     {
-        public static readonly RecyclableMemoryStreamManager s_StreamManager
+        private static readonly RecyclableMemoryStreamManager s_StreamManager
             = new RecyclableMemoryStreamManager();
 
         public static async Task WriteHalResponse(this IOwinContext context, Response response)
@@ -38,5 +38,8 @@ namespace SqlStreamStore.HAL
                 await stream.CopyToAsync(context.Response.Body, 8192, context.Request.CallCancelled);
             }
         }
+
+        public static bool IsGetOrHead(this IOwinContext context)
+            => context.Request.Method == "GET" || context.Request.Method == "HEAD";
     }
 }

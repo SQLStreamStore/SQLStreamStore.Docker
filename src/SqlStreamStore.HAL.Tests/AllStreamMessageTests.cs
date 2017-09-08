@@ -10,11 +10,11 @@ namespace SqlStreamStore.HAL.Tests
     {
         public AllStreamMessageTests()
         {
-            _fixture = new MiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture();
         }
 
         public void Dispose() => _fixture.Dispose();
-        private readonly MiddlewareFixture _fixture;
+        private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
         private const string HeadOfAll = "stream?d=b&m=20&p=-1";
 
         [Fact]
