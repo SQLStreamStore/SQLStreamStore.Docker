@@ -41,5 +41,8 @@ namespace SqlStreamStore.HAL
 
         public static bool IsGetOrHead(this IOwinContext context)
             => context.Request.Method == "GET" || context.Request.Method == "HEAD";
+
+        public static bool IsPost(this IOwinContext context)
+            => context.Request.Method == "POST";
     }
 }

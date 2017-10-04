@@ -45,7 +45,7 @@
             return context.WriteHalResponse(response);
         };
 
-        public static MidFunc UseSqlStreamStoreHal(IReadonlyStreamStore streamStore)
+        public static MidFunc UseSqlStreamStoreHal(IStreamStore streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
@@ -58,7 +58,8 @@
                     .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")))
                 .Map("/streams", inner => inner
                     .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")));
+                    .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
+                    .Use(MethodsNotAllowed("PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")));
 
             return next =>
             {

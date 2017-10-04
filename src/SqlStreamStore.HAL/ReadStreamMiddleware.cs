@@ -12,7 +12,7 @@ namespace SqlStreamStore.HAL
 
     internal static class ReadStreamMiddleware
     {
-        public static MidFunc UseStreamStore(IReadonlyStreamStore streamStore)
+        public static MidFunc UseStreamStore(IStreamStore streamStore)
         {
             var streams = new StreamResource(streamStore);
 
