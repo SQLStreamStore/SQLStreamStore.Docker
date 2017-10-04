@@ -1,5 +1,4 @@
-#addin "Cake.FileHelpers"
-#addin "Cake.Powershell"
+#addin "Cake.FileHelpers&version=1.0.4"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
@@ -108,11 +107,11 @@ void DownloadDotNetCoreForWindows(ConvertableDirectoryPath dotnetDirectory, stri
 
     DownloadFile(installer, installerPath);
 
-    StartPowershellFile(installerPath, args => {
-        args.Append("Channel", channel);
-        args.Append("Version", version);
-        args.Append("InstallDir", dotnetDirectory);
-    });
+    using (var process = StartAndReturnProcess("powershell", new ProcessSettings {
+        Arguments = $"{installerPath} -Channel {channel} -Version {version} -InstallDir {dotnetDirectory}"
+    })) {
+        process.WaitForExit();
+    }
 }
 
 void DownloadDotNetCoreForUnix(DirectoryPath dotnetDirectory, string version) {
