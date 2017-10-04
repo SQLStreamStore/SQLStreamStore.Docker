@@ -28,7 +28,8 @@ Task("Build")
     .Does(() =>
 {
     DotNetCoreBuild(solution, new DotNetCoreBuildSettings {
-        Configuration = configuration
+        Configuration = configuration,
+	EnvironmentVariables = DotNetEnvironment
     });
 });
 
