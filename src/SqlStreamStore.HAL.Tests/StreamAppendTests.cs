@@ -122,6 +122,77 @@
             JToken.DeepEquals(JObject.Parse(page.Messages[0].JsonMetadata), jsonMetadata).ShouldBeTrue();
         }
 
+        [Theory]
+        [InlineData(new[]{ExpectedVersion.NoStream, ExpectedVersion.NoStream})]
+        [InlineData(new[]{ExpectedVersion.NoStream, 2})]
+        public async Task wrong_expected_version(int[] expectedVersions)
+        {
+            var jsonData = JObject.FromObject(new
+            {
+                property = "value"
+            });
+
+            var jsonMetadata = JObject.FromObject(new
+            {
+                property = "metaValue"
+            });
+
+            for(var i = 0; i < expectedVersions.Length - 1; i++)
+            {
+                using(await _fixture.HttpClient.PostAsync(
+                    "/streams/a-stream",
+                    new StringContent(JObject.FromObject(new
+                    {
+                        expectedVersion = expectedVersions[i],
+                        messages = new[]
+                        {
+                            new
+                            {
+                                messageId = Guid.NewGuid(),
+                                type = "type",
+                                jsonData,
+                                jsonMetadata
+                            }
+                        }
+                    }).ToString())
+                    {
+                        Headers =
+                        {
+                            ContentType = new MediaTypeHeaderValue("application/json")
+                        }
+                    }))
+                { }
+            }
+
+            using(var response = await _fixture.HttpClient.PostAsync(
+                "/streams/a-stream",
+                new StringContent(JObject.FromObject(new
+                {
+                    expectedVersion = expectedVersions[expectedVersions.Length-1],
+                    messages = new[]
+                    {
+                        new
+                        {
+                            messageId = Guid.NewGuid(),
+                            type = "type",
+                            jsonData,
+                            jsonMetadata
+                        }
+                    }
+                }).ToString())
+                {
+                    Headers =
+                    {
+                        ContentType = new MediaTypeHeaderValue("application/json")
+                    }
+                }))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+                response.Content.Headers.ContentType.ShouldBe(new MediaTypeHeaderValue("application/problem+json"));
+            }
+            
+        }
+
         public void Dispose() => _fixture.Dispose();
     }
 }

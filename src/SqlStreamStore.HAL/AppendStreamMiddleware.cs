@@ -1,8 +1,11 @@
 namespace SqlStreamStore.HAL
 {
+    using System;
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
+    using Newtonsoft.Json.Linq;
     using Owin;
+    using SqlStreamStore.Streams;
     using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
             System.Threading.Tasks.Task
         >, System.Func<System.Collections.Generic.IDictionary<string, object>,
@@ -35,16 +38,36 @@ namespace SqlStreamStore.HAL
 
             var options = await AppendStreamOptions.Create(context.Request, context.Request.CallCancelled);
 
-            var response = await stream.AppendMessages(options, context.Request.CallCancelled);
-
-            if(response.StatusCode == 201)
+            try
             {
-                context.Response.ReasonPhrase = "Created";
-                context.Response.Headers["Location"] = $"streams/{options.StreamId}";
-            }
+                var response = await stream.AppendMessages(options, context.Request.CallCancelled);
 
-            await context.WriteHalResponse(response);
+                if(response.StatusCode == 201)
+                {
+                    context.Response.ReasonPhrase = "Created";
+                    context.Response.Headers["Location"] = $"streams/{options.StreamId}";
+                }
+
+                await context.WriteHalResponse(response);
+
+            }
+            catch(WrongExpectedVersionException ex)
+            {
+                context.Response.StatusCode = 409;
+                context.Response.ReasonPhrase = "Conflict";
+                context.Response.ContentType = "application/problem+json";
+
+                await context.Response.WriteAsync(ConvertToProblemDetails(ex));
+            }
         };
+
+        private static string ConvertToProblemDetails(Exception ex)
+            => JObject.FromObject(new
+            {
+                type = "WrongExpectedVersion",
+                title = "Wrong expected version.",
+                detail = ex.Message
+            }).ToString();
 
     }
 }
