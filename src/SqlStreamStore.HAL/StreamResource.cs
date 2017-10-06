@@ -10,13 +10,28 @@ namespace SqlStreamStore.HAL
 
     internal class StreamResource
     {
-        private readonly IReadonlyStreamStore _streamStore;
+        private readonly IStreamStore _streamStore;
 
-        public StreamResource(IReadonlyStreamStore streamStore)
+        public StreamResource(IStreamStore streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
+        }
+
+        public async Task<Response> AppendMessages(
+            AppendStreamOptions options,
+            CancellationToken cancellationToken)
+        {
+            var operation = options.GetAppendOperation();
+
+            var result = await operation.Invoke(_streamStore, cancellationToken);
+
+            return new Response(
+                new HALResponse(new object()),
+                options.ExpectedVersion == ExpectedVersion.NoStream
+                    ? 201
+                    : 200);
         }
 
         public async Task<Response> GetMessage(
@@ -89,6 +104,15 @@ namespace SqlStreamStore.HAL
                                 message.Type,
                                 payload
                             }).AddLinks(StreamMessageLinks.Self(message)))));
+        }
+
+        public async Task<Response> Delete(DeleteStreamOptions options, CancellationToken cancellationToken)
+        {
+            var operation = options.GetDeleteOperation();
+
+            await operation.Invoke(_streamStore, cancellationToken);
+            
+            return new Response(new HALResponse(new object()));
         }
 
         private static class StreamMessageLinks
