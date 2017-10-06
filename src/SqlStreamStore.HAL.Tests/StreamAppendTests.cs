@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore.HAL.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -12,6 +13,7 @@
 
     public class StreamAppendTests : IDisposable
     {
+        private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
         public StreamAppendTests()
@@ -19,8 +21,7 @@
             _fixture = new SqlStreamStoreHalMiddlewareFixture();
         }
 
-        [Fact]
-        public async Task append_expected_version_any()
+        public static IEnumerable<object[]> AppendCases()
         {
             var messageId = Guid.NewGuid();
 
@@ -33,86 +34,85 @@
             {
                 property = "metaValue"
             });
-            
-            using(var response = await _fixture.HttpClient.PostAsync(
-                "/streams/a-stream",
-                new StringContent(JObject.FromObject(new
-                {
-                    expectedVersion = ExpectedVersion.Any,
-                    messages = new[]
-                    {
-                        new
-                        {
-                            messageId,
-                            type = "type",
-                            jsonData,
-                            jsonMetadata
-                        }
-                    } 
-                }).ToString())
-                {
-                    Headers =
-                    {
-                        ContentType = new MediaTypeHeaderValue("application/json")
-                    }
-                }))
-            {
-                response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            }
 
-            var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", 0, 1);
-            
-            page.Status.ShouldBe(PageReadStatus.Success);
-            page.Messages.Length.ShouldBe(1);
-            page.Messages[0].MessageId.ShouldBe(messageId);
-            page.Messages[0].Type.ShouldBe("type");
-            JToken.DeepEquals(JObject.Parse(await page.Messages[0].GetJsonData()), jsonData).ShouldBeTrue();
-            JToken.DeepEquals(JObject.Parse(page.Messages[0].JsonMetadata), jsonMetadata).ShouldBeTrue();
+            var bodies = new JToken[]
+            {
+                JObject.FromObject(new
+                {
+                    messageId,
+                    type = "type",
+                    jsonData,
+                    jsonMetadata
+                }),
+                JArray.FromObject(new[]
+                {
+                    new
+                    {
+                        messageId,
+                        type = "type",
+                        jsonData,
+                        jsonMetadata
+                    }
+                })
+            };
+
+            foreach(var body in bodies)
+            {
+                yield return new object[]
+                {
+                    body,
+                    ExpectedVersion.Any,
+                    HttpStatusCode.OK,
+                    messageId,
+                    jsonData,
+                    jsonMetadata
+                };
+                yield return new object[]
+                {
+                    body,
+                    default(int?),
+                    HttpStatusCode.OK,
+                    messageId,
+                    jsonData,
+                    jsonMetadata
+                };
+                yield return new object[]
+                {
+                    body,
+                    ExpectedVersion.NoStream,
+                    HttpStatusCode.Created,
+                    messageId,
+                    jsonData,
+                    jsonMetadata
+                };
+            }
         }
 
-        [Fact]
-        public async Task append_expected_version_no_stream()
+        [Theory, MemberData(nameof(AppendCases))]
+        public async Task expected_version(
+            JToken body,
+            int? expectedVersion,
+            HttpStatusCode statusCode,
+            Guid messageId,
+            JObject jsonData,
+            JObject jsonMetadata)
         {
-            var messageId = Guid.NewGuid();
+            var request = new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+            {
+                Content = new StringContent(body.ToString())
+            };
 
-            var jsonData = JObject.FromObject(new
+            if(expectedVersion.HasValue)
             {
-                property = "value"
-            });
-
-            var jsonMetadata = JObject.FromObject(new
-            {
-                property = "metaValue"
-            });
-            
-            using(var response = await _fixture.HttpClient.PostAsync(
-                "/streams/a-stream",
-                new StringContent(JObject.FromObject(new
-                {
-                    expectedVersion = ExpectedVersion.NoStream,
-                    messages = new[]
-                    {
-                        new
-                        {
-                            messageId,
-                            type = "type",
-                            jsonData,
-                            jsonMetadata
-                        }
-                    } 
-                }).ToString())
-                {
-                    Headers =
-                    {
-                        ContentType = new MediaTypeHeaderValue("application/json")
-                    }
-                }))
-            {
-                response.StatusCode.ShouldBe(HttpStatusCode.Created);
-                response.Headers.Location.ToString().ShouldBe("streams/a-stream");
+                request.Headers.Add(Constants.Headers.ExpectedVersion, $"{expectedVersion}");
             }
 
-            var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", 0, 1);
+            using(var response = await _fixture.HttpClient.SendAsync(request))
+            {
+                response.StatusCode.ShouldBe(statusCode);
+            }
+
+            var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
             
             page.Status.ShouldBe(PageReadStatus.Success);
             page.Messages.Length.ShouldBe(1);
@@ -139,58 +139,58 @@
 
             for(var i = 0; i < expectedVersions.Length - 1; i++)
             {
-                using(await _fixture.HttpClient.PostAsync(
-                    "/streams/a-stream",
-                    new StringContent(JObject.FromObject(new
+                using(await _fixture.HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                {
+                    Headers =
                     {
-                        expectedVersion = expectedVersions[i],
-                        messages = new[]
-                        {
-                            new
-                            {
-                                messageId = Guid.NewGuid(),
-                                type = "type",
-                                jsonData,
-                                jsonMetadata
-                            }
-                        }
+                        {Constants.Headers.ExpectedVersion, $"{expectedVersions[i]}"}
+                    },
+                    Content = new StringContent(JObject.FromObject(new
+                    {
+                        messageId = Guid.NewGuid(),
+                        type = "type",
+                        jsonData,
+                        jsonMetadata
                     }).ToString())
                     {
                         Headers =
                         {
                             ContentType = new MediaTypeHeaderValue("application/json")
                         }
-                    }))
+                    }
+                }))
                 { }
             }
 
-            using(var response = await _fixture.HttpClient.PostAsync(
-                "/streams/a-stream",
-                new StringContent(JObject.FromObject(new
+            using(var response = await _fixture.HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+            {
+                Headers =
                 {
-                    expectedVersion = expectedVersions[expectedVersions.Length-1],
-                    messages = new[]
-                    {
-                        new
-                        {
-                            messageId = Guid.NewGuid(),
-                            type = "type",
-                            jsonData,
-                            jsonMetadata
-                        }
-                    }
+                    {Constants.Headers.ExpectedVersion, $"{expectedVersions[expectedVersions.Length - 1]}"}
+                },
+                Content = new StringContent(JObject.FromObject(new
+                {
+                    messageId = Guid.NewGuid(),
+                    type = "type",
+                    jsonData,
+                    jsonMetadata
                 }).ToString())
                 {
                     Headers =
                     {
                         ContentType = new MediaTypeHeaderValue("application/json")
                     }
-                }))
+                }
+            }))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
-                response.Content.Headers.ContentType.ShouldBe(new MediaTypeHeaderValue("application/problem+json"));
+                response.Content.Headers.ContentType.ShouldBe(new MediaTypeHeaderValue(
+                    Constants.Headers.ContentTypes.ProblemDetails));
             }
+            var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
             
+            page.Status.ShouldBe(PageReadStatus.Success);
+            page.Messages.Length.ShouldBe(expectedVersions.Length - 1);
         }
 
         public void Dispose() => _fixture.Dispose();

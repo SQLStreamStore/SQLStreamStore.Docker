@@ -6,6 +6,7 @@ namespace SqlStreamStore.HAL
     using Microsoft.Owin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
+    using SqlStreamStore.Streams;
 
     internal static class OwinContextExtensions
     {
@@ -39,10 +40,23 @@ namespace SqlStreamStore.HAL
             }
         }
 
+        public static Task WriteProblemDetailsResponse(this IOwinContext context, WrongExpectedVersionException ex)
+        {
+            context.Response.StatusCode = 409;
+            context.Response.ReasonPhrase = "Conflict";
+            context.Response.ContentType = Constants.Headers.ContentTypes.ProblemDetails;
+
+            return context.Response.WriteAsync(ex.ConvertToProblemDetails(), context.Request.CallCancelled);
+        }
+
         public static bool IsGetOrHead(this IOwinContext context)
             => context.Request.Method == "GET" || context.Request.Method == "HEAD";
 
         public static bool IsPost(this IOwinContext context)
             => context.Request.Method == "POST";
+        
+        public static bool IsDelete(this IOwinContext context)
+            => context.Request.Method == "DELETE";
+
     }
 }

@@ -106,6 +106,15 @@ namespace SqlStreamStore.HAL
                             }).AddLinks(StreamMessageLinks.Self(message)))));
         }
 
+        public async Task<Response> Delete(DeleteStreamOptions options, CancellationToken cancellationToken)
+        {
+            var operation = options.GetDeleteOperation();
+
+            await operation.Invoke(_streamStore, cancellationToken);
+            
+            return new Response(new HALResponse(new object()));
+        }
+
         private static class StreamMessageLinks
         {
             public static Link Self(ReadStreamMessageOptions options) => new Link(

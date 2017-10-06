@@ -59,7 +59,8 @@
                 .Map("/streams", inner => inner
                     .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
                     .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")));
+                    .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))
+                    .Use(MethodsNotAllowed("DELETE", "TRACE", "PATCH", "OPTIONS")));
 
             return next =>
             {
