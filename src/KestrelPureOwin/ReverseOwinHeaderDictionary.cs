@@ -33,6 +33,8 @@ namespace KestrelPureOwin
             set { Inner[key] = value; }
         }
 
+        public long? ContentLength { get; set; }
+
         StringValues IDictionary<string, StringValues>.this[string key]
         {
             get { return Inner[key]; }

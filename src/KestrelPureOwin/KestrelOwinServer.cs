@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Server.Kestrel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static KestrelPureOwin.Constants;
 
 namespace KestrelPureOwin
 {
+    using Microsoft.AspNetCore.Hosting.Internal;
+    using Microsoft.AspNetCore.Server.Kestrel.Core;
+    using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv;
     using AppFunc = Func<IDictionary<string, object>, Task>;
 
     using MidFunc = Func<
@@ -49,11 +50,14 @@ namespace KestrelPureOwin
 
             var wrappedOptions = Options.Create(options);
 
-            var lifetime = new ApplicationLifetime();
-
             var loggerFactory = new LoggerFactory();
 
-            Server = new KestrelServer(wrappedOptions, lifetime, loggerFactory);
+            var transport = new LibuvTransportFactory(
+                Options.Create(new LibuvTransportOptions()),
+                new ApplicationLifetime(loggerFactory.CreateLogger<ApplicationLifetime>()),
+                loggerFactory);
+
+            Server = new KestrelServer(wrappedOptions, transport, loggerFactory);
         }
 
         private static KestrelServerOptions GetOptions(IDictionary<string, object> properties)
@@ -61,25 +65,19 @@ namespace KestrelPureOwin
 
         public KestrelServer Server { get; }
 
-        public void Run(string url, Action<BuildFunc> configure)
+        public Task Run(string url, Action<BuildFunc> configure, CancellationToken cancellationToken)
         {
-            var done = new ManualResetEventSlim(false);
-
             Console.CancelKeyPress += (s, e) =>
             {
                 Console.WriteLine("Application is shutting down...");
 
-                done.Set();
-
                 e.Cancel = true;
             };
 
-            Start(url, configure);
-
-            done.Wait();
+            return Start(url, configure, cancellationToken);
         }
 
-        public void Start(string url, Action<BuildFunc> configure)
+        public Task Start(string url, Action<BuildFunc> configure, CancellationToken cancellationToken)
         {
             var application = ConfigureApplication(configure);
 
@@ -97,7 +95,7 @@ namespace KestrelPureOwin
                 Console.WriteLine($"Now listening on: {address}");
             }
 
-            Server.Start(application);
+            return Server.StartAsync(application, cancellationToken);
         }
 
         public void Dispose() => Server.Dispose();

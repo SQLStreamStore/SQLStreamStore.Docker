@@ -2,9 +2,11 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using KestrelPureOwin;
     using Microsoft.AspNetCore.Server.Kestrel;
+    using Microsoft.AspNetCore.Server.Kestrel.Core;
     using SqlStreamStore.Streams;
     using BuildFunc = System.Action<
         System.Func<
@@ -19,7 +21,7 @@
     {
         private static readonly Random s_random = new Random();
 
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             var options = new KestrelServerOptions
             {
@@ -29,7 +31,7 @@
             using(var server = new KestrelOwinServer(options))
             using(var streamStore = new InMemoryStreamStore())
             {
-                server.Start("http://localhost:80", Configure(streamStore));
+                await server.Start("http://localhost:80", Configure(streamStore), CancellationToken.None);
 
                 DisplayMenu(streamStore);
             }
