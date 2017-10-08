@@ -1,5 +1,7 @@
 namespace SqlStreamStore.HAL
 {
+    using System.Net.Http;
+    using System.Threading.Tasks;
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
@@ -17,7 +19,9 @@ namespace SqlStreamStore.HAL
 
             var builder = new AppBuilder()
                 .MapWhen(IsStream, inner => inner.Use(GetStream(allStream)))
-                .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(allStream)));
+                .MapWhen(IsStreamOptions, inner => inner.Use(GetStreamOptions))
+                .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(allStream)))
+                .MapWhen(IsStreamMessageOptions, inner => inner.Use(GetStreamMessageOptions));
 
             return next =>
             {
@@ -27,11 +31,23 @@ namespace SqlStreamStore.HAL
             };
         }
 
+        private static bool IsStream(PathString requestPath) 
+            => !requestPath.HasValue;
+
         private static bool IsStream(IOwinContext context)
-            => context.IsGetOrHead() && !context.Request.Path.HasValue;
+            => context.IsGetOrHead() && IsStream(context.Request.Path);
+
+        private static bool IsStreamOptions(IOwinContext context)
+            => context.IsOptions() && IsStream(context.Request.Path);
+
+        private static bool IsStreamMessage(PathString requestPath) 
+            => long.TryParse(requestPath.Value?.Remove(0, 1), out var _);
 
         private static bool IsStreamMessage(IOwinContext context)
-            => context.IsGetOrHead() &&  long.TryParse(context.Request.Path.Value?.Remove(0, 1), out var _);
+            => context.IsGetOrHead() && IsStreamMessage(context.Request.Path);
+
+        private static bool IsStreamMessageOptions(IOwinContext context)
+            => context.IsOptions() && IsStreamMessage(context.Request.Path);
 
         private static MidFunc GetStream(AllStreamResource allStream) => next => async env =>
         {
@@ -41,18 +57,49 @@ namespace SqlStreamStore.HAL
 
             var response = await allStream.GetPage(options, context.Request.CallCancelled);
 
-            await context.WriteHalResponse(response);
+            using(new OptionalHeadRequestWrapper(context))
+            {
+                await context.WriteHalResponse(response);
+            }
+        };
+        
+        private static MidFunc GetStreamOptions => next => env =>
+        {
+            var context = new OwinContext(env);
+            
+            context.SetStandardCorsHeaders(
+                HttpMethod.Get, 
+                HttpMethod.Head, 
+                HttpMethod.Options);
+
+            return Task.CompletedTask;
         };
 
         private static MidFunc GetStreamMessage(AllStreamResource allStream) => next => async env =>
         {
             var context = new OwinContext(env);
 
-            var resource = await allStream.GetMessage(
+            var response = await allStream.GetMessage(
                 new ReadAllStreamMessageOptions(context.Request),
                 context.Request.CallCancelled);
 
-            await context.WriteHalResponse(resource);
+            using(new OptionalHeadRequestWrapper(context))
+            {
+                await context.WriteHalResponse(response);
+            }
         };
+        
+        private static MidFunc GetStreamMessageOptions => next => env =>
+        {
+            var context = new OwinContext(env);
+            
+            context.SetStandardCorsHeaders(
+                HttpMethod.Get, 
+                HttpMethod.Head, 
+                HttpMethod.Options);
+
+            return Task.CompletedTask;
+        };
+
     }
 }

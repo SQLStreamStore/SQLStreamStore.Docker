@@ -35,7 +35,7 @@
                     : Task.FromResult<string>(null))
                 .ToArray());
 
-            return new Response(
+            var response = new Response(
                 new HALResponse(new object())
                     .AddLinks(Links.SelfFeed(options))
                     .AddLinks(Links.Navigation(page, options.Self))
@@ -54,6 +54,17 @@
                                 payload
                             }).AddLinks(
                                 Links.Self(message)))));
+
+            if(options.FromPositionInclusive == Position.End)
+            {
+                var headPosition = page.Messages.Length > 0
+                    ? page.Messages[0].Position
+                    : Position.End;
+                
+                response.Headers[Constants.Headers.HeadPosition] = new[] { $"{headPosition}" };
+            }
+            
+            return response;
         }
 
         public async Task<Response> GetMessage(

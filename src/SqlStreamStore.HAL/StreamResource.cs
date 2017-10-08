@@ -27,11 +27,16 @@ namespace SqlStreamStore.HAL
 
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
-            return new Response(
+            var response = new Response(
                 new HALResponse(new object()),
                 options.ExpectedVersion == ExpectedVersion.NoStream
                     ? 201
                     : 200);
+            if(options.ExpectedVersion == ExpectedVersion.NoStream)
+            {
+                response.Headers[Constants.Headers.Location] = new[] { $"streams/{options.StreamId}" };
+            }
+            return response;
         }
 
         public async Task<Response> GetMessage(
@@ -54,6 +59,17 @@ namespace SqlStreamStore.HAL
                         .AddLinks(StreamMessageLinks.Navigation(options))
                         .AddLinks(StreamLinks.Feed(options)),
                     404);
+            }
+            
+            if(options.StreamVersion == StreamVersion.End)
+            {
+                return new Response(new HALResponse(new object()), 307)
+                {
+                    Headers =
+                    {
+                        [Constants.Headers.Location] = new[] { $"{message.StreamVersion}" }
+                    }
+                };
             }
 
             var payload = await message.GetJsonData(cancellationToken);
@@ -103,7 +119,8 @@ namespace SqlStreamStore.HAL
                                 message.StreamVersion,
                                 message.Type,
                                 payload
-                            }).AddLinks(StreamMessageLinks.Self(message)))));
+                            }).AddLinks(StreamMessageLinks.Self(message)))),
+                page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
         }
 
         public async Task<Response> Delete(DeleteStreamOptions options, CancellationToken cancellationToken)

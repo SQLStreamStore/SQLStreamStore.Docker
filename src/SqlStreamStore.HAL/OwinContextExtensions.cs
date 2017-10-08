@@ -1,52 +1,58 @@
 namespace SqlStreamStore.HAL
 {
     using System.IO;
+    using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
-    using Microsoft.IO;
     using Microsoft.Owin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
-    using SqlStreamStore.Streams;
 
     internal static class OwinContextExtensions
     {
-        private static readonly RecyclableMemoryStreamManager s_StreamManager
-            = new RecyclableMemoryStreamManager();
+        private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            TypeNameHandling = TypeNameHandling.None
+        });
 
         public static async Task WriteHalResponse(this IOwinContext context, Response response)
         {
-            context.Response.ContentType = "application/hal+json";
+            context.Response.ContentType = Constants.Headers.ContentTypes.HalJson;
 
             context.Response.StatusCode = response.StatusCode;
 
-            using(var stream = s_StreamManager.GetStream())
-            using(var writer = new StreamWriter(stream))
+            foreach(var header in response.Headers)
             {
-                using(var jwriter = new JsonTextWriter(writer) { CloseOutput = false })
-                {
-                    var serializer = new JsonSerializer
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    };
+                context.Response.Headers.AppendValues(header.Key, header.Value);
+            }
 
-                    serializer.Serialize(jwriter, response.Hal);
+            using(var writer = new JsonTextWriter(new StreamWriter(context.Response.Body))
+            {
+                CloseOutput = false
+            })
+            {
+                await response.Hal.ToJObject(s_serializer).WriteToAsync(writer, context.Request.CallCancelled);
 
-                    jwriter.Flush();
-                }
-
-                stream.Position = 0;
-
-                await stream.CopyToAsync(context.Response.Body, 8192, context.Request.CallCancelled);
+                await writer.FlushAsync(context.Request.CallCancelled);
             }
         }
 
-        public static Task WriteProblemDetailsResponse(this IOwinContext context, WrongExpectedVersionException ex)
+        public static void SetStandardCorsHeaders(this IOwinContext context, params HttpMethod[] allowedMethods)
         {
-            context.Response.StatusCode = 409;
-            context.Response.ReasonPhrase = "Conflict";
-            context.Response.ContentType = Constants.Headers.ContentTypes.ProblemDetails;
-
-            return context.Response.WriteAsync(ex.ConvertToProblemDetails(), context.Request.CallCancelled);
+            if(allowedMethods?.Length > 0)
+            {
+                context.Response.Headers.AppendValues("Access-Control-Allow-Methods", 
+                    allowedMethods.Select(_ => _.Method).ToArray());
+            }
+            
+            context.Response.Headers.AppendValues(
+                "Access-Control-Allow-Headers",
+                "Content-Type",
+                "X-Requested-With",
+                "Authorization");
+            
+            context.Response.Headers.AppendValues("Access-Control-Allow-Origin", "*");
         }
 
         public static bool IsGetOrHead(this IOwinContext context)
@@ -57,6 +63,9 @@ namespace SqlStreamStore.HAL
         
         public static bool IsDelete(this IOwinContext context)
             => context.Request.Method == "DELETE";
+
+        public static bool IsOptions(this IOwinContext context)
+            => context.Request.Method == "OPTIONS";
 
     }
 }

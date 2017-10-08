@@ -22,18 +22,18 @@
 
         public void Dispose() => _fixture.Dispose();
 
-        public static IEnumerable<object[]> GetPagingCases()
+        public static IEnumerable<object[]> GetNoMessagesPagingCases()
         {
-            yield return new object[] { "stream", "/" };
-            yield return new object[] { "a-stream", "/streams/" };
+            yield return new object[] { "stream", "/", HttpStatusCode.OK };
+            yield return new object[] { "a-stream", "/streams/", HttpStatusCode.NotFound };
         }
 
-        [Theory, MemberData(nameof(GetPagingCases))]
-        public async Task read_head_link_no_messages(string stream, string baseAddress)
+        [Theory, MemberData(nameof(GetNoMessagesPagingCases))]
+        public async Task read_head_link_no_messages(string stream, string baseAddress, HttpStatusCode statusCode)
         {
             using(var response = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}"))
             {
-                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                response.StatusCode.ShouldBe(statusCode);
 
                 var resource = await response.AsHal();
 
@@ -47,6 +47,12 @@
 
                 resource.ShouldLink("streamStore:feed", $"{stream}?{LastLinkQuery}");
             }
+        }
+
+        public static IEnumerable<object[]> GetPagingCases()
+        {
+            yield return new object[] { "stream", "/" };
+            yield return new object[] { "a-stream", "/streams/" };
         }
 
         [Theory, MemberData(nameof(GetPagingCases))]

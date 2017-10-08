@@ -36,7 +36,10 @@
             HttpClient = new HttpClient(_messageHandler)
             {
                 BaseAddress = new UriBuilder().Uri,
-                DefaultRequestHeaders = { Accept = { new MediaTypeWithQualityHeaderValue("application/hal+json") } }
+                DefaultRequestHeaders =
+                {
+                    Accept = { new MediaTypeWithQualityHeaderValue(Constants.Headers.ContentTypes.HalJson) }
+                }
             };
         }
         public HttpClient HttpClient { get; }

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -185,12 +186,76 @@
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
                 response.Content.Headers.ContentType.ShouldBe(new MediaTypeHeaderValue(
-                    Constants.Headers.ContentTypes.ProblemDetails));
+                    Constants.Headers.ContentTypes.HalJson));
             }
             var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
             
             page.Status.ShouldBe(PageReadStatus.Success);
             page.Messages.Length.ShouldBe(expectedVersions.Length - 1);
+        }
+
+        private static IEnumerable<string> MalformedRequests()
+        {
+            var messageId = Guid.NewGuid();
+            
+            const string type = "type";
+            
+            var jsonData = JObject.FromObject(new
+            {
+                property = "value"
+            });
+
+            var jsonMetadata = JObject.FromObject(new
+            {
+                property = "metaValue"
+            });
+            
+            yield return string.Empty;
+            yield return "{}";
+            
+            yield return JObject.FromObject(new
+            {
+                messageId = Guid.Empty,
+                type,
+                jsonData,
+                jsonMetadata
+            }).ToString();
+            
+            yield return JObject.FromObject(new
+            {
+                type,
+                jsonData,
+                jsonMetadata
+            }).ToString();
+
+            yield return JObject.FromObject(new
+            {
+                messageId,
+                jsonData,
+                jsonMetadata
+            }).ToString();
+
+            yield return $@"{{ ""messageId"": ""{messageId}"", ""type"": ""{type}"", ""jsonData"": {{ }}";
+            yield return $@"{{ ""messageId"": ""{messageId}"", ""type"": ""{type}"", ""jsonMetaData"": {{ }}";
+        }
+
+        public static IEnumerable<object[]> MalformedRequestCases()
+            => MalformedRequests().Select(s => new object[] { s });
+
+        [Theory, MemberData(nameof(MalformedRequestCases))]
+        public async Task malformed_request_body(string malformedRequest)
+        {
+            using(var response = await _fixture.HttpClient.SendAsync(
+                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                {
+                    Content = new StringContent(malformedRequest)
+                    {
+                        Headers = { ContentType = new MediaTypeHeaderValue(Constants.Headers.ContentTypes.HalJson) }
+                    }
+                }))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            }
         }
 
         public void Dispose() => _fixture.Dispose();

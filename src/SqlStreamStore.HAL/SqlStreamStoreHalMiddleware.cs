@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Halcyon.HAL;
     using Microsoft.Owin;
@@ -15,20 +16,58 @@
 
     public static class SqlStreamStoreHalMiddleware
     {
-        private static MidFunc AccessControl => next => env =>
+        private static MidFunc AddReasonPhrase => next => env =>
         {
             var context = new OwinContext(env);
 
             context.Response.OnSendingHeaders(_ =>
                 {
-                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, OPTIONS";
-                    context.Response.Headers["Access-Control-Allow-Headers"]
-                        = "Content-Type, X-Requested-With, Authorization";
-                    context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+                    if(!Constants.ReasonPhrases.TryGetValue(context.Response.StatusCode, out var reasonPhrase))
+                    {
+                        return;
+                    }
+
+                    context.Response.ReasonPhrase = reasonPhrase;
                 },
                 null);
 
             return next(env);
+        };
+
+        private static MidFunc MethodsNotAllowed(params string[] methods) => next => env =>
+        {
+            var context = new OwinContext(env);
+
+            if(!methods.Contains(context.Request.Method))
+            {
+                return next(env);
+            }
+
+            context.Response.StatusCode = 405;
+
+            return Task.CompletedTask;
+        };
+
+        private static MidFunc AcceptOnlyHalJson => next => env =>
+        {
+            var context = new OwinContext(env);
+
+            var accept = context.Request.Accept?.Split(',')
+                                 .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
+                                     ? header.MediaType
+                                     : null)
+                             ?? Enumerable.Empty<string>();
+
+            return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
+                                        || header == Constants.Headers.ContentTypes.Any)
+                ? next(env)
+                : context.WriteHalResponse(new Response(new HALResponse(new
+                    {
+                        type = "Not Acceptable",
+                        title = "Not Acceptable",
+                        detail = $"The server only understands {Constants.Headers.ContentTypes.HalJson}."
+                    }),
+                    406));
         };
 
         private static MidFunc Index => next => env =>
@@ -51,16 +90,18 @@
                 throw new ArgumentNullException(nameof(streamStore));
 
             var builder = new AppBuilder()
-                .Use(AccessControl)
+                .Use(ExceptionHandlingMiddleware.HandleExceptions)
+                .Use(AddReasonPhrase)
+                .Use(AcceptOnlyHalJson)
                 .Use(Index)
                 .Map("/stream", inner => inner
                     .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")))
+                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH")))
                 .Map("/streams", inner => inner
                     .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
                     .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
                     .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("DELETE", "TRACE", "PATCH", "OPTIONS")));
+                    .Use(MethodsNotAllowed("TRACE", "PATCH")));
 
             return next =>
             {
@@ -70,20 +111,5 @@
             };
         }
 
-        private static MidFunc MethodsNotAllowed(params string[] methods)
-            => next => env =>
-            {
-                var context = new OwinContext(env);
-
-                if(!methods.Contains(context.Request.Method))
-                {
-                    return next(env);
-                }
-
-                context.Response.StatusCode = 405;
-                context.Response.ReasonPhrase = "Method Not Allowed";
-
-                return Task.CompletedTask;
-            };
     }
 }

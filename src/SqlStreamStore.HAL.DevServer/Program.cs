@@ -2,10 +2,18 @@
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using KestrelPureOwin;
-    using Microsoft.AspNetCore.Server.Kestrel;
+    using Microsoft.AspNetCore.Server.Kestrel.Core;
     using SqlStreamStore.Streams;
+    using MidFunc = System.Func<
+        System.Func<
+            System.Collections.Generic.IDictionary<string, object>,
+            System.Threading.Tasks.Task>,
+        System.Func<
+            System.Collections.Generic.IDictionary<string, object>,
+            System.Threading.Tasks.Task>>;
     using BuildFunc = System.Action<
         System.Func<
             System.Func<
@@ -18,18 +26,27 @@
     internal static class Program
     {
         private static readonly Random s_random = new Random();
+        private const int DefaultPort = 8001;
 
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             var options = new KestrelServerOptions
             {
                 AddServerHeader = false
             };
 
+            if(!int.TryParse(args.FirstOrDefault(), out var port))
+            {
+                port = DefaultPort;
+            };
+
             using(var server = new KestrelOwinServer(options))
             using(var streamStore = new InMemoryStreamStore())
             {
-                server.Start("http://localhost:80", Configure(streamStore));
+                await server.Start(new UriBuilder
+                {
+                    Port = port
+                }.Uri.ToString(), Configure(streamStore), CancellationToken.None);
 
                 DisplayMenu(streamStore);
             }
@@ -38,7 +55,21 @@
         }
 
         private static Action<BuildFunc> Configure(IStreamStore streamStore)
-            => builder => builder.Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
+            => builder => builder
+                .Use(DisplayErrors)
+                .Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
+
+        private static MidFunc DisplayErrors => next => async env =>
+        {
+            try
+            {
+                await next(env);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);    
+            }
+        };
 
         private static void DisplayMenu(IStreamStore streamStore)
         {
