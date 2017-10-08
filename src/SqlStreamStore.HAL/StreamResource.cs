@@ -108,7 +108,8 @@ namespace SqlStreamStore.HAL
                                 message.StreamVersion,
                                 message.Type,
                                 payload
-                            }).AddLinks(StreamMessageLinks.Self(message)))));
+                            }).AddLinks(StreamMessageLinks.Self(message)))),
+                page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
         }
 
         public async Task<Response> Delete(DeleteStreamOptions options, CancellationToken cancellationToken)
