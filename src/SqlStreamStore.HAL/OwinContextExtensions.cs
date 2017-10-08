@@ -3,7 +3,6 @@ namespace SqlStreamStore.HAL
     using System.IO;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using Microsoft.IO;
     using Microsoft.Owin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
@@ -11,8 +10,11 @@ namespace SqlStreamStore.HAL
 
     internal static class OwinContextExtensions
     {
-        private static readonly RecyclableMemoryStreamManager s_StreamManager
-            = new RecyclableMemoryStreamManager();
+        private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            TypeNameHandling = TypeNameHandling.None
+        });
 
         public static async Task WriteHalResponse(this IOwinContext context, Response response)
         {
@@ -25,24 +27,14 @@ namespace SqlStreamStore.HAL
                 context.Response.Headers.AppendValues(header.Key, header.Value);
             }
 
-            using(var stream = s_StreamManager.GetStream())
-            using(var writer = new StreamWriter(stream))
+            using(var writer = new JsonTextWriter(new StreamWriter(context.Response.Body))
             {
-                using(var jwriter = new JsonTextWriter(writer) { CloseOutput = false })
-                {
-                    var serializer = new JsonSerializer
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    };
+                CloseOutput = false
+            })
+            {
+                await response.Hal.ToJObject(s_serializer).WriteToAsync(writer, context.Request.CallCancelled);
 
-                    serializer.Serialize(jwriter, response.Hal);
-
-                    jwriter.Flush();
-                }
-
-                stream.Position = 0;
-
-                await stream.CopyToAsync(context.Response.Body, 8192, context.Request.CallCancelled);
+                await writer.FlushAsync(context.Request.CallCancelled);
             }
         }
 

@@ -22,7 +22,6 @@
     <PackageReference Include="KatanaNetStandard" Version="3.0.7" />
     <PackageReference Include="LibLog" Version="4.2.6" PrivateAssets="All" />
     <PackageReference Include="Microsoft.CSharp" Version="4.4.0" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="SqlStreamStore" Version="1.1.0" />
     <PackageReference Include="Tavis.UriTemplates" Version="1.1.1" />
