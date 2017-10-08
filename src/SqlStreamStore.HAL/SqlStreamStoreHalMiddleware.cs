@@ -2,6 +2,7 @@
 {
     using System;
     using System.Linq;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Halcyon.HAL;
     using Microsoft.Owin;
@@ -49,6 +50,29 @@
             return next(env);
         };
 
+
+        private static MidFunc AcceptOnlyHalJson => next => env =>
+        {
+            var context = new OwinContext(env);
+
+            var accept = context.Request.Accept?.Split(',')
+                                 .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
+                                     ? header.MediaType
+                                     : null)
+                             ?? Enumerable.Empty<string>();
+
+            return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
+                                        || header == Constants.Headers.ContentTypes.Any)
+                ? next(env)
+                : context.WriteHalResponse(new Response(new HALResponse(new
+                    {
+                        type = "Not Acceptable",
+                        title = "Not Acceptable",
+                        detail = $"The server only understands {Constants.Headers.ContentTypes.HalJson}."
+                    }),
+                    406));
+        };
+
         private static MidFunc Index => next => env =>
         {
             var context = new OwinContext(env);
@@ -72,6 +96,7 @@
                 .Use(ExceptionHandlingMiddleware.HandleExceptions)
                 .Use(AccessControl)
                 .Use(AddReasonPhrase)
+                .Use(AcceptOnlyHalJson)
                 .Use(Index)
                 .Map("/stream", inner => inner
                     .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))

@@ -14,6 +14,7 @@ namespace SqlStreamStore.HAL
             {
                 public const string Json = "application/json";
                 public const string HalJson = "application/hal+json";
+                public const string Any = "*/*";
             }
         }
         
