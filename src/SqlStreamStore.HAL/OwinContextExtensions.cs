@@ -2,6 +2,7 @@ namespace SqlStreamStore.HAL
 {
     using System.IO;
     using System.Threading.Tasks;
+    using Halcyon.HAL;
     using Microsoft.IO;
     using Microsoft.Owin;
     using Newtonsoft.Json;
@@ -15,7 +16,7 @@ namespace SqlStreamStore.HAL
 
         public static async Task WriteHalResponse(this IOwinContext context, Response response)
         {
-            context.Response.ContentType = "application/hal+json";
+            context.Response.ContentType = Constants.Headers.ContentTypes.HalJson;
 
             context.Response.StatusCode = response.StatusCode;
 
@@ -45,13 +46,13 @@ namespace SqlStreamStore.HAL
             }
         }
 
-        public static Task WriteProblemDetailsResponse(this IOwinContext context, WrongExpectedVersionException ex)
-        {
-            context.Response.StatusCode = 409;
-            context.Response.ContentType = Constants.Headers.ContentTypes.ProblemDetails;
-
-            return context.Response.WriteAsync(ex.ConvertToProblemDetails(), context.Request.CallCancelled);
-        }
+        public static Task WriteWrongExpectedVersion(this IOwinContext context, WrongExpectedVersionException ex)
+            => context.WriteHalResponse(new Response(new HALResponse(new
+            {
+                type = "WrongExpectedVersion",
+                title = "Wrong expected version.",
+                detail = ex.Message
+            }), 409));
 
         public static bool IsGetOrHead(this IOwinContext context)
             => context.Request.Method == "GET" || context.Request.Method == "HEAD";

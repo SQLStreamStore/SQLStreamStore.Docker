@@ -12,8 +12,8 @@ namespace SqlStreamStore.HAL
             
             public static class ContentTypes
             {
-                public const string ProblemDetails = "application/problem+json";
                 public const string Json = "application/json";
+                public const string HalJson = "application/hal+json";
             }
         }
         

@@ -57,7 +57,7 @@
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
                 response.Content.Headers.ContentType.ShouldBe(new MediaTypeHeaderValue(
-                    Constants.Headers.ContentTypes.ProblemDetails));
+                    Constants.Headers.ContentTypes.HalJson));
             }
 
             var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, 1);

@@ -44,7 +44,7 @@ namespace SqlStreamStore.HAL
             }
             catch(WrongExpectedVersionException ex)
             {
-                await context.WriteProblemDetailsResponse(ex);
+                await context.WriteWrongExpectedVersion(ex);
             }
         };
     }
