@@ -26,6 +26,7 @@
     internal static class Program
     {
         private static readonly Random s_random = new Random();
+        private const int DefaultPort = 8001;
 
         public static async Task<int> Main(string[] args)
         {
@@ -34,10 +35,18 @@
                 AddServerHeader = false
             };
 
+            if(!int.TryParse(args.FirstOrDefault(), out var port))
+            {
+                port = DefaultPort;
+            };
+
             using(var server = new KestrelOwinServer(options))
             using(var streamStore = new InMemoryStreamStore())
             {
-                await server.Start("http://localhost:8001", Configure(streamStore), CancellationToken.None);
+                await server.Start(new UriBuilder
+                {
+                    Port = port
+                }.Uri.ToString(), Configure(streamStore), CancellationToken.None);
 
                 DisplayMenu(streamStore);
             }
