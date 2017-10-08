@@ -31,7 +31,7 @@
             using(var server = new KestrelOwinServer(options))
             using(var streamStore = new InMemoryStreamStore())
             {
-                await server.Start("http://localhost:80", Configure(streamStore), CancellationToken.None);
+                await server.Start("http://localhost:8001", Configure(streamStore), CancellationToken.None);
 
                 DisplayMenu(streamStore);
             }
