@@ -1,5 +1,7 @@
 namespace SqlStreamStore.HAL
 {
+    using System.Net.Http;
+    using System.Threading.Tasks;
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
@@ -17,7 +19,9 @@ namespace SqlStreamStore.HAL
 
             var builder = new AppBuilder()
                 .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(streams)))
-                .MapWhen(IsStream, inner => inner.Use(GetStream(streams)));
+                .MapWhen(IsStreamMessageOptions, inner => inner.Use(GetStreamMessageOptions))
+                .MapWhen(IsStream, inner => inner.Use(GetStream(streams)))
+                .MapWhen(IsStreamOptions, inner => inner.Use(GetStreamOptions));
 
             return next =>
             {
@@ -26,12 +30,25 @@ namespace SqlStreamStore.HAL
                 return builder.Build();
             };
         }
+        
+        
+        private static bool IsStream(PathString requestPath) 
+            => requestPath.Value?.Length > 1;
 
         private static bool IsStream(IOwinContext context)
-            => context.IsGetOrHead() && context.Request.Path.Value?.Length > 1;
+            => context.IsGetOrHead() && IsStream(context.Request.Path);
+
+        private static bool IsStreamOptions(IOwinContext context)
+            => context.IsOptions() && IsStream(context.Request.Path);
+        
+        private static bool IsStreamMessage(PathString requestPath) 
+            => requestPath.Value?.Split('/')?.Length == 3;
 
         private static bool IsStreamMessage(IOwinContext context)
-            => context.IsGetOrHead() && context.Request.Path.Value?.Split('/')?.Length == 3;
+            => context.IsGetOrHead() && IsStreamMessage(context.Request.Path);
+
+        private static bool IsStreamMessageOptions(IOwinContext context)
+            => context.IsOptions() && IsStreamMessage(context.Request.Path);
 
         private static MidFunc GetStream(StreamResource stream) => next => async env =>
         {
@@ -47,6 +64,20 @@ namespace SqlStreamStore.HAL
             }
         };
 
+        private static MidFunc GetStreamOptions => next => env =>
+        {
+            var context = new OwinContext(env);
+            
+            context.SetStandardCorsHeaders(
+                HttpMethod.Get, 
+                HttpMethod.Head, 
+                HttpMethod.Options, 
+                HttpMethod.Post,
+                HttpMethod.Delete);
+
+            return Task.CompletedTask;
+        };
+
         private static MidFunc GetStreamMessage(StreamResource stream) => next => async env =>
         {
             var context = new OwinContext(env);
@@ -60,5 +91,18 @@ namespace SqlStreamStore.HAL
                 await context.WriteHalResponse(response);
             }
         };
+        
+        private static MidFunc GetStreamMessageOptions => next => env =>
+        {
+            var context = new OwinContext(env);
+            
+            context.SetStandardCorsHeaders(
+                HttpMethod.Get, 
+                HttpMethod.Head, 
+                HttpMethod.Options);
+
+            return Task.CompletedTask;
+        };
+
     }
 }

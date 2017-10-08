@@ -7,6 +7,7 @@ namespace SqlStreamStore.HAL.Tests
     using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.Owin;
+    using Shouldly;
     using Xunit;
     using AppFunc = System.Func<
         System.Collections.Generic.IDictionary<string, object>,
@@ -24,7 +25,6 @@ namespace SqlStreamStore.HAL.Tests
         private static readonly HttpMethod[] s_methods =
         {
             HttpMethod.Delete,
-            HttpMethod.Options,
             HttpMethod.Post,
             HttpMethod.Put,
             HttpMethod.Trace,
@@ -59,7 +59,7 @@ namespace SqlStreamStore.HAL.Tests
             {
                 var response = await fixture.HttpClient.SendAsync(new HttpRequestMessage(method, path));
 
-                Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+                response.StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
             }
         }
 
@@ -77,10 +77,9 @@ namespace SqlStreamStore.HAL.Tests
             {
                 var response = await fixture.HttpClient.SendAsync(new HttpRequestMessage(method, path));
 
-                Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+                response.StatusCode.ShouldBe(HttpStatusCode.MethodNotAllowed);
             }
         }
-
 
         public void Dispose() => _streamStore.Dispose();
     }

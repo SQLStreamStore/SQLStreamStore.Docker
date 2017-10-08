@@ -16,22 +16,6 @@
 
     public static class SqlStreamStoreHalMiddleware
     {
-        private static MidFunc AccessControl => next => env =>
-        {
-            var context = new OwinContext(env);
-
-            context.Response.OnSendingHeaders(_ =>
-                {
-                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS, POST, DELETE";
-                    context.Response.Headers["Access-Control-Allow-Headers"]
-                        = "Content-Type, X-Requested-With, Authorization";
-                    context.Response.Headers["Access-Control-Allow-Origin"] = "*";
-                },
-                null);
-
-            return next(env);
-        };
-
         private static MidFunc AddReasonPhrase => next => env =>
         {
             var context = new OwinContext(env);
@@ -107,7 +91,6 @@
 
             var builder = new AppBuilder()
                 .Use(ExceptionHandlingMiddleware.HandleExceptions)
-                .Use(AccessControl)
                 .Use(AddReasonPhrase)
                 .Use(AcceptOnlyHalJson)
                 .Use(Index)

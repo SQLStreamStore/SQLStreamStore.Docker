@@ -1,6 +1,8 @@
 namespace SqlStreamStore.HAL
 {
     using System.IO;
+    using System.Linq;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.Owin;
     using Newtonsoft.Json;
@@ -36,6 +38,23 @@ namespace SqlStreamStore.HAL
             }
         }
 
+        public static void SetStandardCorsHeaders(this IOwinContext context, params HttpMethod[] allowedMethods)
+        {
+            if(allowedMethods?.Length > 0)
+            {
+                context.Response.Headers.AppendValues("Access-Control-Allow-Methods", 
+                    allowedMethods.Select(_ => _.Method).ToArray());
+            }
+            
+            context.Response.Headers.AppendValues(
+                "Access-Control-Allow-Headers",
+                "Content-Type",
+                "X-Requested-With",
+                "Authorization");
+            
+            context.Response.Headers.AppendValues("Access-Control-Allow-Origin", "*");
+        }
+
         public static bool IsGetOrHead(this IOwinContext context)
             => context.Request.Method == "GET" || context.Request.Method == "HEAD";
 
@@ -44,6 +63,9 @@ namespace SqlStreamStore.HAL
         
         public static bool IsDelete(this IOwinContext context)
             => context.Request.Method == "DELETE";
+
+        public static bool IsOptions(this IOwinContext context)
+            => context.Request.Method == "OPTIONS";
 
     }
 }
