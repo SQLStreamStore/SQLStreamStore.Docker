@@ -1,11 +1,12 @@
 ﻿namespace SqlStreamStore.HAL.Tests
 {
+    using System;
     using System.Net;
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
 
-    public class StreamMessageTests
+    public class StreamMessageTests : IDisposable
     {
         public StreamMessageTests()
         {
@@ -55,6 +56,5 @@
                 resource.ShouldLink("streamStore:feed", HeadOfStream);
             }
         }
-
     }
 }

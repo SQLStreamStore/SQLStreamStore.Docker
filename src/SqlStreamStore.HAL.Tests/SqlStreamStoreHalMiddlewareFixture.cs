@@ -28,6 +28,7 @@
         public void Dispose()
         {
             StreamStore.Dispose();
+            _inner.Dispose();
         }
 
         public Task<AppendResult> WriteNMessages(string streamId, int n)
