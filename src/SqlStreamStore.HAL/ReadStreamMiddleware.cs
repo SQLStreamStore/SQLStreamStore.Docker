@@ -59,7 +59,6 @@ namespace SqlStreamStore.HAL
             if(options.StreamVersion == StreamVersion.End)
             {
                 context.Response.StatusCode = 307;
-                context.Response.ReasonPhrase = "Moved Temporarily";
                 context.Response.Headers["Location"] = $"{((dynamic) response.Hal.Model).StreamVersion}";
 
                 return;

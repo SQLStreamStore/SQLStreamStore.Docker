@@ -68,6 +68,11 @@ namespace SqlStreamStore.HAL
 
             context.Response.StatusCode = response.StatusCode;
 
+            foreach(var header in response.Headers)
+            {
+                context.Response.Headers.AppendValues(header.Key, header.Value);
+            }
+
             using(var stream = s_StreamManager.GetStream())
             using(var writer = new StreamWriter(stream))
             {
@@ -92,7 +97,6 @@ namespace SqlStreamStore.HAL
         public static Task WriteProblemDetailsResponse(this IOwinContext context, WrongExpectedVersionException ex)
         {
             context.Response.StatusCode = 409;
-            context.Response.ReasonPhrase = "Conflict";
             context.Response.ContentType = Constants.Headers.ContentTypes.ProblemDetails;
 
             return context.Response.WriteAsync(ex.ConvertToProblemDetails(), context.Request.CallCancelled);

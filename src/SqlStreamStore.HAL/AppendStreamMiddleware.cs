@@ -40,12 +40,6 @@ namespace SqlStreamStore.HAL
             {
                 var response = await stream.AppendMessages(options, context.Request.CallCancelled);
 
-                if(response.StatusCode == 201)
-                {
-                    context.Response.ReasonPhrase = "Created";
-                    context.Response.Headers["Location"] = $"streams/{options.StreamId}";
-                }
-
                 await context.WriteHalResponse(response);
             }
             catch(WrongExpectedVersionException ex)

@@ -21,10 +21,28 @@
 
             context.Response.OnSendingHeaders(_ =>
                 {
-                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, OPTIONS";
+                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
                     context.Response.Headers["Access-Control-Allow-Headers"]
                         = "Content-Type, X-Requested-With, Authorization";
                     context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+                },
+                null);
+
+            return next(env);
+        };
+
+        private static MidFunc AddReasonPhrase => next => env =>
+        {
+            var context = new OwinContext(env);
+
+            context.Response.OnSendingHeaders(_ =>
+                {
+                    if(!Constants.ReasonPhrases.TryGetValue(context.Response.StatusCode, out var reasonPhrase))
+                    {
+                        return;
+                    }
+
+                    context.Response.ReasonPhrase = reasonPhrase;
                 },
                 null);
 
@@ -52,6 +70,7 @@
 
             var builder = new AppBuilder()
                 .Use(AccessControl)
+                .Use(AddReasonPhrase)
                 .Use(Index)
                 .Map("/stream", inner => inner
                     .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
@@ -81,7 +100,6 @@
                 }
 
                 context.Response.StatusCode = 405;
-                context.Response.ReasonPhrase = "Method Not Allowed";
 
                 return Task.CompletedTask;
             };

@@ -27,11 +27,16 @@ namespace SqlStreamStore.HAL
 
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
-            return new Response(
+            var response = new Response(
                 new HALResponse(new object()),
                 options.ExpectedVersion == ExpectedVersion.NoStream
                     ? 201
                     : 200);
+            if(options.ExpectedVersion == ExpectedVersion.NoStream)
+            {
+                response.Headers["Location"] = new[] { $"streams/{options.StreamId}" };
+            }
+            return response;
         }
 
         public async Task<Response> GetMessage(
