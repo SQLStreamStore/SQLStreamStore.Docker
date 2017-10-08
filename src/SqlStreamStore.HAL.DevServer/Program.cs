@@ -59,13 +59,17 @@
                 .Use(DisplayErrors)
                 .Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
 
-        private static MidFunc DisplayErrors => next => env => next(env).ContinueWith(_ =>
+        private static MidFunc DisplayErrors => next => async env =>
+        {
+            try
             {
-                Console.WriteLine(_.Exception);
-                
-                return Task.CompletedTask;
-            },
-            TaskContinuationOptions.OnlyOnFaulted);
+                await next(env);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);    
+            }
+        };
 
         private static void DisplayMenu(IStreamStore streamStore)
         {

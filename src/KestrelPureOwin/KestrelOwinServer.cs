@@ -49,8 +49,9 @@ namespace KestrelPureOwin
             }
 
             var wrappedOptions = Options.Create(options);
-
+            
             var loggerFactory = new LoggerFactory();
+            loggerFactory.AddProvider(new ConsoleLogProvider());
 
             var transport = new LibuvTransportFactory(
                 Options.Create(new LibuvTransportOptions()),
@@ -64,18 +65,6 @@ namespace KestrelPureOwin
             => new KestrelServerOptions();
 
         public KestrelServer Server { get; }
-
-        public Task Run(string url, Action<BuildFunc> configure, CancellationToken cancellationToken)
-        {
-            Console.CancelKeyPress += (s, e) =>
-            {
-                Console.WriteLine("Application is shutting down...");
-
-                e.Cancel = true;
-            };
-
-            return Start(url, configure, cancellationToken);
-        }
 
         public Task Start(string url, Action<BuildFunc> configure, CancellationToken cancellationToken)
         {
@@ -118,6 +107,33 @@ namespace KestrelPureOwin
             var app = middleware.Reverse().Aggregate(end, (current, next) => next(current));
 
             return new OwinApplication(app);
+        }
+
+        private class ConsoleLogger : ILogger
+        {
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) 
+                => Console.WriteLine(formatter(state, exception));
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public IDisposable BeginScope<TState>(TState state) => new NoOpScope();
+            
+            private class NoOpScope : IDisposable
+            {
+                public void Dispose()
+                {
+                }
+            }
+        }
+
+        private class ConsoleLogProvider : ILoggerProvider
+        {
+            public void Dispose()
+            {
+                
+            }
+
+            public ILogger CreateLogger(string categoryName) => new ConsoleLogger();
         }
     }
 }

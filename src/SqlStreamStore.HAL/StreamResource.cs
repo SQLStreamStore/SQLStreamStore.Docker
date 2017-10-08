@@ -72,7 +72,6 @@ namespace SqlStreamStore.HAL
                 };
             }
 
-
             var payload = await message.GetJsonData(cancellationToken);
 
             return new Response(
