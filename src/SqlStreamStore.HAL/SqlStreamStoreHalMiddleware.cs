@@ -22,7 +22,7 @@
 
             context.Response.OnSendingHeaders(_ =>
                 {
-                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS";
+                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS, POST, DELETE";
                     context.Response.Headers["Access-Control-Allow-Headers"]
                         = "Content-Type, X-Requested-With, Authorization";
                     context.Response.Headers["Access-Control-Allow-Origin"] = "*";
@@ -50,6 +50,19 @@
             return next(env);
         };
 
+        private static MidFunc MethodsNotAllowed(params string[] methods) => next => env =>
+        {
+            var context = new OwinContext(env);
+
+            if(!methods.Contains(context.Request.Method))
+            {
+                return next(env);
+            }
+
+            context.Response.StatusCode = 405;
+
+            return Task.CompletedTask;
+        };
 
         private static MidFunc AcceptOnlyHalJson => next => env =>
         {
@@ -100,12 +113,12 @@
                 .Use(Index)
                 .Map("/stream", inner => inner
                     .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH", "OPTIONS")))
+                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH")))
                 .Map("/streams", inner => inner
                     .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
                     .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
                     .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("DELETE", "TRACE", "PATCH", "OPTIONS")));
+                    .Use(MethodsNotAllowed("TRACE", "PATCH")));
 
             return next =>
             {
@@ -115,19 +128,5 @@
             };
         }
 
-        private static MidFunc MethodsNotAllowed(params string[] methods)
-            => next => env =>
-            {
-                var context = new OwinContext(env);
-
-                if(!methods.Contains(context.Request.Method))
-                {
-                    return next(env);
-                }
-
-                context.Response.StatusCode = 405;
-
-                return Task.CompletedTask;
-            };
     }
 }
