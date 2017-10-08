@@ -42,7 +42,10 @@ namespace SqlStreamStore.HAL
 
             var response = await stream.GetPage(options, context.Request.CallCancelled);
 
-            await context.WriteHalResponse(response);
+            using(new OptionalHeadRequestWrapper(context))
+            {
+                await context.WriteHalResponse(response);
+            }
         };
 
         private static MidFunc GetStreamMessage(StreamResource stream) => next => async env =>
@@ -62,7 +65,10 @@ namespace SqlStreamStore.HAL
                 return;
             }
 
-            await context.WriteHalResponse(response);
+            using(new OptionalHeadRequestWrapper(context))
+            {
+                await context.WriteHalResponse(response);
+            }
         };
     }
 }

@@ -5,7 +5,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using KestrelPureOwin;
-    using Microsoft.AspNetCore.Server.Kestrel;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using SqlStreamStore.Streams;
     using BuildFunc = System.Action<
