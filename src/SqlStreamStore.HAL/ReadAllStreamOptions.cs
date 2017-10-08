@@ -16,8 +16,8 @@ namespace SqlStreamStore.HAL
             EmbedPayload = request.Query.Get("e") != null;
 
             ReadDirection = request.Query.Get("d") == "f"
-                ? 1
-                : -1;
+                ? Constants.ReadDirection.Forwards
+                : Constants.ReadDirection.Backwards;
 
             if(!long.TryParse(request.Query.Get("p"), out _fromPositionInclusive))
             {
@@ -35,12 +35,12 @@ namespace SqlStreamStore.HAL
         public bool EmbedPayload { get; }
         public int ReadDirection { get; }
 
-        public string Self => ReadDirection > 0
+        public string Self => ReadDirection == Constants.ReadDirection.Forwards
             ? LinkFormatter.FormatForwardLink("stream", MaxCount, FromPositionInclusive)
             : LinkFormatter.FormatBackwardLink("stream", MaxCount, FromPositionInclusive);
 
         public Func<IReadonlyStreamStore, CancellationToken, Task<ReadAllPage>> GetReadOperation()
-            => (streamStore, ct) => ReadDirection > 0
+            => (streamStore, ct) => ReadDirection == Constants.ReadDirection.Forwards
                 ? streamStore.ReadAllForwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct)
                 : streamStore.ReadAllBackwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct);
     }

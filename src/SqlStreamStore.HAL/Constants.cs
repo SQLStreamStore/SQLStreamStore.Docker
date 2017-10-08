@@ -8,7 +8,8 @@ namespace SqlStreamStore.HAL
         public static class Headers
         {
             public const string ExpectedVersion = "SSS-ExpectedVersion";
-
+            public const string HeadPosition = "SSS-HeadPosition";
+            
             public static class ContentTypes
             {
                 public const string ProblemDetails = "application/problem+json";
@@ -27,5 +28,11 @@ namespace SqlStreamStore.HAL
                 [405] = "Method Not Allowed",
                 [409] = "Conflict"
             });
+
+        public static class ReadDirection
+        {
+            public const int Forwards = 1;
+            public const int Backwards = -1;
+        }
     }
 }
