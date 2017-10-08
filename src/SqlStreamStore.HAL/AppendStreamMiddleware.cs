@@ -3,7 +3,6 @@ namespace SqlStreamStore.HAL
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
-    using SqlStreamStore.Streams;
     using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
             System.Threading.Tasks.Task
         >, System.Func<System.Collections.Generic.IDictionary<string, object>,
@@ -36,16 +35,9 @@ namespace SqlStreamStore.HAL
 
             var options = await AppendStreamOptions.Create(context.Request, context.Request.CallCancelled);
 
-            try
-            {
-                var response = await stream.AppendMessages(options, context.Request.CallCancelled);
+            var response = await stream.AppendMessages(options, context.Request.CallCancelled);
 
-                await context.WriteHalResponse(response);
-            }
-            catch(WrongExpectedVersionException ex)
-            {
-                await context.WriteWrongExpectedVersion(ex);
-            }
+            await context.WriteHalResponse(response);
         };
     }
 }

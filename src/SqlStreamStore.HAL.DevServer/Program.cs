@@ -7,6 +7,13 @@
     using KestrelPureOwin;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using SqlStreamStore.Streams;
+    using MidFunc = System.Func<
+        System.Func<
+            System.Collections.Generic.IDictionary<string, object>,
+            System.Threading.Tasks.Task>,
+        System.Func<
+            System.Collections.Generic.IDictionary<string, object>,
+            System.Threading.Tasks.Task>>;
     using BuildFunc = System.Action<
         System.Func<
             System.Func<
@@ -39,7 +46,17 @@
         }
 
         private static Action<BuildFunc> Configure(IStreamStore streamStore)
-            => builder => builder.Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
+            => builder => builder
+                .Use(DisplayErrors)
+                .Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
+
+        private static MidFunc DisplayErrors => next => env => next(env).ContinueWith(_ =>
+            {
+                Console.WriteLine(_.Exception);
+                
+                return Task.CompletedTask;
+            },
+            TaskContinuationOptions.OnlyOnFaulted);
 
         private static void DisplayMenu(IStreamStore streamStore)
         {

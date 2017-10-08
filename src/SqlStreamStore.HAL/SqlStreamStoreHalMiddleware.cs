@@ -69,6 +69,7 @@
                 throw new ArgumentNullException(nameof(streamStore));
 
             var builder = new AppBuilder()
+                .Use(ExceptionHandlingMiddleware.HandleExceptions)
                 .Use(AccessControl)
                 .Use(AddReasonPhrase)
                 .Use(Index)

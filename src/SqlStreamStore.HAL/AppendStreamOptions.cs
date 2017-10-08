@@ -47,27 +47,37 @@ namespace SqlStreamStore.HAL
         private AppendStreamOptions(IOwinRequest request, JArray body)
             : this(request)
         {
-            NewStreamMessages = body.Select(newStreamMessage => new NewStreamMessage(
-                    Guid.Parse(newStreamMessage.Value<string>("messageId")),
-                    newStreamMessage.Value<string>("type"),
-                    newStreamMessage.Value<JObject>("jsonData").ToString(),
-                    newStreamMessage.Value<JObject>("jsonMetadata")?.ToString()))
+            NewStreamMessages = body.Select(ParseNewStreamMessage)
                 .ToArray();
         }
 
         private AppendStreamOptions(IOwinRequest request, JObject body)
-            : this(request)
-        {
-            NewStreamMessages = new[]
-            {
-                new NewStreamMessage(
-                    Guid.Parse(body.Value<string>("messageId")),
-                    body.Value<string>("type"),
-                    body.Value<JObject>("jsonData").ToString(),
-                    body.Value<JObject>("jsonMetadata")?.ToString())
-            }; 
-        }
+            : this(request, new JArray { body })
+        { }
 
+        private static NewStreamMessage ParseNewStreamMessage(JToken newStreamMessage, int index)
+        {
+            if(!Guid.TryParse(newStreamMessage.Value<string>("messageId"), out var messageId))
+            {
+                throw new InvalidAppendRequestException($"'{nameof(messageId)}' at index {index} was improperly formatted.");
+            };
+            if(messageId == Guid.Empty)
+            {
+                throw new InvalidAppendRequestException($"'{nameof(messageId)}' at index {index} was empty.");
+            }
+            var type = newStreamMessage.Value<string>("type");
+
+            if(type == null)
+            {
+                throw new InvalidAppendRequestException($"'{nameof(type)}' at index {index} was not set.");
+            }
+            
+            return new NewStreamMessage(
+                messageId,
+                type,
+                newStreamMessage.Value<JObject>("jsonData").ToString(),
+                newStreamMessage.Value<JObject>("jsonMetadata")?.ToString());
+        }
         public string StreamId { get; }
         public int ExpectedVersion { get; }
         public NewStreamMessage[] NewStreamMessages { get; }

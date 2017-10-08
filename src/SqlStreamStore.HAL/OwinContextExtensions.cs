@@ -2,11 +2,9 @@ namespace SqlStreamStore.HAL
 {
     using System.IO;
     using System.Threading.Tasks;
-    using Halcyon.HAL;
     using Microsoft.Owin;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
-    using SqlStreamStore.Streams;
 
     internal static class OwinContextExtensions
     {
@@ -37,14 +35,6 @@ namespace SqlStreamStore.HAL
                 await writer.FlushAsync(context.Request.CallCancelled);
             }
         }
-
-        public static Task WriteWrongExpectedVersion(this IOwinContext context, WrongExpectedVersionException ex)
-            => context.WriteHalResponse(new Response(new HALResponse(new
-            {
-                type = "WrongExpectedVersion",
-                title = "Wrong expected version.",
-                detail = ex.Message
-            }), 409));
 
         public static bool IsGetOrHead(this IOwinContext context)
             => context.Request.Method == "GET" || context.Request.Method == "HEAD";
