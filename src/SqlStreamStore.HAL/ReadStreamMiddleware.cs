@@ -3,7 +3,6 @@ namespace SqlStreamStore.HAL
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
-    using SqlStreamStore.Streams;
     using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
             System.Threading.Tasks.Task
         >, System.Func<System.Collections.Generic.IDictionary<string, object>,
@@ -55,14 +54,6 @@ namespace SqlStreamStore.HAL
             var options = new ReadStreamMessageOptions(context.Request);
 
             var response = await stream.GetMessage(options, context.Request.CallCancelled);
-
-            if(options.StreamVersion == StreamVersion.End)
-            {
-                context.Response.StatusCode = 307;
-                context.Response.Headers["Location"] = $"{((dynamic) response.Hal.Model).StreamVersion}";
-
-                return;
-            }
 
             using(new OptionalHeadRequestWrapper(context))
             {

@@ -34,7 +34,7 @@ namespace SqlStreamStore.HAL
                     : 200);
             if(options.ExpectedVersion == ExpectedVersion.NoStream)
             {
-                response.Headers["Location"] = new[] { $"streams/{options.StreamId}" };
+                response.Headers[Constants.Headers.Location] = new[] { $"streams/{options.StreamId}" };
             }
             return response;
         }
@@ -60,6 +60,18 @@ namespace SqlStreamStore.HAL
                         .AddLinks(StreamLinks.Feed(options)),
                     404);
             }
+            
+            if(options.StreamVersion == StreamVersion.End)
+            {
+                return new Response(new HALResponse(new object()), 307)
+                {
+                    Headers =
+                    {
+                        [Constants.Headers.Location] = new[] { $"{message.StreamVersion}" }
+                    }
+                };
+            }
+
 
             var payload = await message.GetJsonData(cancellationToken);
 
