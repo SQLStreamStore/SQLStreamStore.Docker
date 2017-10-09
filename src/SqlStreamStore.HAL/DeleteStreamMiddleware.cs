@@ -27,8 +27,7 @@ namespace SqlStreamStore.HAL
         }
         
         private static bool IsStream(IOwinContext context)
-            => context.IsDelete() && context.Request.Path.Value?.Length > 1;
-
+            => context.IsDelete() && context.Request.Path.IsStream();
 
         private static MidFunc DeleteStream(StreamResource stream) => next => async env =>
         {

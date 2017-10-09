@@ -18,9 +18,9 @@ namespace SqlStreamStore.HAL
             var allStream = new AllStreamResource(streamStore);
 
             var builder = new AppBuilder()
-                .MapWhen(IsStream, inner => inner.Use(GetStream(allStream)))
+                .MapWhen(IsAllStream, inner => inner.Use(GetStream(allStream)))
                 .MapWhen(IsStreamOptions, inner => inner.Use(GetStreamOptions))
-                .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(allStream)))
+                .MapWhen(IsAllStreamMessage, inner => inner.Use(GetStreamMessage(allStream)))
                 .MapWhen(IsStreamMessageOptions, inner => inner.Use(GetStreamMessageOptions));
 
             return next =>
@@ -31,23 +31,17 @@ namespace SqlStreamStore.HAL
             };
         }
 
-        private static bool IsStream(PathString requestPath) 
-            => !requestPath.HasValue;
-
-        private static bool IsStream(IOwinContext context)
-            => context.IsGetOrHead() && IsStream(context.Request.Path);
+        private static bool IsAllStream(IOwinContext context)
+            => context.IsGetOrHead() && context.Request.Path.IsAllStream();
 
         private static bool IsStreamOptions(IOwinContext context)
-            => context.IsOptions() && IsStream(context.Request.Path);
+            => context.IsOptions() && context.Request.Path.IsAllStream();
 
-        private static bool IsStreamMessage(PathString requestPath) 
-            => long.TryParse(requestPath.Value?.Remove(0, 1), out var _);
-
-        private static bool IsStreamMessage(IOwinContext context)
-            => context.IsGetOrHead() && IsStreamMessage(context.Request.Path);
+        private static bool IsAllStreamMessage(IOwinContext context)
+            => context.IsGetOrHead() && context.Request.Path.IsAllStreamMessage();
 
         private static bool IsStreamMessageOptions(IOwinContext context)
-            => context.IsOptions() && IsStreamMessage(context.Request.Path);
+            => context.IsOptions() && context.Request.Path.IsAllStreamMessage();
 
         private static MidFunc GetStream(AllStreamResource allStream) => next => async env =>
         {

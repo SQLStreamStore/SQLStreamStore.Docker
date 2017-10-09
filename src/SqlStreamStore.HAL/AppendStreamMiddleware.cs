@@ -27,7 +27,7 @@ namespace SqlStreamStore.HAL
         }
         
         private static bool IsStream(IOwinContext context)
-            => context.IsPost() && context.Request.Path.Value?.Length > 1;
+            => context.IsPost() && context.Request.Path.IsStream();
 
         private static MidFunc AppendStream(StreamResource stream) => next => async env =>
         {

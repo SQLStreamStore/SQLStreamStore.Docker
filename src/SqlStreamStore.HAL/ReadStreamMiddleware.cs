@@ -30,25 +30,19 @@ namespace SqlStreamStore.HAL
                 return builder.Build();
             };
         }
-        
-        
-        private static bool IsStream(PathString requestPath) 
-            => requestPath.Value?.Length > 1;
+
 
         private static bool IsStream(IOwinContext context)
-            => context.IsGetOrHead() && IsStream(context.Request.Path);
+            => context.IsGetOrHead() && context.Request.Path.IsStream();
 
         private static bool IsStreamOptions(IOwinContext context)
-            => context.IsOptions() && IsStream(context.Request.Path);
-        
-        private static bool IsStreamMessage(PathString requestPath) 
-            => requestPath.Value?.Split('/')?.Length == 3;
+            => context.IsOptions() && context.Request.Path.IsStream();
 
         private static bool IsStreamMessage(IOwinContext context)
-            => context.IsGetOrHead() && IsStreamMessage(context.Request.Path);
+            => context.IsGetOrHead() && context.Request.Path.IsStreamMessage();
 
         private static bool IsStreamMessageOptions(IOwinContext context)
-            => context.IsOptions() && IsStreamMessage(context.Request.Path);
+            => context.IsOptions() && context.Request.Path.IsStreamMessage();
 
         private static MidFunc GetStream(StreamResource stream) => next => async env =>
         {
