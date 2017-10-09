@@ -5,6 +5,7 @@
     using System.Net;
     using System.Threading.Tasks;
     using Shouldly;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class StreamNavigationTests : IDisposable
@@ -126,6 +127,24 @@
                 resource.ShouldLink("first", $"{stream}?{FirstLinkQuery}");
 
                 resource.ShouldLink("streamStore:feed", $"{stream}?{LastLinkQuery}");
+            }
+        }
+
+        [Fact]
+        public async Task read_stream_should_include_the_last_position_and_version()
+        {
+            await _fixture.WriteNMessages("a-stream", 30);
+
+            var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", StreamVersion.Start, 10, false);
+
+            using(var response = await _fixture.HttpClient.GetAsync($"/streams/a-stream"))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+                var resource = await response.AsHal();
+                
+                ((int)resource.State.lastStreamVersion).ShouldBe(page.LastStreamVersion);
+                ((long)resource.State.lastStreamPosition).ShouldBe(page.LastStreamPosition);
             }
         }
     }

@@ -105,7 +105,11 @@ namespace SqlStreamStore.HAL
                 .ToArray());
 
             return new Response(
-                new HALResponse(new object())
+                new HALResponse(new
+                    {
+                        page.LastStreamVersion,
+                        page.LastStreamPosition
+                    })
                     .AddLinks(StreamLinks.Self(options))
                     .AddLinks(StreamLinks.Navigation(page, options.Self))
                     .AddLinks(StreamLinks.Feed(page))
