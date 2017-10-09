@@ -10,8 +10,6 @@
 
     internal class AllStreamResource
     {
-        private const string StreamId = "stream";
-
         private readonly IReadonlyStreamStore _streamStore;
 
         public AllStreamResource(IReadonlyStreamStore streamStore)
@@ -38,10 +36,10 @@
             var response = new Response(
                 new HALResponse(new object())
                     .AddLinks(Links.SelfFeed(options))
-                    .AddLinks(Links.Navigation(page, options.Self))
-                    .AddLinks(Links.Feed)
+                    .AddLinks(Links.Navigation(page, options))
+                    .AddLinks(Links.Feed(options))
                     .AddEmbeddedCollection(
-                        Relations.Message,
+                        Constants.Relations.Message,
                         page.Messages.Zip(payloads,
                             (message, payload) => new HALResponse(new
                             {
@@ -79,7 +77,7 @@
             {
                 return new Response(
                     new HALResponse(new HALModelConfig())
-                        .AddLinks(Links.Feed),
+                        .AddLinks(Links.Feed(options)),
                     404);
             }
 
@@ -97,46 +95,86 @@
                     payload
                 }).AddLinks(
                     Links.SelfAll(message),
-                    Links.Feed));
+                    Links.Feed(options)));
         }
 
         private static class Links
         {
             public static Link SelfFeed(ReadAllStreamOptions options)
-                => new Link(Relations.Self, options.Self);
+                => new Link(Constants.Relations.Self, options.Self);
 
             public static Link Self(StreamMessage message) => new Link(
-                Relations.Self,
+                Constants.Relations.Self,
                 $"streams/{message.StreamId}/{message.StreamVersion}");
 
-            public static Link SelfAll(StreamMessage message) => new Link(Relations.Self, $"/{StreamId}/{message.Position}");
+            public static Link SelfAll(StreamMessage message) 
+                => new Link(Constants.Relations.Self, $"/{Constants.Streams.All}/{message.Position}");
 
-            public static Link First => new Link(Relations.First,
-                LinkFormatter.FormatForwardLink(StreamId, 20, Position.Start));
+            public static Link First(ReadAllStreamOptions options)
+                => new Link(
+                    Constants.Relations.First,
+                    LinkFormatter.FormatForwardLink(
+                        Constants.Streams.All,
+                        options.MaxCount,
+                        Position.Start,
+                        options.EmbedPayload));
 
-            public static Link Last => new Link(Relations.Last, LinkFormatter.FormatBackwardLink(StreamId, 20, Position.End));
+            public static Link Last(ReadAllStreamOptions options)
+                => new Link(
+                    Constants.Relations.Last,
+                    LinkFormatter.FormatBackwardLink(
+                        Constants.Streams.All,
+                        options.MaxCount,
+                        Position.End,
+                        options.EmbedPayload));
 
-            public static Link Feed => new Link(Relations.Feed, Last.Href);
+            public static Link Last(ReadAllStreamMessageOptions options)
+                => new Link(
+                    Constants.Relations.Last,
+                    LinkFormatter.FormatBackwardLink(
+                        Constants.Streams.All,
+                        Constants.MaxCount,
+                        Position.End,
+                        false));
 
-            public static Link Previous(ReadAllPage page)
-                => new Link(Relations.Previous,
-                    LinkFormatter.FormatBackwardLink(StreamId, 20, page.Messages.Min(m => m.Position) - 1));
+            public static Link Feed(ReadAllStreamOptions options) 
+                => new Link(Constants.Relations.Feed, Last(options).Href);
 
-            public static Link Next(ReadAllPage page)
-                => new Link(Relations.Next,
-                    LinkFormatter.FormatForwardLink(StreamId, 20, page.Messages.Max(m => m.Position) + 1));
+            public static Link Feed(ReadAllStreamMessageOptions options) 
+                => new Link(Constants.Relations.Feed, Last(options).Href);
 
-            public static IEnumerable<Link> Navigation(ReadAllPage page, string self)
+            public static Link Previous(ReadAllPage page, ReadAllStreamOptions options)
+                => new Link(
+                    Constants.Relations.Previous,
+                    LinkFormatter.FormatBackwardLink(
+                        Constants.Streams.All,
+                        options.MaxCount,
+                        page.Messages.Min(m => m.Position) - 1,
+                        options.EmbedPayload));
+
+            public static Link Next(ReadAllPage page, ReadAllStreamOptions options)
+                => new Link(
+                    Constants.Relations.Next,
+                    LinkFormatter.FormatForwardLink(
+                        Constants.Streams.All,
+                        options.MaxCount,
+                        page.Messages.Max(m => m.Position) + 1,
+                        options.EmbedPayload));
+
+            public static IEnumerable<Link> Navigation(ReadAllPage page, ReadAllStreamOptions options)
             {
-                yield return First;
+                var first = First(options);
+                var last = Last(options);
+                
+                yield return first;
 
-                if(self != First.Href && !page.IsEnd)
-                    yield return Previous(page);
+                if(options.Self != first.Href && !page.IsEnd)
+                    yield return Previous(page, options);
 
-                if(self != Last.Href && !page.IsEnd)
-                    yield return Next(page);
+                if(options.Self != last.Href && !page.IsEnd)
+                    yield return Next(page, options);
 
-                yield return Last;
+                yield return last;
             }
         }
     }

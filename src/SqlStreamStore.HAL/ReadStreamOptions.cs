@@ -30,7 +30,7 @@ namespace SqlStreamStore.HAL
 
             if(!int.TryParse(request.Query.Get("m"), out _maxCount))
             {
-                _maxCount = 20;
+                _maxCount = Constants.MaxCount;
             }
         }
 
@@ -41,8 +41,8 @@ namespace SqlStreamStore.HAL
         public string StreamId { get; }
 
         public string Self => ReadDirection == Constants.ReadDirection.Forwards
-            ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive)
-            : LinkFormatter.FormatBackwardLink(StreamId, MaxCount, FromVersionInclusive);
+            ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload)
+            : LinkFormatter.FormatBackwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload);
 
         public Func<IReadonlyStreamStore, CancellationToken, Task<ReadStreamPage>> GetReadOperation()
             => (streamStore, ct) => ReadDirection == Constants.ReadDirection.Forwards

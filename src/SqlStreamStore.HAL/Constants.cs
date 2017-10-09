@@ -18,6 +18,22 @@ namespace SqlStreamStore.HAL
                 public const string Any = "*/*";
             }
         }
+
+        public static class Relations
+        {
+            public const string Self = "self";
+            public const string First = "first";
+            public const string Previous = "previous";
+            public const string Next = "next";
+            public const string Last = "last";
+            public const string Feed = "streamStore:feed";
+            public const string Message = "streamStore:message";
+        }
+
+        public static class Streams
+        {
+            public const string All = "stream";
+        }
         
         public static IReadOnlyDictionary<int, string> ReasonPhrases { get; }
             = new ReadOnlyDictionary<int, string>(new Dictionary<int, string>
@@ -36,5 +52,7 @@ namespace SqlStreamStore.HAL
             public const int Forwards = 1;
             public const int Backwards = -1;
         }
+        
+        public const int MaxCount = 20;
     }
 }

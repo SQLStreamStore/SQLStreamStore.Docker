@@ -79,7 +79,10 @@
                 return next(env);
             }
 
-            var response = new Response(new HALResponse(null).AddLinks(new Link("streamStore:stream", "stream")));
+            var response = new Response(new HALResponse(null)
+                .AddLinks(new Link(
+                    Constants.Relations.Feed, 
+                    "stream")));
 
             return context.WriteHalResponse(response);
         };
