@@ -63,7 +63,7 @@
                 {
                     body,
                     ExpectedVersion.Any,
-                    HttpStatusCode.OK,
+                    HttpStatusCode.Created,
                     messageId,
                     jsonData,
                     jsonMetadata
@@ -72,7 +72,7 @@
                 {
                     body,
                     default(int?),
-                    HttpStatusCode.OK,
+                    HttpStatusCode.Created,
                     messageId,
                     jsonData,
                     jsonMetadata

@@ -28,8 +28,10 @@ namespace SqlStreamStore.HAL
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
             var response = new Response(
-                new HALResponse(new object()),
-                options.ExpectedVersion == ExpectedVersion.NoStream
+                new HALResponse(result)
+                    .AddLinks(StreamLinks.Self(options))
+                    .AddLinks(StreamLinks.Feed(options)),
+                result.CurrentVersion == 0
                     ? 201
                     : 200);
             if(options.ExpectedVersion == ExpectedVersion.NoStream)
@@ -212,9 +214,17 @@ namespace SqlStreamStore.HAL
                 Relations.Self,
                 options.Self);
 
+            public static Link Self(AppendStreamOptions options) => new Link(
+                Relations.Self,
+                $"{options.StreamId}");
+
             public static Link Feed(ReadStreamPage page) => new Link(Relations.Feed, Last(page).Href);
 
             public static Link Feed(ReadStreamMessageOptions options) => new Link(
+                Relations.Feed,
+                LinkFormatter.FormatBackwardLink(options.StreamId, 20, StreamVersion.End));
+
+            public static Link Feed(AppendStreamOptions options) => new Link(
                 Relations.Feed,
                 LinkFormatter.FormatBackwardLink(options.StreamId, 20, StreamVersion.End));
 

@@ -31,7 +31,6 @@ namespace SqlStreamStore.HAL
             };
         }
 
-
         private static bool IsStream(IOwinContext context)
             => context.IsGetOrHead() && context.Request.Path.IsStream();
 
