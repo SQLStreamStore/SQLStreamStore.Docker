@@ -75,8 +75,8 @@ namespace SqlStreamStore.HAL
             return new NewStreamMessage(
                 messageId,
                 type,
-                newStreamMessage.Value<JObject>("jsonData").ToString(),
-                newStreamMessage.Value<JObject>("jsonMetadata")?.ToString());
+                newStreamMessage.Value<JToken>("jsonData").ToString(),
+                newStreamMessage.Value<JToken>("jsonMetadata")?.ToString());
         }
         public string StreamId { get; }
         public int ExpectedVersion { get; }
