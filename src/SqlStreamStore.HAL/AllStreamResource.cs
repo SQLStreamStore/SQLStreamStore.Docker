@@ -49,7 +49,8 @@
                                 message.StreamId,
                                 message.StreamVersion,
                                 message.Type,
-                                payload
+                                payload,
+                                metadata = message.JsonMetadata
                             }).AddLinks(
                                 Links.Self(message)))));
 
@@ -92,7 +93,8 @@
                     message.StreamId,
                     message.StreamVersion,
                     message.Type,
-                    payload
+                    payload,
+                    metadata = message.JsonMetadata
                 }).AddLinks(
                     Links.SelfAll(message),
                     Links.Feed(options)));

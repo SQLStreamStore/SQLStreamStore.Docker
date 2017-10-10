@@ -85,7 +85,8 @@ namespace SqlStreamStore.HAL
                         message.StreamId,
                         message.StreamVersion,
                         message.Type,
-                        payload
+                        payload,
+                        metadata = message.JsonMetadata
                     })
                     .AddLinks(StreamMessageLinks.Self(options))
                     .AddLinks(StreamMessageLinks.Navigation(options, message))
@@ -124,7 +125,8 @@ namespace SqlStreamStore.HAL
                                 message.StreamId,
                                 message.StreamVersion,
                                 message.Type,
-                                payload
+                                payload,
+                                metadata = message.JsonMetadata
                             }).AddLinks(StreamMessageLinks.Self(message)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
         }
