@@ -4,6 +4,7 @@
     <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
     <DebugSymbols>true</DebugSymbols>
     <NoWarn>1701;1702;1705;1591</NoWarn>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Halcyon" Version="2.5.1" />
