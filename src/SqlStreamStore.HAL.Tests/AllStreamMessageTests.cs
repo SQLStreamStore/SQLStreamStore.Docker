@@ -29,9 +29,9 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "streamStore:feed" });
+                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Self, "streamStore:feed" });
 
-                resource.ShouldLink("self", "/stream/0");
+                resource.ShouldLink(Constants.Relations.Self, "/stream/0");
                 resource.ShouldLink("streamStore:feed", HeadOfAll);
             }
         }
@@ -45,9 +45,9 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "streamStore:feed" });
+                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Feed });
 
-                resource.ShouldLink("streamStore:feed", HeadOfAll);
+                resource.ShouldLink(Constants.Relations.Feed, HeadOfAll);
             }
         }
     }

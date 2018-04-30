@@ -114,6 +114,7 @@ namespace SqlStreamStore.HAL
                     .AddLinks(StreamLinks.Self(options))
                     .AddLinks(StreamLinks.Navigation(page, options))
                     .AddLinks(StreamLinks.Feed(page, options))
+                    .AddLinks(StreamLinks.Metadata(options))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         page.Messages.Zip(payloads,
@@ -284,6 +285,11 @@ namespace SqlStreamStore.HAL
                         Constants.MaxCount,
                         StreamVersion.End,
                         false));
+            
+            public static Link Metadata(ReadStreamOptions options)
+                => new Link(
+                    Constants.Relations.Metadata,
+                    $"{options.StreamId}/metadata");
 
             public static IEnumerable<Link> Navigation(ReadStreamPage page, ReadStreamOptions options)
             {

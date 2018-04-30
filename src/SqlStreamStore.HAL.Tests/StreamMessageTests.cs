@@ -29,13 +29,13 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "first", "next", "last", "streamStore:feed" });
+                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Self, Constants.Relations.First, Constants.Relations.Next, Constants.Relations.Last, "streamStore:feed" });
 
-                resource.ShouldLink("self", "0");
-                resource.ShouldLink("first", "0");
-                resource.ShouldLink("next", "1");
-                resource.ShouldLink("last", "-1");
-                resource.ShouldLink("streamStore:feed", HeadOfStream);
+                resource.ShouldLink(Constants.Relations.Self, "0");
+                resource.ShouldLink(Constants.Relations.First, "0");
+                resource.ShouldLink(Constants.Relations.Next, "1");
+                resource.ShouldLink(Constants.Relations.Last, "-1");
+                resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
             }
         }
 
@@ -48,12 +48,12 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "first", "last", "streamStore:feed" });
+                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Self, Constants.Relations.First, Constants.Relations.Last, Constants.Relations.Feed });
 
-                resource.ShouldLink("self", "0");
-                resource.ShouldLink("first", "0");
-                resource.ShouldLink("last", "-1");
-                resource.ShouldLink("streamStore:feed", HeadOfStream);
+                resource.ShouldLink(Constants.Relations.Self, "0");
+                resource.ShouldLink(Constants.Relations.First, "0");
+                resource.ShouldLink(Constants.Relations.Last, "-1");
+                resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
             }
         }
     }
