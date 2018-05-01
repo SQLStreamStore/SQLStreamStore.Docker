@@ -42,16 +42,16 @@ namespace SqlStreamStore.HAL
         {
             if(allowedMethods?.Length > 0)
             {
-                context.Response.Headers.AppendValues("Access-Control-Allow-Methods", 
+                context.Response.Headers.AppendValues("Access-Control-Allow-Methods",
                     allowedMethods.Select(_ => _.Method).ToArray());
             }
-            
+
             context.Response.Headers.AppendValues(
                 "Access-Control-Allow-Headers",
                 "Content-Type",
                 "X-Requested-With",
                 "Authorization");
-            
+
             context.Response.Headers.AppendValues("Access-Control-Allow-Origin", "*");
         }
 
@@ -60,12 +60,18 @@ namespace SqlStreamStore.HAL
 
         public static bool IsPost(this IOwinContext context)
             => context.Request.Method == "POST";
-        
+
         public static bool IsDelete(this IOwinContext context)
             => context.Request.Method == "DELETE";
 
         public static bool IsOptions(this IOwinContext context)
             => context.Request.Method == "OPTIONS";
 
+        public static int GetExpectedVersion(this IOwinRequest request)
+            => int.TryParse(
+                request.Headers.Get(Constants.Headers.ExpectedVersion),
+                out var expectedVersion)
+                ? expectedVersion
+                : Streams.ExpectedVersion.Any;
     }
 }

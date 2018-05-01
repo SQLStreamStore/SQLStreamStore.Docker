@@ -101,6 +101,7 @@
                     .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
                     .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH")))
                 .Map("/streams", inner => inner
+                    .Use(StreamMetadataMiddleware.UseStreamStore(streamStore))
                     .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
                     .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
                     .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))

@@ -37,11 +37,7 @@ namespace SqlStreamStore.HAL
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
-            ExpectedVersion = int.TryParse(
-                request.Headers.Get(Constants.Headers.ExpectedVersion),
-                out var expectedVersion)
-                ? expectedVersion
-                : Streams.ExpectedVersion.Any;
+            ExpectedVersion = request.GetExpectedVersion();
         }
 
         private AppendStreamOptions(IOwinRequest request, JArray body)

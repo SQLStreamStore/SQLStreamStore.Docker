@@ -5,11 +5,11 @@ namespace SqlStreamStore.HAL
     using System.Threading.Tasks;
     using Microsoft.Owin;
 
-    internal class DeleteStreamOptions
+    internal class DeleteStreamMetadataOptions
     {
-        public DeleteStreamOptions(IOwinRequest request)
+        public DeleteStreamMetadataOptions(IOwinRequest request)
         {
-            StreamId = request.Path.Value.Remove(0, 1);
+            StreamId = $"$${request.Path.Value.Remove(0, 1)}";
 
             ExpectedVersion = request.GetExpectedVersion();
         }

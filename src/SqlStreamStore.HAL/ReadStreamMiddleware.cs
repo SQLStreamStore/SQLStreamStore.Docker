@@ -16,7 +16,7 @@ namespace SqlStreamStore.HAL
         public static MidFunc UseStreamStore(IStreamStore streamStore)
         {
             var streams = new StreamResource(streamStore);
-
+            
             var builder = new AppBuilder()
                 .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(streams)))
                 .MapWhen(IsStreamMessageOptions, inner => inner.Use(GetStreamMessageOptions))
@@ -60,11 +60,11 @@ namespace SqlStreamStore.HAL
         private static MidFunc GetStreamOptions => next => env =>
         {
             var context = new OwinContext(env);
-            
+
             context.SetStandardCorsHeaders(
-                HttpMethod.Get, 
-                HttpMethod.Head, 
-                HttpMethod.Options, 
+                HttpMethod.Get,
+                HttpMethod.Head,
+                HttpMethod.Options,
                 HttpMethod.Post,
                 HttpMethod.Delete);
 
@@ -84,18 +84,17 @@ namespace SqlStreamStore.HAL
                 await context.WriteHalResponse(response);
             }
         };
-        
+
         private static MidFunc GetStreamMessageOptions => next => env =>
         {
             var context = new OwinContext(env);
-            
+
             context.SetStandardCorsHeaders(
-                HttpMethod.Get, 
-                HttpMethod.Head, 
+                HttpMethod.Get,
+                HttpMethod.Head,
                 HttpMethod.Options);
 
             return Task.CompletedTask;
         };
-
     }
 }

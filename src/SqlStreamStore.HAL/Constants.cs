@@ -34,6 +34,7 @@ namespace SqlStreamStore.HAL
         public static class Streams
         {
             public const string All = "stream";
+            public const string Metadata = "metadata";
         }
         
         public static IReadOnlyDictionary<int, string> ReasonPhrases { get; }
