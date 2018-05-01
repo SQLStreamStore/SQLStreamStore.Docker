@@ -1,10 +1,9 @@
 ﻿namespace SqlStreamStore.HAL
 {
-    using System.Net.Http;
-    using System.Threading.Tasks;
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
+    using SqlStreamStore.HAL.Resources;
     using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
             System.Threading.Tasks.Task
         >, System.Func<System.Collections.Generic.IDictionary<string, object>,
@@ -18,10 +17,8 @@
             var streamsMetadata = new StreamMetadataResource(streamStore);
 
             var builder = new AppBuilder()
-                    .MapWhen(IsSetStreamMetadata, inner => inner.Use(SetStreamMetadata(streamsMetadata)))
-                    .MapWhen(IsGetStreamMetadata, inner => inner.Use(GetStreamMetadata(streamsMetadata)))
-                    .MapWhen(IsStreamMetadataOptions, inner => inner.Use(StreamMetadataOptions))
-                ;
+                .MapWhen(IsSetStreamMetadata, inner => inner.Use(SetStreamMetadata(streamsMetadata)))
+                .MapWhen(IsGetStreamMetadata, inner => inner.Use(GetStreamMetadata(streamsMetadata)));
 
             return next =>
             {
@@ -31,27 +28,11 @@
             };
         }
 
-        private static MidFunc StreamMetadataOptions => next => env =>
-        {
-            var context = new OwinContext(env);
-
-            context.SetStandardCorsHeaders(
-                HttpMethod.Get,
-                HttpMethod.Head,
-                HttpMethod.Options,
-                HttpMethod.Post);
-
-            return Task.CompletedTask;
-        };
-
         private static bool IsSetStreamMetadata(IOwinContext context)
             => context.IsPost() && context.Request.Path.IsStreamMetadata();
 
         private static bool IsGetStreamMetadata(IOwinContext context)
             => context.IsGetOrHead() && context.Request.Path.IsStreamMetadata();
-
-        private static bool IsStreamMetadataOptions(IOwinContext context)
-            => context.IsOptions() && context.Request.Path.IsStreamMetadata();
 
         private static MidFunc SetStreamMetadata(StreamMetadataResource streamsMetadata)
             => next => async env =>

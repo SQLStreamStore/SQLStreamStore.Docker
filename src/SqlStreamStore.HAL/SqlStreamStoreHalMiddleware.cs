@@ -53,10 +53,10 @@
             var context = new OwinContext(env);
 
             var accept = context.Request.Accept?.Split(',')
-                                 .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
-                                     ? header.MediaType
-                                     : null)
-                             ?? Enumerable.Empty<string>();
+                             .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
+                                 ? header.MediaType
+                                 : null)
+                         ?? Enumerable.Empty<string>();
 
             return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
                                         || header == Constants.Headers.ContentTypes.Any)
@@ -81,7 +81,7 @@
 
             var response = new Response(new HALResponse(null)
                 .AddLinks(new Link(
-                    Constants.Relations.Feed, 
+                    Constants.Relations.Feed,
                     "stream")));
 
             return context.WriteHalResponse(response);
@@ -97,15 +97,8 @@
                 .Use(AddReasonPhrase)
                 .Use(AcceptOnlyHalJson)
                 .Use(Index)
-                .Map("/stream", inner => inner
-                    .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH")))
-                .Map("/streams", inner => inner
-                    .Use(StreamMetadataMiddleware.UseStreamStore(streamStore))
-                    .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))
-                    .Use(MethodsNotAllowed("TRACE", "PATCH")));
+                .Map("/stream", UseAllStream(streamStore))
+                .Map("/streams", UseStream(streamStore));
 
             return next =>
             {
@@ -115,5 +108,21 @@
             };
         }
 
+        private static Action<IAppBuilder> UseStream(IStreamStore streamStore)
+            => builder => builder
+                .MapWhen(IsOptions, inner => inner.Use(StreamOptionsMiddleware.UseStreamStore(streamStore)))
+                .Use(StreamMetadataMiddleware.UseStreamStore(streamStore))
+                .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
+                .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
+                .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))
+                .Use(MethodsNotAllowed("TRACE", "PATCH"));
+
+        private static Action<IAppBuilder> UseAllStream(IStreamStore streamStore)
+            => builder => builder
+                .MapWhen(IsOptions, inner => inner.Use(AllStreamOptionsMiddleware.UseStreamStore(streamStore)))
+                .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
+                .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH"));
+
+        private static bool IsOptions(IOwinContext context) => context.IsOptions();
     }
 }

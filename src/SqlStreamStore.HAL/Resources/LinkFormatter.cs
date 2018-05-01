@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore.HAL.Resources
 {
     internal static class LinkFormatter
     {

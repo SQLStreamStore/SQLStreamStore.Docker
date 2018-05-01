@@ -3,6 +3,7 @@ namespace SqlStreamStore.HAL
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
+    using SqlStreamStore.HAL.Resources;
     using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
             System.Threading.Tasks.Task
         >, System.Func<System.Collections.Generic.IDictionary<string, object>,

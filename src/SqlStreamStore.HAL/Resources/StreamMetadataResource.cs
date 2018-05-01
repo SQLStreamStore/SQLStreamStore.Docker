@@ -1,11 +1,12 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore.HAL.Resources
 {
     using System;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
 
-    internal class StreamMetadataResource
+    internal class StreamMetadataResource : IResource
     {
         private static readonly Link[] s_links =
         {
@@ -14,6 +15,14 @@ namespace SqlStreamStore.HAL
         };
 
         private readonly IStreamStore _streamStore;
+
+        public HttpMethod[] Options { get; } =
+        {
+            HttpMethod.Get,
+            HttpMethod.Head,
+            HttpMethod.Options,
+            HttpMethod.Post
+        };
 
         public StreamMetadataResource(IStreamStore streamStore)
         {
@@ -61,17 +70,6 @@ namespace SqlStreamStore.HAL
                 .AddLinks(s_links));
 
             return response;
-        }
-
-        public async Task<Response> DeleteStreamMetadata(
-            DeleteStreamMetadataOptions options,
-            CancellationToken cancellationToken)
-        {
-            var operation = options.GetDeleteOperation();
-
-            await operation.Invoke(_streamStore, cancellationToken);
-            
-            return new Response(new HALResponse(new object()));
         }
     }
 }
