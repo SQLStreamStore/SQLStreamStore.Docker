@@ -29,12 +29,12 @@ namespace SqlStreamStore.HAL.Resources
             ExpectedVersion = request.GetExpectedVersion();
             MaxAge = body.Value<int?>("maxAge");
             MaxCount = body.Value<int?>("maxCount");
-            MetaJson = body["metaJson"]?.ToString(Formatting.Indented);
+            MetadataJson = body["metadataJson"]?.ToString(Formatting.Indented);
         }
 
         public string StreamId { get; }
         public int ExpectedVersion { get; }
-        public string MetaJson { get; }
+        public string MetadataJson { get; }
         public int? MaxCount { get; }
         public int? MaxAge { get; }
 
@@ -44,7 +44,7 @@ namespace SqlStreamStore.HAL.Resources
                 ExpectedVersion,
                 MaxAge,
                 MaxCount,
-                MetaJson,
+                MetadataJson,
                 ct);
     }
 }

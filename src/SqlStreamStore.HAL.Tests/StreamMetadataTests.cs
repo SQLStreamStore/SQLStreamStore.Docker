@@ -37,7 +37,7 @@
                 ((int) resource.State.metadataStreamVersion).ShouldBe(ExpectedVersion.NoStream);
                 ((int?) resource.State.maxAge).ShouldBe(default(int?));
                 ((int?) resource.State.maxCount).ShouldBe(default(int?));
-                ((string) resource.State.metaJson).ShouldBeNull();
+                ((string) resource.State.metadataJson).ShouldBeNull();
 
                 resource.ShouldLink(Constants.Relations.Self, "metadata");
                 resource.ShouldLink(Constants.Relations.Feed, "../");
@@ -54,7 +54,7 @@
                     {
                         maxAge = 30,
                         maxCount = 20,
-                        metaJson = new
+                        metadataJson = new
                         {
                             type = "a-type"
                         }
@@ -78,7 +78,7 @@
                 ((int) resource.State.metadataStreamVersion).ShouldBe(0);
                 ((int?) resource.State.maxAge).ShouldBe(30);
                 ((int?) resource.State.maxCount).ShouldBe(20);
-                JToken.DeepEquals(JObject.Parse((string) resource.State.metaJson),
+                JToken.DeepEquals(JObject.Parse((string) resource.State.metadataJson),
                     JObject.FromObject(new
                     {
                         type = "a-type"
@@ -99,7 +99,7 @@
                     {
                         maxAge = 30,
                         maxCount = 20,
-                        metaJson = new
+                        metadataJson = new
                         {
                             type = "a-type"
                         }
@@ -119,7 +119,7 @@
                 ((string) resource.State.streamId).ShouldBe(StreamId);
                 ((int?) resource.State.maxAge).ShouldBe(30);
                 ((int?) resource.State.maxCount).ShouldBe(20);
-                JToken.DeepEquals(JObject.Parse((string) resource.State.metaJson),
+                JToken.DeepEquals(JObject.Parse((string) resource.State.metadataJson),
                     JObject.FromObject(new
                     {
                         type = "a-type"
@@ -156,7 +156,7 @@
                         {
                             maxAge = 30,
                             maxCount = 20,
-                            metaJson = new
+                            metadataJson = new
                             {
                                 type = "a-type"
                             }
@@ -182,7 +182,7 @@
                     {
                         maxAge = 30,
                         maxCount = 20,
-                        metaJson = new
+                        metadataJson = new
                         {
                             type = "a-type"
                         }

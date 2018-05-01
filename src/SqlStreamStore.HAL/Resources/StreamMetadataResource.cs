@@ -45,7 +45,7 @@ namespace SqlStreamStore.HAL.Resources
                     result.MetadataStreamVersion,
                     result.MaxAge,
                     result.MaxCount,
-                    MetaJson = result.MetadataJson
+                    result.MetadataJson
                 }).AddLinks(s_links),
                 result.MetadataStreamVersion >= 0 ? 200 : 404);
 
@@ -65,7 +65,7 @@ namespace SqlStreamStore.HAL.Resources
                     options.StreamId,
                     options.MaxAge,
                     options.MaxCount,
-                    options.MetaJson
+                    options.MetadataJson
                 })
                 .AddLinks(s_links));
 
