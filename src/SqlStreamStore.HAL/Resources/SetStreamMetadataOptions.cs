@@ -29,7 +29,7 @@ namespace SqlStreamStore.HAL.Resources
             ExpectedVersion = request.GetExpectedVersion();
             MaxAge = body.Value<int?>("maxAge");
             MaxCount = body.Value<int?>("maxCount");
-            MetadataJson = body["metadataJson"]?.ToString(Formatting.Indented);
+            MetadataJson = Normalize(body["metadataJson"]?.ToString(Formatting.Indented));
         }
 
         public string StreamId { get; }
@@ -46,5 +46,25 @@ namespace SqlStreamStore.HAL.Resources
                 MaxCount,
                 MetadataJson,
                 ct);
+
+        private static string Normalize(string metadataJson)
+        {
+            if(string.IsNullOrEmpty(metadataJson))
+            {
+                return metadataJson;
+            }
+
+            if(metadataJson[0] == '\'' || metadataJson[0] == '"')
+            {
+                metadataJson = metadataJson.Remove(0, 1);
+            }
+
+            if(metadataJson[metadataJson.Length - 1] == '\'' || metadataJson[metadataJson.Length - 1] == '"')
+            {
+                metadataJson = metadataJson.Remove(metadataJson.Length - 1, 1);
+            }
+
+            return metadataJson;
+        }
     }
 }
