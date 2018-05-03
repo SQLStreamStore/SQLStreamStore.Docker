@@ -1,5 +1,4 @@
-#addin "Cake.FileHelpers"
-#addin "Cake.Powershell"
+#addin "nuget:?package=Cake.FileHelpers&version=2.0.0"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
@@ -19,7 +18,6 @@ Task("RestorePackages")
     .Does(() =>
 {
     DotNetCoreRestore(solution, new DotNetCoreRestoreSettings {
-        EnvironmentVariables = DotNetEnvironment
     });
 });
 
@@ -28,8 +26,7 @@ Task("Build")
     .Does(() =>
 {
     DotNetCoreBuild(solution, new DotNetCoreBuildSettings {
-        Configuration = configuration,
-	EnvironmentVariables = DotNetEnvironment
+        Configuration = configuration
     });
 });
 
@@ -43,8 +40,7 @@ Task("RunTests")
         var projectDir = srcDir + Directory(testProject);
         StartProcess("dotnet", new ProcessSettings {
             Arguments = "xunit",
-            WorkingDirectory = projectDir,
-            EnvironmentVariables = DotNetEnvironment
+            WorkingDirectory = projectDir
         });
     }
 });
@@ -56,12 +52,10 @@ Task("NuGetPack")
     var versionSuffix = "build" + buildNumber.ToString().PadLeft(5, '0');
 
     DotNetCorePack(srcDir + Directory("SqlStreamStore.HAL"), new DotNetCorePackSettings {
-        ArgumentCustomization = args => args.Append("/p:Version=1.0.0-" + versionSuffix),
         OutputDirectory = artifactsDir,
         NoBuild = true,
         Configuration = configuration,
-        VersionSuffix = versionSuffix,
-        EnvironmentVariables = DotNetEnvironment
+        VersionSuffix = versionSuffix
     });
 });
 
@@ -70,80 +64,3 @@ Task("Default")
     .IsDependentOn("NuGetPack");
 
 RunTarget(target);
-
-Dictionary<string, string> DotNetEnvironment => new Dictionary<string, string> {
-    {"PATH", Path}
-};
-
-private string _path;
-
-string Path => _path ?? (_path = DownloadDotNetCoreIfNecessary());
-
-string DownloadDotNetCoreIfNecessary() {
-    var path = Context.Environment.GetEnvironmentVariable("PATH");
-    var version = "2.0.0";
-
-    if (DotNetVersion == System.Version.Parse(version)) {
-        return path;
-    }
-
-    var dotnetDirectory = Directory(".dotnet");
-
-    EnsureDirectoryExists(dotnetDirectory);
-
-    if (IsRunningOnWindows()) {
-        DownloadDotNetCoreForWindows(dotnetDirectory, version);
-    } else {
-        DownloadDotNetCoreForUnix(dotnetDirectory, version);
-    }
-    return $"{dotnetDirectory.Path.MakeAbsolute(Context.Environment)};{path}";
-}
-
-void DownloadDotNetCoreForWindows(ConvertableDirectoryPath dotnetDirectory, string version) {
-    var channel = "Current";
-    var installer = "https://dot.net/dotnet-install.ps1";
-    var installerPath = dotnetDirectory + File("dotnet-install.ps1");
-
-    Information(installerPath);
-
-    DownloadFile(installer, installerPath);
-
-    StartPowershellFile(installerPath, args => {
-        args.Append("Channel", channel);
-        args.Append("Version", version);
-        args.Append("InstallDir", dotnetDirectory);
-    });
-}
-
-void DownloadDotNetCoreForUnix(DirectoryPath dotnetDirectory, string version) {
-    var channel = "Current";
-    var installer = "https://dot.net/dotnet-install.sh";
-    var installerPath = dotnetDirectory + File("dotnet-install.sh");
-
-    DownloadFile(installer, installerPath);
-
-    using (var process = StartAndReturnProcess(installerPath, new ProcessSettings {
-        Arguments = $"--channel {channel} --version {version} --install-dir {dotnetDirectory}"
-    })) {
-        process.WaitForExit();
-    }
-}
-
-Version DotNetVersion {
-    get {
-        using (var process = StartAndReturnProcess("dotnet", new ProcessSettings {
-            Arguments = "--version",
-            RedirectStandardOutput = true
-        })) {
-            process.WaitForExit();
-
-            var stdout = process.GetStandardOutput().FirstOrDefault();
-
-            System.Version installedVersion;
-
-            System.Version.TryParse(stdout, out installedVersion);
-
-            return installedVersion;
-        }
-    }
-}
