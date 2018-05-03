@@ -39,7 +39,7 @@ Task("RunTests")
     foreach(var testProject in testProjects) {
         var projectDir = srcDir + Directory(testProject);
         StartProcess("dotnet", new ProcessSettings {
-            Arguments = "xunit",
+            Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
             WorkingDirectory = projectDir
         });
     }
