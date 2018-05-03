@@ -66,7 +66,10 @@ namespace SqlStreamStore.HAL.Resources
                 new HALResponse(new
                     {
                         page.LastStreamVersion,
-                        page.LastStreamPosition
+                        page.LastStreamPosition,
+                        page.FromStreamVersion,
+                        page.NextStreamVersion,
+                        page.IsEnd
                     })
                     .AddLinks(Links.Stream.Self(options))
                     .AddLinks(Links.Stream.Navigation(page, options))

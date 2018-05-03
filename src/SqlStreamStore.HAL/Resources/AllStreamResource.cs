@@ -41,7 +41,12 @@
                 .ToArray());
 
             var response = new Response(
-                new HALResponse(new object())
+                new HALResponse(new
+                    {
+                        page.FromPosition,
+                        page.NextPosition,
+                        page.IsEnd
+                    })
                     .AddLinks(Links.All.SelfFeed(options))
                     .AddLinks(Links.All.Navigation(page, options))
                     .AddLinks(Links.All.Feed(options))
