@@ -137,7 +137,7 @@
             public static Link Feed(ReadStreamPage page, ReadStreamOptions options)
                 => new Link(Constants.Relations.Feed, Last(page, options).Href);
 
-            public static Link Feed(ReadStreamMessageOptions options)
+            public static Link Feed(ReadStreamMessageByStreamVersionOptions options)
                 => new Link(
                     Constants.Relations.Feed,
                     LinkFormatter.FormatBackwardLink(
@@ -180,7 +180,7 @@
 
         internal static class StreamMessage
         {
-            public static Link Self(ReadStreamMessageOptions options) => new Link(
+            public static Link Self(ReadStreamMessageByStreamVersionOptions options) => new Link(
                 Constants.Relations.Self,
                 $"{options.StreamVersion}");
 
@@ -226,18 +226,18 @@
 
             private static Link First() => new Link(Constants.Relations.First, $"{0}");
 
-            private static Link Previous(ReadStreamMessageOptions options) => new Link(
+            private static Link Previous(ReadStreamMessageByStreamVersionOptions options) => new Link(
                 Constants.Relations.Previous,
                 $"{options.StreamVersion - 1}");
 
-            private static Link Next(ReadStreamMessageOptions options) => new Link(
+            private static Link Next(ReadStreamMessageByStreamVersionOptions options) => new Link(
                 Constants.Relations.Next,
                 $"{options.StreamVersion + 1}");
 
             private static Link Last() => new Link(Constants.Relations.Last, $"{-1}");
 
             public static IEnumerable<Link> Navigation(
-                ReadStreamMessageOptions options,
+                ReadStreamMessageByStreamVersionOptions options,
                 Streams.StreamMessage message = default(Streams.StreamMessage))
             {
                 yield return First();

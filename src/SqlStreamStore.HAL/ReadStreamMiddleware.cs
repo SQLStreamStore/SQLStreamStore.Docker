@@ -1,7 +1,5 @@
 namespace SqlStreamStore.HAL
 {
-    using System.Net.Http;
-    using System.Threading.Tasks;
     using Microsoft.Owin;
     using Microsoft.Owin.Builder;
     using Owin;
@@ -55,7 +53,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = new ReadStreamMessageOptions(context.Request);
+            var options = new ReadStreamMessageByStreamVersionOptions(context.Request);
 
             var response = await streamMessages.GetMessage(options, context.Request.CallCancelled);
 
@@ -63,18 +61,6 @@ namespace SqlStreamStore.HAL
             {
                 await context.WriteHalResponse(response);
             }
-        };
-
-        private static MidFunc GetStreamMessageOptions => next => env =>
-        {
-            var context = new OwinContext(env);
-
-            context.SetStandardCorsHeaders(
-                HttpMethod.Get,
-                HttpMethod.Head,
-                HttpMethod.Options);
-
-            return Task.CompletedTask;
         };
     }
 }

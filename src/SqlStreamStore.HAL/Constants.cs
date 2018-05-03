@@ -9,6 +9,7 @@ namespace SqlStreamStore.HAL
         {
             public const string ExpectedVersion = "SSS-ExpectedVersion";
             public const string HeadPosition = "SSS-HeadPosition";
+            public const string MessageId = "SSS-MessageId";
             public const string Location = "Location";
             
             public static class ContentTypes

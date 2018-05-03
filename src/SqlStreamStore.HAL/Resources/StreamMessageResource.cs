@@ -26,7 +26,7 @@ namespace SqlStreamStore.HAL.Resources
         }
         
         public async Task<Response> GetMessage(
-            ReadStreamMessageOptions options,
+            ReadStreamMessageByStreamVersionOptions options,
             CancellationToken cancellationToken)
         {
             var operation = options.GetReadOperation();
@@ -75,6 +75,18 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.StreamMessage.Self(options))
                     .AddLinks(Links.StreamMessage.Navigation(options, message))
                     .AddLinks(Links.Stream.Feed(options)));
+        }
+
+        public async Task<Response> DeleteMessage(
+            DeleteStreamMessageOptions options,
+            CancellationToken cancellationToken)
+        {
+            var operation = options.GetDeleteOperation();
+
+            await operation.Invoke(_streamStore, cancellationToken);
+            
+            return new Response(
+                new HALResponse(new HALModelConfig()));
         }
     }
 }

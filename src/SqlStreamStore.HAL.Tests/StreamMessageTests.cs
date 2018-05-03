@@ -56,5 +56,20 @@
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
             }
         }
+
+        [Fact]
+        public async Task delete_single_message_by_version()
+        {
+            var writeResult = await _fixture.WriteNMessages("a-stream", 1);
+
+            using(var response = await _fixture.HttpClient.DeleteAsync("/streams/a-stream/0"))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            }
+            using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+            }
+        }
     }
 }

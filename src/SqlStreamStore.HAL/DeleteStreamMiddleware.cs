@@ -14,10 +14,12 @@ namespace SqlStreamStore.HAL
     {
         public static MidFunc UseStreamStore(IStreamStore streamStore)
         {
-            var stream = new StreamResource(streamStore);
+            var streams = new StreamResource(streamStore);
+            var streamMessaages = new StreamMessageResource(streamStore);
             
             var builder = new AppBuilder()
-                .MapWhen(IsStream, inner => inner.Use(DeleteStream(stream)));
+                .MapWhen(IsStream, inner => inner.Use(DeleteStream(streams)))
+                .MapWhen(IsStreamMessage, inner => inner.Use(DeleteStreamMessage(streamMessaages)));
 
             return next =>
             {
@@ -30,6 +32,9 @@ namespace SqlStreamStore.HAL
         private static bool IsStream(IOwinContext context)
             => context.IsDelete() && context.Request.Path.IsStream();
 
+        private static bool IsStreamMessage(IOwinContext context)
+            => context.IsDelete() && context.Request.Path.IsStreamMessageByIdOrVersion();
+
         private static MidFunc DeleteStream(StreamResource stream) => next => async env =>
         {
             var context = new OwinContext(env);
@@ -37,6 +42,17 @@ namespace SqlStreamStore.HAL
             var options = new DeleteStreamOptions(context.Request);
 
             var response = await stream.Delete(options, context.Request.CallCancelled);
+
+            await context.WriteHalResponse(response);
+        };
+
+        private static MidFunc DeleteStreamMessage(StreamMessageResource streamMessages) => next => async env =>
+        {
+            var context = new OwinContext(env);
+
+            var options = new DeleteStreamMessageOptions(context.Request);
+
+            var response = await streamMessages.DeleteMessage(options, context.Request.CallCancelled);
 
             await context.WriteHalResponse(response);
         };

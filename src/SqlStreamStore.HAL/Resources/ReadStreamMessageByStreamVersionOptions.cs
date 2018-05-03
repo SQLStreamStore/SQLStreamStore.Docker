@@ -7,18 +7,15 @@ namespace SqlStreamStore.HAL.Resources
     using Microsoft.Owin;
     using SqlStreamStore.Streams;
 
-    internal class ReadStreamMessageOptions
+    internal class ReadStreamMessageByStreamVersionOptions
     {
-        public ReadStreamMessageOptions(IOwinRequest request)
+        public ReadStreamMessageByStreamVersionOptions(IOwinRequest request)
         {
             var pieces = request.Path.Value.Split('/').Reverse().Take(2).ToArray();
 
             StreamId = pieces.LastOrDefault();
 
-            if(int.TryParse(pieces.FirstOrDefault(), out var streamVersion))
-            {
-                StreamVersion = streamVersion;
-            }
+            StreamVersion = int.Parse(pieces.First());
         }
 
         public int StreamVersion { get; }
