@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using KestrelPureOwin;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
+    using Microsoft.Owin;
     using SqlStreamStore.Streams;
     using MidFunc = System.Func<
         System.Func<
@@ -57,6 +58,7 @@
         private static Action<BuildFunc> Configure(IStreamStore streamStore)
             => builder => builder
                 .Use(DisplayErrors)
+                .Use(AllowAllOrigins)
                 .Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
 
         private static MidFunc DisplayErrors => next => async env =>
@@ -69,6 +71,20 @@
             {
                 Console.WriteLine(ex);    
             }
+        };
+
+        // don't actually do this in production
+        private static MidFunc AllowAllOrigins => next => env =>
+        {
+            var context = new OwinContext(env);
+            
+            context.Response.OnSendingHeaders(_ =>
+            {
+                var response = (IOwinResponse) _;
+                response.Headers["Access-Control-Allow-Origin"] = "*";
+            }, context.Response);
+            
+            return next(env);
         };
 
         private static void DisplayMenu(IStreamStore streamStore)
