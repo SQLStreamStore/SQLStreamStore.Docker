@@ -39,7 +39,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = new ReadStreamOptions(context.Request);
+            var options = new ReadStreamOperation(context.Request);
 
             var response = await streams.GetPage(options, context.Request.CallCancelled);
 
@@ -53,7 +53,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = new ReadStreamMessageByStreamVersionOptions(context.Request);
+            var options = new ReadStreamMessageByStreamVersionOperation(context.Request);
 
             var response = await streamMessages.GetMessage(options, context.Request.CallCancelled);
 

@@ -8,7 +8,7 @@
 
     internal class AllStreamMessageResource : IResource
     {
-        private readonly IReadonlyStreamStore _streamStore;
+        private readonly IStreamStore _streamStore;
 
         public HttpMethod[] Options { get; } =
         {
@@ -17,7 +17,7 @@
             HttpMethod.Options
         };
 
-        public AllStreamMessageResource(IReadonlyStreamStore streamStore)
+        public AllStreamMessageResource(IStreamStore streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
@@ -25,18 +25,16 @@
         }
         
         public async Task<Response> GetMessage(
-            ReadAllStreamMessageOptions options,
+            ReadAllStreamMessageOperation operation,
             CancellationToken cancellationToken)
         {
-            var operation = options.GetReadOperation();
-
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
             if(message.MessageId == Guid.Empty)
             {
                 return new Response(
                     new HALResponse(new HALModelConfig())
-                        .AddLinks(Links.All.Feed(options)),
+                        .AddLinks(Links.All.Feed(operation)),
                     404);
             }
 
@@ -55,7 +53,7 @@
                     metadata = message.JsonMetadata
                 }).AddLinks(
                     Links.All.SelfAll(message),
-                    Links.All.Feed(options)));
+                    Links.All.Feed(operation)));
         }
     }
 }

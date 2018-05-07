@@ -39,7 +39,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = new DeleteStreamOptions(context.Request);
+            var options = new DeleteStreamOperation(context.Request);
 
             var response = await stream.Delete(options, context.Request.CallCancelled);
 
@@ -50,7 +50,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = new DeleteStreamMessageOptions(context.Request);
+            var options = new DeleteStreamMessageOperation(context.Request);
 
             var response = await streamMessages.DeleteMessage(options, context.Request.CallCancelled);
 

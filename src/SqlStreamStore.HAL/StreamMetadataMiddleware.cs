@@ -39,7 +39,7 @@
             {
                 var context = new OwinContext(env);
 
-                var options = await SetStreamMetadataOptions.Create(context.Request, context.Request.CallCancelled);
+                var options = await SetStreamMetadataOperation.Create(context.Request, context.Request.CallCancelled);
 
                 var response = await streamsMetadata.SetStreamMetadata(options, context.Request.CallCancelled);
 
@@ -51,7 +51,7 @@
             {
                 var context = new OwinContext(env);
 
-                var options = new GetStreamMetadataOptions(context.Request);
+                var options = new GetStreamMetadataOperation(context.Request);
 
                 var response = await streamsMetadata.GetStreamMetadata(options, context.Request.CallCancelled);
 

@@ -10,7 +10,7 @@
 
     internal class AllStreamResource : IResource
     {
-        private readonly IReadonlyStreamStore _streamStore;
+        private readonly IStreamStore _streamStore;
 
         public HttpMethod[] Options { get; } =
         {
@@ -19,7 +19,7 @@
             HttpMethod.Options
         };
 
-        public AllStreamResource(IReadonlyStreamStore streamStore)
+        public AllStreamResource(IStreamStore streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
@@ -27,15 +27,13 @@
         }
 
         public async Task<Response> GetPage(
-            ReadAllStreamOptions options,
+            ReadAllStreamOperation operation,
             CancellationToken cancellationToken)
         {
-            var operation = options.GetReadOperation();
-
             var page = await operation.Invoke(_streamStore, cancellationToken);
 
             var payloads = await Task.WhenAll(page.Messages
-                .Select(message => options.EmbedPayload
+                .Select(message => operation.EmbedPayload
                     ? message.GetJsonData(cancellationToken)
                     : Task.FromResult<string>(null))
                 .ToArray());
@@ -47,9 +45,9 @@
                         page.NextPosition,
                         page.IsEnd
                     })
-                    .AddLinks(Links.All.SelfFeed(options))
-                    .AddLinks(Links.All.Navigation(page, options))
-                    .AddLinks(Links.All.Feed(options))
+                    .AddLinks(Links.All.SelfFeed(operation))
+                    .AddLinks(Links.All.Navigation(page, operation))
+                    .AddLinks(Links.All.Feed(operation))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         page.Messages.Zip(payloads,
@@ -66,7 +64,7 @@
                             }).AddLinks(
                                 Links.All.Self(message)))));
 
-            if(options.FromPositionInclusive == Position.End)
+            if(operation.FromPositionInclusive == Position.End)
             {
                 var headPosition = page.Messages.Length > 0
                     ? page.Messages[0].Position

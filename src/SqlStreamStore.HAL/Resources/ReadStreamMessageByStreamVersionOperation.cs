@@ -1,15 +1,14 @@
 namespace SqlStreamStore.HAL.Resources
 {
-    using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Owin;
     using SqlStreamStore.Streams;
 
-    internal class ReadStreamMessageByStreamVersionOptions
+    internal class ReadStreamMessageByStreamVersionOperation : IStreamStoreOperation<StreamMessage>
     {
-        public ReadStreamMessageByStreamVersionOptions(IOwinRequest request)
+        public ReadStreamMessageByStreamVersionOperation(IOwinRequest request)
         {
             var pieces = request.Path.Value.Split('/').Reverse().Take(2).ToArray();
 
@@ -21,8 +20,8 @@ namespace SqlStreamStore.HAL.Resources
         public int StreamVersion { get; }
         public string StreamId { get; }
 
-        public Func<IReadonlyStreamStore, CancellationToken, Task<StreamMessage>> GetReadOperation()
-            => async (streamStore, ct) => (await streamStore.ReadStreamBackwards(StreamId, StreamVersion, 1, true, ct))
+        public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => (await streamStore.ReadStreamBackwards(StreamId, StreamVersion, 1, true, ct))
                 .Messages.FirstOrDefault(message => StreamVersion == Streams.StreamVersion.End
                                                     || message.StreamVersion == StreamVersion);
     }

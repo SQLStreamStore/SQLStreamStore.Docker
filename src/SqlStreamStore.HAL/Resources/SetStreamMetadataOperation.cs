@@ -1,6 +1,5 @@
 namespace SqlStreamStore.HAL.Resources
 {
-    using System;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -8,9 +7,9 @@ namespace SqlStreamStore.HAL.Resources
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
-    internal class SetStreamMetadataOptions
+    internal class SetStreamMetadataOperation : IStreamStoreOperation<Unit>
     {
-        public static async Task<SetStreamMetadataOptions> Create(IOwinRequest request, CancellationToken ct)
+        public static async Task<SetStreamMetadataOperation> Create(IOwinRequest request, CancellationToken ct)
         {
             using(var reader = new JsonTextReader(new StreamReader(request.Body))
             {
@@ -19,11 +18,11 @@ namespace SqlStreamStore.HAL.Resources
             {
                 var body = await JObject.LoadAsync(reader, ct);
                 
-                return new SetStreamMetadataOptions(request, body);
+                return new SetStreamMetadataOperation(request, body);
             }
         }
 
-        private SetStreamMetadataOptions(IOwinRequest request, JObject body)
+        private SetStreamMetadataOperation(IOwinRequest request, JObject body)
         {
             StreamId = request.Path.Value.Split('/')[1];
             ExpectedVersion = request.GetExpectedVersion();
@@ -38,14 +37,18 @@ namespace SqlStreamStore.HAL.Resources
         public int? MaxCount { get; }
         public int? MaxAge { get; }
 
-        public Func<IStreamStore, CancellationToken, Task> GetSetOperation()
-            => (streamStore, ct) => streamStore.SetStreamMetadata(
+        public async Task<Unit> Invoke(IStreamStore streamStore, CancellationToken ct)
+        {
+            await streamStore.SetStreamMetadata(
                 StreamId,
                 ExpectedVersion,
                 MaxAge,
                 MaxCount,
                 MetadataJson,
                 ct);
+
+            return Unit.Instance;
+        }
 
         private static string Normalize(string metadataJson)
         {

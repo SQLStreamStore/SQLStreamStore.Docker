@@ -10,8 +10,8 @@
     {
         internal static class All
         {
-            public static Link SelfFeed(ReadAllStreamOptions options)
-                => new Link(Constants.Relations.Self, options.Self);
+            public static Link SelfFeed(ReadAllStreamOperation operation)
+                => new Link(Constants.Relations.Self, operation.Self);
 
             public static Link Self(Streams.StreamMessage message) => new Link(
                 Constants.Relations.Self,
@@ -20,25 +20,25 @@
             public static Link SelfAll(Streams.StreamMessage message)
                 => new Link(Constants.Relations.Self, $"/{Constants.Streams.All}/{message.Position}");
 
-            public static Link First(ReadAllStreamOptions options)
+            public static Link First(ReadAllStreamOperation operation)
                 => new Link(
                     Constants.Relations.First,
                     LinkFormatter.FormatForwardLink(
                         Constants.Streams.All,
-                        options.MaxCount,
+                        operation.MaxCount,
                         Position.Start,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Last(ReadAllStreamOptions options)
+            public static Link Last(ReadAllStreamOperation operation)
                 => new Link(
                     Constants.Relations.Last,
                     LinkFormatter.FormatBackwardLink(
                         Constants.Streams.All,
-                        options.MaxCount,
+                        operation.MaxCount,
                         Position.End,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Last(ReadAllStreamMessageOptions options)
+            public static Link Last(ReadAllStreamMessageOperation operation)
                 => new Link(
                     Constants.Relations.Last,
                     LinkFormatter.FormatBackwardLink(
@@ -47,42 +47,42 @@
                         Position.End,
                         false));
 
-            public static Link Feed(ReadAllStreamOptions options)
-                => new Link(Constants.Relations.Feed, Last(options).Href);
+            public static Link Feed(ReadAllStreamOperation operation)
+                => new Link(Constants.Relations.Feed, Last(operation).Href);
 
-            public static Link Feed(ReadAllStreamMessageOptions options)
-                => new Link(Constants.Relations.Feed, Last(options).Href);
+            public static Link Feed(ReadAllStreamMessageOperation operation)
+                => new Link(Constants.Relations.Feed, Last(operation).Href);
 
-            public static Link Previous(ReadAllPage page, ReadAllStreamOptions options)
+            public static Link Previous(ReadAllPage page, ReadAllStreamOperation operation)
                 => new Link(
                     Constants.Relations.Previous,
                     LinkFormatter.FormatBackwardLink(
                         Constants.Streams.All,
-                        options.MaxCount,
+                        operation.MaxCount,
                         page.Messages.Min(m => m.Position) - 1,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Next(ReadAllPage page, ReadAllStreamOptions options)
+            public static Link Next(ReadAllPage page, ReadAllStreamOperation operation)
                 => new Link(
                     Constants.Relations.Next,
                     LinkFormatter.FormatForwardLink(
                         Constants.Streams.All,
-                        options.MaxCount,
+                        operation.MaxCount,
                         page.Messages.Max(m => m.Position) + 1,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static IEnumerable<Link> Navigation(ReadAllPage page, ReadAllStreamOptions options)
+            public static IEnumerable<Link> Navigation(ReadAllPage page, ReadAllStreamOperation operation)
             {
-                var first = First(options);
-                var last = Last(options);
+                var first = First(operation);
+                var last = Last(operation);
 
                 yield return first;
 
-                if(options.Self != first.Href && !page.IsEnd)
-                    yield return Previous(page, options);
+                if(operation.Self != first.Href && !page.IsEnd)
+                    yield return Previous(page, operation);
 
-                if(options.Self != last.Href && !page.IsEnd)
-                    yield return Next(page, options);
+                if(operation.Self != last.Href && !page.IsEnd)
+                    yield return Next(page, operation);
 
                 yield return last;
             }
@@ -90,89 +90,89 @@
 
         internal static class Stream
         {
-            public static Link First(ReadStreamPage page, ReadStreamOptions options)
+            public static Link First(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.First,
                     LinkFormatter.FormatForwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         StreamVersion.Start,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Previous(ReadStreamPage page, ReadStreamOptions options)
+            public static Link Previous(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Previous,
                     LinkFormatter.FormatBackwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         page.Messages.Min(m => m.StreamVersion) - 1,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Next(ReadStreamPage page, ReadStreamOptions options)
+            public static Link Next(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Next,
                     LinkFormatter.FormatForwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         page.Messages.Max(m => m.StreamVersion) + 1,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Last(ReadStreamPage page, ReadStreamOptions options)
+            public static Link Last(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Last,
                     LinkFormatter.FormatBackwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         StreamVersion.End,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Self(ReadStreamOptions options) => new Link(
+            public static Link Self(ReadStreamOperation operation) => new Link(
                 Constants.Relations.Self,
-                options.Self);
+                operation.Self);
 
-            public static Link Self(AppendStreamOptions options) => new Link(
+            public static Link Self(AppendStreamOperation operation) => new Link(
                 Constants.Relations.Self,
-                $"{options.StreamId}");
+                $"{operation.StreamId}");
 
-            public static Link Feed(ReadStreamPage page, ReadStreamOptions options)
-                => new Link(Constants.Relations.Feed, Last(page, options).Href);
+            public static Link Feed(ReadStreamPage page, ReadStreamOperation operation)
+                => new Link(Constants.Relations.Feed, Last(page, operation).Href);
 
-            public static Link Feed(ReadStreamMessageByStreamVersionOptions options)
+            public static Link Feed(ReadStreamMessageByStreamVersionOperation operation)
                 => new Link(
                     Constants.Relations.Feed,
                     LinkFormatter.FormatBackwardLink(
-                        options.StreamId,
+                        operation.StreamId,
                         Constants.MaxCount,
                         StreamVersion.End,
                         false));
 
-            public static Link Feed(AppendStreamOptions options)
+            public static Link Feed(AppendStreamOperation operation)
                 => new Link(
                     Constants.Relations.Feed,
                     LinkFormatter.FormatBackwardLink(
-                        options.StreamId,
+                        operation.StreamId,
                         Constants.MaxCount,
                         StreamVersion.End,
                         false));
 
-            public static Link Metadata(ReadStreamOptions options)
+            public static Link Metadata(ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Metadata,
-                    $"{options.StreamId}/metadata");
+                    $"{operation.StreamId}/metadata");
 
-            public static IEnumerable<Link> Navigation(ReadStreamPage page, ReadStreamOptions options)
+            public static IEnumerable<Link> Navigation(ReadStreamPage page, ReadStreamOperation operation)
             {
-                var first = First(page, options);
+                var first = First(page, operation);
 
-                var last = Last(page, options);
+                var last = Last(page, operation);
 
                 yield return first;
 
-                if(options.Self != first.Href && !page.IsEnd)
-                    yield return Previous(page, options);
+                if(operation.Self != first.Href && !page.IsEnd)
+                    yield return Previous(page, operation);
 
-                if(options.Self != last.Href && !page.IsEnd)
-                    yield return Next(page, options);
+                if(operation.Self != last.Href && !page.IsEnd)
+                    yield return Next(page, operation);
 
                 yield return last;
             }
@@ -180,76 +180,76 @@
 
         internal static class StreamMessage
         {
-            public static Link Self(ReadStreamMessageByStreamVersionOptions options) => new Link(
+            public static Link Self(ReadStreamMessageByStreamVersionOperation operation) => new Link(
                 Constants.Relations.Self,
-                $"{options.StreamVersion}");
+                $"{operation.StreamVersion}");
 
             public static Link Self(Streams.StreamMessage message) => new Link(
                 Constants.Relations.Self,
                 $"{message.StreamId}/{message.StreamVersion}");
 
-            public static Link First(ReadStreamPage page, ReadStreamOptions options)
+            public static Link First(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.First,
                     LinkFormatter.FormatForwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         StreamVersion.Start,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Previous(ReadStreamPage page, ReadStreamOptions options)
+            public static Link Previous(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Previous,
                     LinkFormatter.FormatBackwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         page.Messages.Min(m => m.StreamVersion) - 1,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Next(ReadStreamPage page, ReadStreamOptions options)
+            public static Link Next(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Next,
                     LinkFormatter.FormatForwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         page.Messages.Max(m => m.StreamVersion) + 1,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
-            public static Link Last(ReadStreamPage page, ReadStreamOptions options)
+            public static Link Last(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.Last,
                     LinkFormatter.FormatBackwardLink(
                         page.StreamId,
-                        options.MaxCount,
+                        operation.MaxCount,
                         StreamVersion.End,
-                        options.EmbedPayload));
+                        operation.EmbedPayload));
 
             private static Link First() => new Link(Constants.Relations.First, $"{0}");
 
-            private static Link Previous(ReadStreamMessageByStreamVersionOptions options) => new Link(
+            private static Link Previous(ReadStreamMessageByStreamVersionOperation operation) => new Link(
                 Constants.Relations.Previous,
-                $"{options.StreamVersion - 1}");
+                $"{operation.StreamVersion - 1}");
 
-            private static Link Next(ReadStreamMessageByStreamVersionOptions options) => new Link(
+            private static Link Next(ReadStreamMessageByStreamVersionOperation operation) => new Link(
                 Constants.Relations.Next,
-                $"{options.StreamVersion + 1}");
+                $"{operation.StreamVersion + 1}");
 
             private static Link Last() => new Link(Constants.Relations.Last, $"{-1}");
 
             public static IEnumerable<Link> Navigation(
-                ReadStreamMessageByStreamVersionOptions options,
+                ReadStreamMessageByStreamVersionOperation operation,
                 Streams.StreamMessage message = default(Streams.StreamMessage))
             {
                 yield return First();
 
-                if(options.StreamVersion > 0)
+                if(operation.StreamVersion > 0)
                 {
-                    yield return Previous(options);
+                    yield return Previous(operation);
                 }
 
                 if(message.MessageId != default(Guid))
                 {
-                    yield return Next(options);
+                    yield return Next(operation);
                 }
 
                 yield return Last();

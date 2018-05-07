@@ -26,11 +26,9 @@ namespace SqlStreamStore.HAL.Resources
         }
         
         public async Task<Response> GetMessage(
-            ReadStreamMessageByStreamVersionOptions options,
+            ReadStreamMessageByStreamVersionOperation operation,
             CancellationToken cancellationToken)
         {
-            var operation = options.GetReadOperation();
-
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
             if(message.MessageId == Guid.Empty)
@@ -38,16 +36,16 @@ namespace SqlStreamStore.HAL.Resources
                 return new Response(
                     new HALResponse(new
                         {
-                            options.StreamId,
-                            options.StreamVersion
+                            operation.StreamId,
+                            operation.StreamVersion
                         })
-                        .AddLinks(Links.StreamMessage.Self(options))
-                        .AddLinks(Links.StreamMessage.Navigation(options))
-                        .AddLinks(Links.Stream.Feed(options)),
+                        .AddLinks(Links.StreamMessage.Self(operation))
+                        .AddLinks(Links.StreamMessage.Navigation(operation))
+                        .AddLinks(Links.Stream.Feed(operation)),
                     404);
             }
             
-            if(options.StreamVersion == StreamVersion.End)
+            if(operation.StreamVersion == StreamVersion.End)
             {
                 return new Response(new HALResponse(new object()), 307)
                 {
@@ -72,17 +70,15 @@ namespace SqlStreamStore.HAL.Resources
                         payload,
                         metadata = message.JsonMetadata
                     })
-                    .AddLinks(Links.StreamMessage.Self(options))
-                    .AddLinks(Links.StreamMessage.Navigation(options, message))
-                    .AddLinks(Links.Stream.Feed(options)));
+                    .AddLinks(Links.StreamMessage.Self(operation))
+                    .AddLinks(Links.StreamMessage.Navigation(operation, message))
+                    .AddLinks(Links.Stream.Feed(operation)));
         }
 
         public async Task<Response> DeleteMessage(
-            DeleteStreamMessageOptions options,
+            DeleteStreamMessageOperation operation,
             CancellationToken cancellationToken)
         {
-            var operation = options.GetDeleteOperation();
-
             await operation.Invoke(_streamStore, cancellationToken);
             
             return new Response(

@@ -34,7 +34,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = await AppendStreamOptions.Create(context.Request, context.Request.CallCancelled);
+            var options = await AppendStreamOperation.Create(context.Request, context.Request.CallCancelled);
 
             var response = await stream.AppendMessages(options, context.Request.CallCancelled);
 

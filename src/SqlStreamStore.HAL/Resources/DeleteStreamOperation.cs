@@ -1,13 +1,12 @@
 namespace SqlStreamStore.HAL.Resources
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Owin;
 
-    internal class DeleteStreamOptions
+    internal class DeleteStreamOperation : IStreamStoreOperation<Unit>
     {
-        public DeleteStreamOptions(IOwinRequest request)
+        public DeleteStreamOperation(IOwinRequest request)
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
@@ -17,7 +16,11 @@ namespace SqlStreamStore.HAL.Resources
         public string StreamId { get; }
         public int ExpectedVersion { get; }
 
-        public Func<IStreamStore, CancellationToken, Task> GetDeleteOperation()
-            => (streamStore, ct) => streamStore.DeleteStream(StreamId, ExpectedVersion, ct);
+        public async Task<Unit> Invoke(IStreamStore streamStore, CancellationToken ct)
+        {
+            await streamStore.DeleteStream(StreamId, ExpectedVersion, ct);
+
+            return Unit.Instance;
+        }
     }
 }

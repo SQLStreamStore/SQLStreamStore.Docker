@@ -1,17 +1,16 @@
 namespace SqlStreamStore.HAL.Resources
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Owin;
     using SqlStreamStore.Streams;
 
-    internal class ReadAllStreamOptions
+    internal class ReadAllStreamOperation : IStreamStoreOperation<ReadAllPage>
     {
         private readonly long _fromPositionInclusive;
         private readonly int _maxCount;
 
-        public ReadAllStreamOptions(IOwinRequest request)
+        public ReadAllStreamOperation(IOwinRequest request)
         {
             EmbedPayload = request.Query.Get("e") != null;
 
@@ -39,8 +38,8 @@ namespace SqlStreamStore.HAL.Resources
             ? LinkFormatter.FormatForwardLink(Constants.Streams.All, MaxCount, FromPositionInclusive, EmbedPayload)
             : LinkFormatter.FormatBackwardLink(Constants.Streams.All, MaxCount, FromPositionInclusive, EmbedPayload);
 
-        public Func<IReadonlyStreamStore, CancellationToken, Task<ReadAllPage>> GetReadOperation()
-            => (streamStore, ct) => ReadDirection == Constants.ReadDirection.Forwards
+        public Task<ReadAllPage> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => ReadDirection == Constants.ReadDirection.Forwards
                 ? streamStore.ReadAllForwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct)
                 : streamStore.ReadAllBackwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct);
     }

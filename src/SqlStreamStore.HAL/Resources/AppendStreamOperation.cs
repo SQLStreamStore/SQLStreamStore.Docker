@@ -10,9 +10,9 @@ namespace SqlStreamStore.HAL.Resources
     using Newtonsoft.Json.Linq;
     using SqlStreamStore.Streams;
 
-    internal class AppendStreamOptions
+    internal class AppendStreamOperation : IStreamStoreOperation<AppendResult>
     {
-        public static async Task<AppendStreamOptions> Create(IOwinRequest request, CancellationToken ct)
+        public static async Task<AppendStreamOperation> Create(IOwinRequest request, CancellationToken ct)
         {
             using(var reader = new JsonTextReader(new StreamReader(request.Body))
             {
@@ -24,30 +24,30 @@ namespace SqlStreamStore.HAL.Resources
                 switch(body)
                 {
                     case JArray json:
-                        return new AppendStreamOptions(request, json);
+                        return new AppendStreamOperation(request, json);
                     case JObject json:
-                        return new AppendStreamOptions(request, json);
+                        return new AppendStreamOperation(request, json);
                     default:
                         throw new InvalidOperationException();
                 }
             }
         }
 
-        private AppendStreamOptions(IOwinRequest request)
+        private AppendStreamOperation(IOwinRequest request)
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
             ExpectedVersion = request.GetExpectedVersion();
         }
 
-        private AppendStreamOptions(IOwinRequest request, JArray body)
+        private AppendStreamOperation(IOwinRequest request, JArray body)
             : this(request)
         {
             NewStreamMessages = body.Select(ParseNewStreamMessage)
                 .ToArray();
         }
 
-        private AppendStreamOptions(IOwinRequest request, JObject body)
+        private AppendStreamOperation(IOwinRequest request, JObject body)
             : this(request, new JArray { body })
         { }
 
@@ -56,7 +56,7 @@ namespace SqlStreamStore.HAL.Resources
             if(!Guid.TryParse(newStreamMessage.Value<string>("messageId"), out var messageId))
             {
                 throw new InvalidAppendRequestException($"'{nameof(messageId)}' at index {index} was improperly formatted.");
-            };
+            }
             if(messageId == Guid.Empty)
             {
                 throw new InvalidAppendRequestException($"'{nameof(messageId)}' at index {index} was empty.");
@@ -78,7 +78,7 @@ namespace SqlStreamStore.HAL.Resources
         public int ExpectedVersion { get; }
         public NewStreamMessage[] NewStreamMessages { get; }
 
-        public Func<IStreamStore, CancellationToken, Task<AppendResult>> GetAppendOperation()
-            => (streamStore, ct) => streamStore.AppendToStream(StreamId, ExpectedVersion, NewStreamMessages, ct);
+        public Task<AppendResult> Invoke(IStreamStore streamStore, CancellationToken ct) 
+            => streamStore.AppendToStream(StreamId, ExpectedVersion, NewStreamMessages, ct);
     }
 }

@@ -32,11 +32,9 @@ namespace SqlStreamStore.HAL.Resources
         }
 
         public async Task<Response> GetStreamMetadata(
-            GetStreamMetadataOptions options,
+            GetStreamMetadataOperation operation,
             CancellationToken cancellationToken)
         {
-            var operation = options.GetReadOperation();
-
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
             var response = new Response(new HALResponse(new
@@ -53,19 +51,17 @@ namespace SqlStreamStore.HAL.Resources
         }
 
         public async Task<Response> SetStreamMetadata(
-            SetStreamMetadataOptions options,
+            SetStreamMetadataOperation operation,
             CancellationToken cancellationToken)
         {
-            var operation = options.GetSetOperation();
-
             await operation.Invoke(_streamStore, cancellationToken);
 
             var response = new Response(new HALResponse(new
                 {
-                    options.StreamId,
-                    options.MaxAge,
-                    options.MaxCount,
-                    options.MetadataJson
+                    operation.StreamId,
+                    operation.MaxAge,
+                    operation.MaxCount,
+                    operation.MetadataJson
                 })
                 .AddLinks(s_links));
 

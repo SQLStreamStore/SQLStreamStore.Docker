@@ -12,7 +12,7 @@ namespace SqlStreamStore.HAL
 
     internal static class ReadAllStreamMiddleware
     {
-        public static MidFunc UseStreamStore(IReadonlyStreamStore streamStore)
+        public static MidFunc UseStreamStore(IStreamStore streamStore)
         {
             var allStream = new AllStreamResource(streamStore);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
@@ -40,7 +40,7 @@ namespace SqlStreamStore.HAL
         {
             var context = new OwinContext(env);
 
-            var options = new ReadAllStreamOptions(context.Request);
+            var options = new ReadAllStreamOperation(context.Request);
 
             var response = await allStream.GetPage(options, context.Request.CallCancelled);
 
@@ -55,7 +55,7 @@ namespace SqlStreamStore.HAL
             var context = new OwinContext(env);
 
             var response = await allStreamMessages.GetMessage(
-                new ReadAllStreamMessageOptions(context.Request),
+                new ReadAllStreamMessageOperation(context.Request),
                 context.Request.CallCancelled);
 
             using(new OptionalHeadRequestWrapper(context))
