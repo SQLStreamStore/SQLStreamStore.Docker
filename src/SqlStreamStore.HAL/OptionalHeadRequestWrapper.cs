@@ -4,14 +4,14 @@ namespace SqlStreamStore.HAL
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
 
     internal class OptionalHeadRequestWrapper : IDisposable
     {
-        private readonly IOwinContext _context;
+        private readonly HttpContext _context;
         private readonly Stream _originalBody;
 
-        public OptionalHeadRequestWrapper(IOwinContext context)
+        public OptionalHeadRequestWrapper(HttpContext context)
         {
             _context = context;
             _originalBody = _context.Response.Body;

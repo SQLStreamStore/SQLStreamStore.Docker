@@ -3,13 +3,12 @@
     using System;
     using System.Collections.Generic;
     using Halcyon.HAL;
-    using Microsoft.Owin;
     using Newtonsoft.Json;
     using SqlStreamStore.Streams;
-    using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task
-        >, System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>
+    using MidFunc = System.Func<
+        Microsoft.AspNetCore.Http.HttpContext,
+        System.Func<System.Threading.Tasks.Task>,
+        System.Threading.Tasks.Task
     >;
     
     internal static class ExceptionHandlingMiddleware
@@ -45,16 +44,14 @@
                 [typeof(Exception)] = s_defaultExceptionHandler
             };
 
-        public static MidFunc HandleExceptions => next => async env =>
+        public static MidFunc HandleExceptions => async (context, next) =>
         {
             try
             {
-                await next(env);
+                await next();
             }
             catch(Exception ex)
             {
-                var context = new OwinContext(env);
-
                 var exceptionType = ex.GetType();
 
                 Func<Exception, Response> exceptionHandler = null;

@@ -1,7 +1,7 @@
 ﻿namespace SqlStreamStore.HAL
 {
     using System;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
 
     internal static class PathStringExtensions
     {

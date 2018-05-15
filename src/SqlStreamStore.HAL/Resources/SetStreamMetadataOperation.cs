@@ -3,13 +3,13 @@ namespace SqlStreamStore.HAL.Resources
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     internal class SetStreamMetadataOperation : IStreamStoreOperation<Unit>
     {
-        public static async Task<SetStreamMetadataOperation> Create(IOwinRequest request, CancellationToken ct)
+        public static async Task<SetStreamMetadataOperation> Create(HttpRequest request, CancellationToken ct)
         {
             using(var reader = new JsonTextReader(new StreamReader(request.Body))
             {
@@ -22,7 +22,7 @@ namespace SqlStreamStore.HAL.Resources
             }
         }
 
-        private SetStreamMetadataOperation(IOwinRequest request, JObject body)
+        private SetStreamMetadataOperation(HttpRequest request, JObject body)
         {
             StreamId = request.Path.Value.Split('/')[1];
             ExpectedVersion = request.GetExpectedVersion();

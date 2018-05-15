@@ -4,11 +4,11 @@ namespace SqlStreamStore.HAL
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
 
-    internal static class OwinContextExtensions
+    internal static class HttpContextExtensions
     {
         private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
         {
@@ -16,7 +16,7 @@ namespace SqlStreamStore.HAL
             TypeNameHandling = TypeNameHandling.None
         });
 
-        public static async Task WriteHalResponse(this IOwinContext context, Response response)
+        public static async Task WriteHalResponse(this HttpContext context, Response response)
         {
             context.Response.ContentType = Constants.Headers.ContentTypes.HalJson;
 
@@ -24,7 +24,7 @@ namespace SqlStreamStore.HAL
 
             foreach(var header in response.Headers)
             {
-                context.Response.Headers.AppendValues(header.Key, header.Value);
+                context.Response.Headers.Append(header.Key, header.Value);
             }
 
             using(var writer = new JsonTextWriter(new StreamWriter(context.Response.Body))
@@ -32,44 +32,47 @@ namespace SqlStreamStore.HAL
                 CloseOutput = false
             })
             {
-                await response.Hal.ToJObject(s_serializer).WriteToAsync(writer, context.Request.CallCancelled);
+                await response.Hal.ToJObject(s_serializer).WriteToAsync(writer, context.RequestAborted);
 
-                await writer.FlushAsync(context.Request.CallCancelled);
+                await writer.FlushAsync(context.RequestAborted);
             }
         }
 
-        public static void SetStandardCorsHeaders(this IOwinContext context, params HttpMethod[] allowedMethods)
+        public static void SetStandardCorsHeaders(this HttpContext context, params HttpMethod[] allowedMethods)
         {
             if(allowedMethods?.Length > 0)
             {
-                context.Response.Headers.AppendValues("Access-Control-Allow-Methods",
+                context.Response.Headers.Append("Access-Control-Allow-Methods",
                     allowedMethods.Select(_ => _.Method).ToArray());
             }
 
-            context.Response.Headers.AppendValues(
+            context.Response.Headers.Append(
                 "Access-Control-Allow-Headers",
-                "Content-Type",
-                "X-Requested-With",
-                "Authorization");
+                new[]
+                {
+                    "Content-Type",
+                    "X-Requested-With",
+                    "Authorization"
+                });
 
-            context.Response.Headers.AppendValues("Access-Control-Allow-Origin", "*");
+            context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         }
 
-        public static bool IsGetOrHead(this IOwinContext context)
+        public static bool IsGetOrHead(this HttpContext context)
             => context.Request.Method == "GET" || context.Request.Method == "HEAD";
 
-        public static bool IsPost(this IOwinContext context)
+        public static bool IsPost(this HttpContext context)
             => context.Request.Method == "POST";
 
-        public static bool IsDelete(this IOwinContext context)
+        public static bool IsDelete(this HttpContext context)
             => context.Request.Method == "DELETE";
 
-        public static bool IsOptions(this IOwinContext context)
+        public static bool IsOptions(this HttpContext context)
             => context.Request.Method == "OPTIONS";
 
-        public static int GetExpectedVersion(this IOwinRequest request)
+        public static int GetExpectedVersion(this HttpRequest request)
             => int.TryParse(
-                request.Headers.Get(Constants.Headers.ExpectedVersion),
+                request.Headers[Constants.Headers.ExpectedVersion],
                 out var expectedVersion)
                 ? expectedVersion
                 : Streams.ExpectedVersion.Any;

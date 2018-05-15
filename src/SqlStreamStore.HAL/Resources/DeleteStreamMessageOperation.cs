@@ -4,11 +4,11 @@ namespace SqlStreamStore.HAL.Resources
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
 
     internal class DeleteStreamMessageOperation : IStreamStoreOperation<Unit>
     {
-        public DeleteStreamMessageOperation(IOwinRequest request)
+        public DeleteStreamMessageOperation(HttpRequest request)
         {
             var pieces = request.Path.Value.Split('/').Reverse().Take(2).ToArray();
 

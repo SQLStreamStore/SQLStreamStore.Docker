@@ -5,14 +5,14 @@ namespace SqlStreamStore.HAL.Resources
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using SqlStreamStore.Streams;
 
     internal class AppendStreamOperation : IStreamStoreOperation<AppendResult>
     {
-        public static async Task<AppendStreamOperation> Create(IOwinRequest request, CancellationToken ct)
+        public static async Task<AppendStreamOperation> Create(HttpRequest request, CancellationToken ct)
         {
             using(var reader = new JsonTextReader(new StreamReader(request.Body))
             {
@@ -33,21 +33,21 @@ namespace SqlStreamStore.HAL.Resources
             }
         }
 
-        private AppendStreamOperation(IOwinRequest request)
+        private AppendStreamOperation(HttpRequest request)
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
             ExpectedVersion = request.GetExpectedVersion();
         }
 
-        private AppendStreamOperation(IOwinRequest request, JArray body)
+        private AppendStreamOperation(HttpRequest request, JArray body)
             : this(request)
         {
             NewStreamMessages = body.Select(ParseNewStreamMessage)
                 .ToArray();
         }
 
-        private AppendStreamOperation(IOwinRequest request, JObject body)
+        private AppendStreamOperation(HttpRequest request, JObject body)
             : this(request, new JArray { body })
         { }
 
