@@ -45,6 +45,7 @@ namespace SqlStreamStore.HAL.Resources
             {
                 response.Headers[Constants.Headers.Location] = new[] { $"streams/{operation.StreamId}" };
             }
+
             return response;
         }
 
@@ -52,7 +53,9 @@ namespace SqlStreamStore.HAL.Resources
         {
             var page = await operation.Invoke(_streamStore, cancellationToken);
 
-            var payloads = await Task.WhenAll(page.Messages
+            var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();
+
+            var payloads = await Task.WhenAll(streamMessages
                 .Select(message => operation.EmbedPayload
                     ? message.GetJsonData(cancellationToken)
                     : Task.FromResult<string>(null))
@@ -73,25 +76,27 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Stream.Metadata(operation))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
-                        page.Messages.Zip(payloads,
+                        streamMessages.Zip(
+                            payloads,
                             (message, payload) => new HALResponse(new
-                            {
-                                message.MessageId,
-                                message.CreatedUtc,
-                                message.Position,
-                                message.StreamId,
-                                message.StreamVersion,
-                                message.Type,
-                                payload,
-                                metadata = message.JsonMetadata
-                            }).AddLinks(Links.StreamMessage.Self(message)))),
+                                {
+                                    message.MessageId,
+                                    message.CreatedUtc,
+                                    message.Position,
+                                    message.StreamId,
+                                    message.StreamVersion,
+                                    message.Type,
+                                    payload,
+                                    metadata = message.JsonMetadata
+                                })
+                                .AddLinks(Links.StreamMessage.Self(message)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
         }
 
         public async Task<Response> Delete(DeleteStreamOperation operation, CancellationToken cancellationToken)
         {
             await operation.Invoke(_streamStore, cancellationToken);
-            
+
             return new Response(new HALResponse(new object()));
         }
     }

@@ -32,7 +32,9 @@
         {
             var page = await operation.Invoke(_streamStore, cancellationToken);
 
-            var payloads = await Task.WhenAll(page.Messages
+            var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();
+
+            var payloads = await Task.WhenAll(streamMessages
                 .Select(message => operation.EmbedPayload
                     ? message.GetJsonData(cancellationToken)
                     : Task.FromResult<string>(null))
@@ -50,29 +52,30 @@
                     .AddLinks(Links.All.Feed(operation))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
-                        page.Messages.Zip(payloads,
+                        streamMessages.Zip(
+                            payloads,
                             (message, payload) => new HALResponse(new
-                            {
-                                message.MessageId,
-                                message.CreatedUtc,
-                                message.Position,
-                                message.StreamId,
-                                message.StreamVersion,
-                                message.Type,
-                                payload,
-                                metadata = message.JsonMetadata
-                            }).AddLinks(
-                                Links.All.Self(message)))));
+                                {
+                                    message.MessageId,
+                                    message.CreatedUtc,
+                                    message.Position,
+                                    message.StreamId,
+                                    message.StreamVersion,
+                                    message.Type,
+                                    payload,
+                                    metadata = message.JsonMetadata
+                                })
+                                .AddLinks(Links.All.Self(message)))));
 
             if(operation.FromPositionInclusive == Position.End)
             {
-                var headPosition = page.Messages.Length > 0
-                    ? page.Messages[0].Position
+                var headPosition = streamMessages.Length > 0
+                    ? streamMessages[0].Position
                     : Position.End;
-                
+
                 response.Headers[Constants.Headers.HeadPosition] = new[] { $"{headPosition}" };
             }
-            
+
             return response;
         }
     }
