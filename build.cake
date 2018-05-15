@@ -45,6 +45,17 @@ Task("RunTests")
     }
 });
 
+Task("Publish")
+    .IsDependentOn("Build")
+    .Does(() =>
+{
+    DotNetCorePublish(srcDir + Directory("SqlStreamStore.HAL"), new DotNetCorePublishSettings {
+        OutputDirectory = artifactsDir,
+        Configuration = configuration,
+        Framework = "netstandard2.0"
+    });
+});
+
 Task("NuGetPack")
     .IsDependentOn("Build")
     .Does(() =>

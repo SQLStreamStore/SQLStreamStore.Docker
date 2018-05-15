@@ -40,8 +40,7 @@ namespace SqlStreamStore.HAL.Resources
                             operation.StreamVersion
                         })
                         .AddLinks(Links.StreamMessage.Self(operation))
-                        .AddLinks(Links.StreamMessage.Navigation(operation))
-                        .AddLinks(Links.Stream.Feed(operation)),
+                        .AddLinks(Links.StreamMessage.Navigation(operation)),
                     404);
             }
             
@@ -71,8 +70,7 @@ namespace SqlStreamStore.HAL.Resources
                         metadata = message.JsonMetadata
                     })
                     .AddLinks(Links.StreamMessage.Self(operation))
-                    .AddLinks(Links.StreamMessage.Navigation(operation, message))
-                    .AddLinks(Links.Stream.Feed(operation)));
+                    .AddLinks(Links.StreamMessage.Navigation(operation, message)));
         }
 
         public async Task<Response> DeleteMessage(

@@ -235,6 +235,14 @@
                 $"{operation.StreamVersion + 1}");
 
             private static Link Last() => new Link(Constants.Relations.Last, $"{-1}");
+            
+            private static Link Feed(ReadStreamMessageByStreamVersionOperation operation) => new Link(
+                Constants.Relations.Feed, 
+                LinkFormatter.FormatBackwardLink(
+                    $"../{operation.StreamId}",
+                    Constants.MaxCount,
+                    StreamVersion.End,
+                    false));
 
             public static IEnumerable<Link> Navigation(
                 ReadStreamMessageByStreamVersionOperation operation,
@@ -253,6 +261,8 @@
                 }
 
                 yield return Last();
+
+                yield return Feed(operation);
             }
         }
     }
