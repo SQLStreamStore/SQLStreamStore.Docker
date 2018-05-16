@@ -11,6 +11,7 @@ namespace SqlStreamStore.HAL.Resources
         private static readonly Link[] s_links =
         {
             new Link(Constants.Relations.Self, Constants.Streams.Metadata),
+            new Link(Constants.Relations.Metadata, Constants.Streams.Metadata),
             new Link(Constants.Relations.Feed, "../")
         };
 

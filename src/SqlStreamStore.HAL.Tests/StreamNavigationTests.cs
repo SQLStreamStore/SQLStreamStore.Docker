@@ -105,7 +105,7 @@
 
                 resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
 
                 if(!IsAllStream($"{baseAddress}{stream}"))
                 {
@@ -133,7 +133,7 @@
 
                 resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
 
                 if(!IsAllStream($"{baseAddress}{stream}"))
                 {

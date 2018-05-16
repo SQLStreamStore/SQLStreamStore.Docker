@@ -5,6 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
+    using SqlStreamStore.Streams;
 
     internal class AllStreamMessageResource : IResource
     {
@@ -23,7 +24,7 @@
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
         }
-        
+
         public async Task<Response> GetMessage(
             ReadAllStreamMessageOperation operation,
             CancellationToken cancellationToken)
@@ -34,7 +35,7 @@
             {
                 return new Response(
                     new HALResponse(new HALModelConfig())
-                        .AddLinks(Links.All.Feed(operation)),
+                        .AddLinks(Links.Feed()),
                     404);
             }
 
@@ -52,8 +53,30 @@
                     payload,
                     metadata = message.JsonMetadata
                 }).AddLinks(
-                    Links.All.SelfAll(message),
-                    Links.All.Feed(operation)));
+                    Links.Self(message),
+                    Links.Message(message),
+                    Links.Feed()));
+        }
+
+        private static class Links
+        {
+            public static Link Last()
+                => new Link(
+                    Constants.Relations.Last,
+                    LinkFormatter.FormatBackwardLink(
+                        $"../{Constants.Streams.All}",
+                        Constants.MaxCount,
+                        Position.End,
+                        false));
+
+            public static Link Self(StreamMessage message)
+                => new Link(Constants.Relations.Self, $"{message.Position}");
+
+            public static Link Message(StreamMessage message)
+                => new Link(Constants.Relations.Message, $"{message.Position}");
+
+            public static Link Feed()
+                => new Link(Constants.Relations.Feed, Last().Href);
         }
     }
 }

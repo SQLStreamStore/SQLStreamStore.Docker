@@ -15,7 +15,7 @@ namespace SqlStreamStore.HAL.Tests
 
         public void Dispose() => _fixture.Dispose();
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
-        private const string HeadOfAll = "stream?d=b&m=20&p=-1";
+        private const string HeadOfAll = "../stream?d=b&m=20&p=-1";
 
         [Fact]
         public async Task read_single_message_all_stream()
@@ -29,10 +29,16 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Self, "streamStore:feed" });
+                resource.Links.Keys.ShouldBe(new[]
+                {
+                    Constants.Relations.Self, 
+                    Constants.Relations.Message, 
+                    Constants.Relations.Feed
+                });
 
-                resource.ShouldLink(Constants.Relations.Self, "/stream/0");
-                resource.ShouldLink("streamStore:feed", HeadOfAll);
+                resource.ShouldLink(Constants.Relations.Self, "0");
+                resource.ShouldLink(Constants.Relations.Message, "0");
+                resource.ShouldLink(Constants.Relations.Feed, HeadOfAll);
             }
         }
 

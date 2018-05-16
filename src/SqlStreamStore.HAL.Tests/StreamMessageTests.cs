@@ -29,13 +29,22 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Self, Constants.Relations.First, Constants.Relations.Next, Constants.Relations.Last, "streamStore:feed" });
+                resource.Links.Keys.ShouldBe(new[]
+                {
+                    Constants.Relations.Self,
+                    Constants.Relations.First,
+                    Constants.Relations.Next,
+                    Constants.Relations.Last,
+                    Constants.Relations.Feed,
+                    Constants.Relations.Message
+                });
 
                 resource.ShouldLink(Constants.Relations.Self, "0");
                 resource.ShouldLink(Constants.Relations.First, "0");
                 resource.ShouldLink(Constants.Relations.Next, "1");
                 resource.ShouldLink(Constants.Relations.Last, "-1");
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
+                resource.ShouldLink(Constants.Relations.Message, "0");
             }
         }
 
@@ -48,12 +57,20 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Self, Constants.Relations.First, Constants.Relations.Last, Constants.Relations.Feed });
+                resource.Links.Keys.ShouldBe(new[]
+                {
+                    Constants.Relations.Self,
+                    Constants.Relations.First,
+                    Constants.Relations.Last,
+                    Constants.Relations.Feed,
+                    Constants.Relations.Message
+                });
 
                 resource.ShouldLink(Constants.Relations.Self, "0");
                 resource.ShouldLink(Constants.Relations.First, "0");
                 resource.ShouldLink(Constants.Relations.Last, "-1");
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
+                resource.ShouldLink(Constants.Relations.Message, "0");
             }
         }
 
@@ -66,6 +83,7 @@
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
             }
+
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
