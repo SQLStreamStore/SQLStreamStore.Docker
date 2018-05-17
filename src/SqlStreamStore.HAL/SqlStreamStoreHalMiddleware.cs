@@ -80,9 +80,9 @@
             }
 
             var response = new Response(new HALResponse(null)
-                .AddLinks(new Link(
-                    Constants.Relations.Feed,
-                    "stream")));
+                .AddLinks(new Link(Constants.Relations.Feed, "stream"))
+                .AddLinks(new Link(Constants.Relations.Self, string.Empty))
+                .AddLinks(new Link(Constants.Relations.Index, string.Empty)));
 
             return context.WriteHalResponse(response);
         };
