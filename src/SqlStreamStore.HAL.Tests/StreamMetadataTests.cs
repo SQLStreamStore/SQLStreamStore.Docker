@@ -184,7 +184,7 @@
                         maxCount = 20,
                         metadataJson = new
                         {
-                            type = "a-type"
+                            type = "another-type"
                         }
                     }).ToString())
                     {
