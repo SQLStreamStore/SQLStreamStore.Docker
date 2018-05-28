@@ -26,7 +26,7 @@ namespace SqlStreamStore.HAL
             _context.Response.Body = _originalBody;
         }
 
-        class HeadRequestStream : Stream
+        private class HeadRequestStream : Stream
         {
             private long _length;
 

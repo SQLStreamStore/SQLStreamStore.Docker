@@ -63,7 +63,7 @@
                 {
                     body,
                     ExpectedVersion.Any,
-                    HttpStatusCode.OK,
+                    HttpStatusCode.Created,
                     messageId,
                     jsonData,
                     jsonMetadata
@@ -72,7 +72,7 @@
                 {
                     body,
                     default(int?),
-                    HttpStatusCode.OK,
+                    HttpStatusCode.Created,
                     messageId,
                     jsonData,
                     jsonMetadata
@@ -236,7 +236,7 @@
             }).ToString();
 
             yield return $@"{{ ""messageId"": ""{messageId}"", ""type"": ""{type}"", ""jsonData"": {{ }}";
-            yield return $@"{{ ""messageId"": ""{messageId}"", ""type"": ""{type}"", ""jsonMetaData"": {{ }}";
+            yield return $@"{{ ""messageId"": ""{messageId}"", ""type"": ""{type}"", ""jsonMetadata"": {{ }}";
         }
 
         public static IEnumerable<object[]> MalformedRequestCases()

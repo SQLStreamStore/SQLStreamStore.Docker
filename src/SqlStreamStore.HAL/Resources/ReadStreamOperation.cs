@@ -1,17 +1,16 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore.HAL.Resources
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Owin;
     using SqlStreamStore.Streams;
 
-    internal class ReadStreamOptions
+    internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamPage>
     {
         private readonly int _fromVersionInclusive;
         private readonly int _maxCount;
 
-        public ReadStreamOptions(IOwinRequest request)
+        public ReadStreamOperation(IOwinRequest request)
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
@@ -23,14 +22,14 @@ namespace SqlStreamStore.HAL
 
             if(!int.TryParse(request.Query.Get("p"), out _fromVersionInclusive))
             {
-                _fromVersionInclusive = ReadDirection == Constants.ReadDirection.Forwards 
-                    ? StreamVersion.Start 
+                _fromVersionInclusive = ReadDirection == Constants.ReadDirection.Forwards
+                    ? StreamVersion.Start
                     : StreamVersion.End;
             }
 
             if(!int.TryParse(request.Query.Get("m"), out _maxCount))
             {
-                _maxCount = 20;
+                _maxCount = Constants.MaxCount;
             }
         }
 
@@ -41,11 +40,11 @@ namespace SqlStreamStore.HAL
         public string StreamId { get; }
 
         public string Self => ReadDirection == Constants.ReadDirection.Forwards
-            ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive)
-            : LinkFormatter.FormatBackwardLink(StreamId, MaxCount, FromVersionInclusive);
+            ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload)
+            : LinkFormatter.FormatBackwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload);
 
-        public Func<IReadonlyStreamStore, CancellationToken, Task<ReadStreamPage>> GetReadOperation()
-            => (streamStore, ct) => ReadDirection == Constants.ReadDirection.Forwards
+        public Task<ReadStreamPage> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => ReadDirection == Constants.ReadDirection.Forwards
                 ? streamStore.ReadStreamForwards(StreamId, _fromVersionInclusive, _maxCount, EmbedPayload, ct)
                 : streamStore.ReadStreamBackwards(StreamId, _fromVersionInclusive, _maxCount, EmbedPayload, ct);
     }

@@ -5,6 +5,7 @@
     using System.Net;
     using System.Threading.Tasks;
     using Shouldly;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class StreamNavigationTests : IDisposable
@@ -19,7 +20,6 @@
             _fixture = new SqlStreamStoreHalMiddlewareFixture();
         }
 
-
         public void Dispose() => _fixture.Dispose();
 
         public static IEnumerable<object[]> GetNoMessagesPagingCases()
@@ -27,6 +27,8 @@
             yield return new object[] { "stream", "/", HttpStatusCode.OK };
             yield return new object[] { "a-stream", "/streams/", HttpStatusCode.NotFound };
         }
+
+        private static bool IsAllStream(string path) => path == "/stream";
 
         [Theory, MemberData(nameof(GetNoMessagesPagingCases))]
         public async Task read_head_link_no_messages(string stream, string baseAddress, HttpStatusCode statusCode)
@@ -37,15 +39,18 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "first", "last", "streamStore:feed" });
+                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("self", $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("last", $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("first", $"{stream}?{FirstLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("streamStore:feed", $"{stream}?{LastLinkQuery}");
+                if(!IsAllStream($"{baseAddress}{stream}"))
+                {
+                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                }
             }
         }
 
@@ -66,17 +71,20 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "first", "previous", "last", "streamStore:feed" });
+                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("self", $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("last", $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9");
 
-                resource.ShouldLink("previous", $"{stream}?d=b&m=20&p=9");
+                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("first", $"{stream}?{FirstLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("streamStore:feed", $"{stream}?{LastLinkQuery}");
+                if(!IsAllStream($"{baseAddress}{stream}"))
+                {
+                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                }
             }
         }
 
@@ -91,15 +99,18 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "first", "last", "streamStore:feed" });
+                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("self", $"{stream}?{FirstLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("last", $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("first", $"{stream}?{FirstLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("streamStore:feed", $"{stream}?{LastLinkQuery}");
+                if(!IsAllStream($"{baseAddress}{stream}"))
+                {
+                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                }
             }
         }
 
@@ -114,18 +125,38 @@
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { "self", "first", "next", "last", "streamStore:feed" });
+                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{FirstLinkQuery}");
 
+                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink("self", $"{stream}?{FirstLinkQuery}");
+                resource.ShouldLink(Constants.Relations.Next, $"{stream}?d=f&m=20&p=20");
 
-                resource.ShouldLink("last", $"{stream}?{LastLinkQuery}");
+                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("next", $"{stream}?d=f&m=20&p=20");
+                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
 
-                resource.ShouldLink("first", $"{stream}?{FirstLinkQuery}");
+                if(!IsAllStream($"{baseAddress}{stream}"))
+                {
+                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                }
+            }
+        }
 
-                resource.ShouldLink("streamStore:feed", $"{stream}?{LastLinkQuery}");
+        [Fact]
+        public async Task read_stream_should_include_the_last_position_and_version()
+        {
+            await _fixture.WriteNMessages("a-stream", 30);
+
+            var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", StreamVersion.Start, 10, false);
+
+            using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream"))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+                var resource = await response.AsHal();
+
+                ((int) resource.State.lastStreamVersion).ShouldBe(page.LastStreamVersion);
+                ((long) resource.State.lastStreamPosition).ShouldBe(page.LastStreamPosition);
             }
         }
     }
