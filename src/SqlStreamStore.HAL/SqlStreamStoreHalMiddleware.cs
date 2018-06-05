@@ -29,7 +29,7 @@
 
         private static MidFunc AcceptOnlyHalJson => (context, next) =>
         {
-            var accept = context.Request.Headers["Accept"]
+            var accept = context.Request.Headers.GetCommaSeparatedValues("Accept")
                 .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
                     ? header.MediaType
                     : null);

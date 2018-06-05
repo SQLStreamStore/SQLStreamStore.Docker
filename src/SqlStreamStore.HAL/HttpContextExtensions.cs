@@ -13,7 +13,8 @@ namespace SqlStreamStore.HAL
         private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            TypeNameHandling = TypeNameHandling.None
+            TypeNameHandling = TypeNameHandling.None,
+            NullValueHandling = NullValueHandling.Ignore
         });
 
         public static async Task WriteHalResponse(this HttpContext context, Response response)
