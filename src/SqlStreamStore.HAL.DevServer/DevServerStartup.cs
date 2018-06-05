@@ -21,13 +21,16 @@
             _streamStore = streamStore;
         }
 
-        public IServiceProvider ConfigureServices(IServiceCollection services) => services.BuildServiceProvider();
+        public IServiceProvider ConfigureServices(IServiceCollection services) => services
+            .AddResponseCompression(options => options.MimeTypes = new[] { "application/hal+json" })
+            .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app
+            .UseResponseCompression()
             .Use(CatchAndDisplayErrors)
             .Use(AllowAllOrigins)
             .UseSqlStreamStoreHal(_streamStore);
-        
+
         private static MidFunc CatchAndDisplayErrors => async (context, next) =>
         {
             try
@@ -54,6 +57,5 @@
 
             return next();
         };
-
     }
 }
