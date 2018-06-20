@@ -15,11 +15,11 @@ namespace SqlStreamStore.HAL
         public static MidFunc UseStreamStore(IStreamStore streamStore)
         {
             var streams = new StreamResource(streamStore);
-            var streamMessaages = new StreamMessageResource(streamStore);
+            var streamMessages = new StreamMessageResource(streamStore);
             
             var builder = new AppBuilder()
                 .MapWhen(IsStream, inner => inner.Use(DeleteStream(streams)))
-                .MapWhen(IsStreamMessage, inner => inner.Use(DeleteStreamMessage(streamMessaages)));
+                .MapWhen(IsStreamMessage, inner => inner.Use(DeleteStreamMessage(streamMessages)));
 
             return next =>
             {

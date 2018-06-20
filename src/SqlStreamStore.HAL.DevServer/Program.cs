@@ -15,6 +15,7 @@
         System.Func<
             System.Collections.Generic.IDictionary<string, object>,
             System.Threading.Tasks.Task>>;
+
     using BuildFunc = System.Action<
         System.Func<
             System.Func<
@@ -44,12 +45,12 @@
             using(var server = new KestrelOwinServer(options))
             using(var streamStore = new InMemoryStreamStore())
             {
-                await server.Start(new UriBuilder
-                {
-                    Port = port
-                }.Uri.ToString(), Configure(streamStore), CancellationToken.None);
+                var url = new UriBuilder { Port = port }.Uri.ToString();
+                var owinPipeline = Configure(streamStore);
 
-                DisplayMenu(streamStore);
+                await server.Start(url, owinPipeline, CancellationToken.None);
+
+                DisplayMenu(streamStore, url);
             }
 
             return 0;
@@ -57,11 +58,11 @@
 
         private static Action<BuildFunc> Configure(IStreamStore streamStore)
             => builder => builder
-                .Use(DisplayErrors)
+                .Use(CatchAndDisplayErrors)
                 .Use(AllowAllOrigins)
                 .Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
 
-        private static MidFunc DisplayErrors => next => async env =>
+        private static MidFunc CatchAndDisplayErrors => next => async env =>
         {
             try
             {
@@ -87,10 +88,11 @@
             return next(env);
         };
 
-        private static void DisplayMenu(IStreamStore streamStore)
+        private static void DisplayMenu(IStreamStore streamStore, string url)
         {
             while(true)
             {
+                Console.WriteLine("Using stream store: {0}", streamStore.GetType().Name);
                 Console.WriteLine("Press w to write 10 messages each to 100 streams");
                 Console.WriteLine("Press t to write 100 messages each to 10 streams");
                 Console.WriteLine("Press ESC to exit");
@@ -102,10 +104,10 @@
                     case ConsoleKey.Escape:
                         return;
                     case ConsoleKey.W:
-                        Write(streamStore, 10, 100);
+                        Write(streamStore, url, 10, 100);
                         break;
                     case ConsoleKey.T:
-                        Write(streamStore, 100, 10);
+                        Write(streamStore, url, 100, 10);
                         break;
                     default:
                         Console.WriteLine("Computer says no");
@@ -114,15 +116,25 @@
             }
         }
 
-        private static void Write(IStreamStore streamStore, int messageCount, int streamCount)
-            => Task.Run(() => Task.WhenAll(
-                from streamId in Enumerable.Range(0, streamCount).Select(_ => $"test-{Guid.NewGuid():n}")
+        private static void Write(IStreamStore streamStore, string url, int messageCount, int streamCount)
+        {
+            var streams = Enumerable.Range(0, streamCount).Select(_ => $"test-{Guid.NewGuid():n}").ToList();
+
+            var streamIds = string.Join("\n", streams.Select(streamid => $"{url}streams/{streamid}"));
+
+            Console.WriteLine("\nAbout to create the following streams: ");
+            Console.WriteLine(streamIds);
+
+            Task.Run(() => Task.WhenAll(
+                from streamId in streams
                 select streamStore.AppendToStream(streamId,
                     ExpectedVersion.NoStream,
                     GenerateMessages(messageCount))));
+        }
 
         private static NewStreamMessage[] GenerateMessages(int messageCount)
-            => Enumerable.Range(0, messageCount)
+        {
+            return Enumerable.Range(0, messageCount)
                 .Select(_ => new NewStreamMessage(
                     Guid.NewGuid(),
                     "test",
@@ -130,5 +142,6 @@
                         .Range(0, messageCount).Select(max => s_random.Next(max)))} ] }}",
                     "{}"))
                 .ToArray();
+        }
     }
 }
