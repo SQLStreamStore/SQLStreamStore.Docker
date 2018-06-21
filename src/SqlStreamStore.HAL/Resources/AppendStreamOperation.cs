@@ -28,7 +28,7 @@ namespace SqlStreamStore.HAL.Resources
                     case JObject json:
                         return new AppendStreamOperation(request, json);
                     default:
-                        throw new InvalidOperationException();
+                        throw new InvalidAppendRequestException("Invalid json detected.");
                 }
             }
         }
