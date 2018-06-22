@@ -1,0 +1,17 @@
+﻿{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/hyper-schema#",
+  "properties": {
+    "maxCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxAge": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "metadataJson": {
+      "type": "object"
+    }
+  }
+}

@@ -66,7 +66,8 @@
                                     payload,
                                     metadata = message.JsonMetadata
                                 })
-                                .AddLinks(Links.Message.Self(message)))));
+                                .AddLinks(Links.Message.Self(message))))
+                );
 
             if(operation.FromPositionInclusive == Position.End)
             {

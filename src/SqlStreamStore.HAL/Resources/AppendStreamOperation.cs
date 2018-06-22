@@ -51,34 +51,44 @@ namespace SqlStreamStore.HAL.Resources
             : this(request, new JArray { body })
         { }
 
-        private static NewStreamMessage ParseNewStreamMessage(JToken newStreamMessage, int index)
+        private static NewStreamMessageDto ParseNewStreamMessage(JToken newStreamMessage, int index)
         {
             if(!Guid.TryParse(newStreamMessage.Value<string>("messageId"), out var messageId))
             {
-                throw new InvalidAppendRequestException($"'{nameof(messageId)}' at index {index} was improperly formatted.");
+                throw new InvalidAppendRequestException(
+                    $"'{nameof(messageId)}' at index {index} was improperly formatted.");
             }
+
             if(messageId == Guid.Empty)
             {
                 throw new InvalidAppendRequestException($"'{nameof(messageId)}' at index {index} was empty.");
             }
+
             var type = newStreamMessage.Value<string>("type");
 
             if(type == null)
             {
                 throw new InvalidAppendRequestException($"'{nameof(type)}' at index {index} was not set.");
             }
-            
-            return new NewStreamMessage(
-                messageId,
-                type,
-                newStreamMessage.Value<JToken>("jsonData").ToString(),
-                newStreamMessage.Value<JToken>("jsonMetadata")?.ToString());
+
+            return new NewStreamMessageDto
+            {
+                MessageId = messageId,
+                Type = type,
+                JsonData = newStreamMessage.Value<JToken>("jsonData"),
+                JsonMetadata = newStreamMessage.Value<JToken>("jsonMetadata")
+            };
         }
+
         public string StreamId { get; }
         public int ExpectedVersion { get; }
-        public NewStreamMessage[] NewStreamMessages { get; }
+        public NewStreamMessageDto[] NewStreamMessages { get; }
 
-        public Task<AppendResult> Invoke(IStreamStore streamStore, CancellationToken ct) 
-            => streamStore.AppendToStream(StreamId, ExpectedVersion, NewStreamMessages, ct);
+        public Task<AppendResult> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => streamStore.AppendToStream(
+                StreamId,
+                ExpectedVersion,
+                Array.ConvertAll(NewStreamMessages, dto => dto.ToNewStreamMessage()),
+                ct);
     }
 }
