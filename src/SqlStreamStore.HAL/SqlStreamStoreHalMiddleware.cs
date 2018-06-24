@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Builder;
@@ -27,12 +26,9 @@
             return Task.CompletedTask;
         };
 
-        private static MidFunc AcceptOnlyHalJson => (context, next) =>
+        private static MidFunc AcceptHalJson => (context, next) =>
         {
-            var accept = context.Request.Headers.GetCommaSeparatedValues("Accept")
-                .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
-                    ? header.MediaType
-                    : null);
+            var accept = context.Request.GetAcceptHeaders();
 
             return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
                                         || header == Constants.Headers.ContentTypes.Any)
@@ -72,7 +68,7 @@
 
             return builder
                 .Use(ExceptionHandlingMiddleware.HandleExceptions)
-                .Use(AcceptOnlyHalJson)
+                .Use(AcceptHalJson)
                 .Use(Index)
                 .Map("/stream", UseAllStream(streamStore))
                 .Map("/streams", UseStream(streamStore));
