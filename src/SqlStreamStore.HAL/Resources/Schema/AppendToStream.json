@@ -23,7 +23,7 @@
       }
     },
     "jsonMetadata": {
-      "type": "object",
+      "type": "string",
       "x-schema-form": {
         "key": "jsonMetadata",
         "type": "textarea",
