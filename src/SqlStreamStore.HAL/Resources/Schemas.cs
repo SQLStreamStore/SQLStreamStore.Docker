@@ -4,20 +4,23 @@
     using System.Collections.Concurrent;
     using System.IO;
     using System.Reflection;
+    using Halcyon.HAL;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     internal static class Schemas
     {
-        private static readonly ConcurrentDictionary<string, JObject> s_schemas
-            = new ConcurrentDictionary<string, JObject>();
+        private static readonly ConcurrentDictionary<string, HALResponse> s_schemas
+            = new ConcurrentDictionary<string, HALResponse>();
 
-        public static JObject AppendToStream => GetSchema(nameof(AppendToStream));
-        public static JObject SetStreamMetadata => GetSchema(nameof(SetStreamMetadata));
+        public static HALResponse AppendToStream => GetSchema(nameof(AppendToStream));
+        public static HALResponse SetStreamMetadata => GetSchema(nameof(SetStreamMetadata));
+        public static HALResponse DeleteStream => GetSchema(nameof(DeleteStream));
+        public static HALResponse DeleteStreamMessage => GetSchema(nameof(DeleteStreamMessage));
 
-        private static JObject GetSchema(string name) => s_schemas.GetOrAdd(name, ReadSchema);
+        private static HALResponse GetSchema(string name) => s_schemas.GetOrAdd(name, ReadSchema);
 
-        private static JObject ReadSchema(string name)
+        private static HALResponse ReadSchema(string name)
         {
             using(Stream stream = typeof(Schemas)
                 .GetTypeInfo().Assembly
@@ -30,7 +33,7 @@
 
                 using(var reader = new JsonTextReader(new StreamReader(stream)))
                 {
-                    return JObject.Load(reader);
+                    return new HALResponse(JObject.Load(reader));
                 }
             }
         }

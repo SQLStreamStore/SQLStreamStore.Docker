@@ -32,6 +32,7 @@ namespace SqlStreamStore.HAL
             public const string Message = "streamStore:message";
             public const string Metadata = "streamStore:metadata";
             public const string AppendToStream = "streamStore:append";
+            public const string Delete = "streamStore:delete";
         }
 
         public static class Streams

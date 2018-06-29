@@ -11,7 +11,12 @@
       "minimum": 1
     },
     "metadataJson": {
-      "type": "object"
+      "type": "object",
+      "x-schema-form": {
+        "key": "metadataJson",
+        "type": "textarea",
+        "rows": 30
+      }
     }
   }
 }

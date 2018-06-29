@@ -39,13 +39,17 @@ namespace SqlStreamStore.HAL.Resources
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
             var response = new Response(new HALResponse(new
-                {
-                    result.StreamId,
-                    result.MetadataStreamVersion,
-                    result.MaxAge,
-                    result.MaxCount,
-                    result.MetadataJson
-                }).AddLinks(s_links),
+                    {
+                        result.StreamId,
+                        result.MetadataStreamVersion,
+                        result.MaxAge,
+                        result.MaxCount,
+                        result.MetadataJson
+                    })
+                    .AddLinks(s_links)
+                    .AddEmbeddedResource(
+                        Constants.Relations.Metadata,
+                        Schemas.SetStreamMetadata),
                 result.MetadataStreamVersion >= 0 ? 200 : 404);
 
             return response;

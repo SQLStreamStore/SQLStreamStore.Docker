@@ -30,17 +30,5 @@
         "rows": 30
       }
     }
-  },
-  "$form": [
-    "messageId",
-    "type",
-    {
-      "key": "jsonData",
-      "type": "textarea"
-    },
-    {
-      "key": "jsonMetadata",
-      "type": "textarea"
-    }
-  ]
+  }
 }

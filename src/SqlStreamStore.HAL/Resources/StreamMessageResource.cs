@@ -72,6 +72,9 @@ namespace SqlStreamStore.HAL.Resources
                         payload,
                         metadata = message.JsonMetadata
                     })
+                    .AddEmbeddedResource(
+                        Constants.Relations.Delete,
+                        Schemas.DeleteStreamMessage)
                     .AddLinks(Links.Self(operation))
                     .AddLinks(Links.Navigation(operation, message))
                     .AddLinks(Links.Message(operation)));

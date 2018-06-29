@@ -76,8 +76,11 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Feed(operation))
                     .AddLinks(Links.Metadata(operation))
                     .AddEmbeddedResource(
-                        Constants.Relations.AppendToStream, 
-                        new HALResponse(Schemas.AppendToStream))
+                        Constants.Relations.AppendToStream,
+                        Schemas.AppendToStream)
+                    .AddEmbeddedResource(
+                        Constants.Relations.Delete,
+                        Schemas.DeleteStream)
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         streamMessages.Zip(
