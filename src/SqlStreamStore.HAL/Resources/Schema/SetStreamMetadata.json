@@ -1,4 +1,5 @@
 ﻿{
+  "title": "Set Stream Metadata",
   "type": "object",
   "$schema": "http://json-schema.org/draft-07/hyper-schema#",
   "properties": {

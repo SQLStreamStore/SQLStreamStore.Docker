@@ -8,13 +8,6 @@ namespace SqlStreamStore.HAL.Resources
 
     internal class StreamMetadataResource : IResource
     {
-        private static readonly Link[] s_links =
-        {
-            new Link(Constants.Relations.Self, Constants.Streams.Metadata),
-            new Link(Constants.Relations.Metadata, Constants.Streams.Metadata),
-            new Link(Constants.Relations.Feed, "../")
-        };
-
         private readonly IStreamStore _streamStore;
 
         public HttpMethod[] Options { get; } =
@@ -46,7 +39,10 @@ namespace SqlStreamStore.HAL.Resources
                         result.MaxCount,
                         result.MetadataJson
                     })
-                    .AddLinks(s_links)
+                    .AddLinks(
+                        Links.Self(),
+                        Links.Metadata(),
+                        Links.Feed(operation))
                     .AddEmbeddedResource(
                         Constants.Relations.Metadata,
                         Schemas.SetStreamMetadata),
@@ -68,9 +64,23 @@ namespace SqlStreamStore.HAL.Resources
                     operation.MaxCount,
                     operation.MetadataJson
                 })
-                .AddLinks(s_links));
+                .AddLinks(
+                    Links.Self(),
+                    Links.Metadata(),
+                    Links.Feed(operation)));
 
             return response;
+        }
+
+        private static class Links
+        {
+            public static Link Self() => new Link(Constants.Relations.Self, Constants.Streams.Metadata);
+            public static Link Metadata() => new Link(Constants.Relations.Metadata, Constants.Streams.Metadata);
+            public static Link Feed(GetStreamMetadataOperation operation) => Link(operation.StreamId);
+            public static Link Feed(SetStreamMetadataOperation operation) => Link(operation.StreamId);
+
+            private static Link Link(string streamId)
+                => new Link(Constants.Relations.Feed, $"../{streamId}");
         }
     }
 }
