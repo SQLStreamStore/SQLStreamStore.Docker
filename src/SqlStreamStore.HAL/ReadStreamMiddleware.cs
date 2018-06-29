@@ -1,47 +1,37 @@
 namespace SqlStreamStore.HAL
 {
-    using Microsoft.Owin;
-    using Microsoft.Owin.Builder;
-    using Owin;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.HAL.Resources;
-    using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task
-        >, System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>
+    using MidFunc = System.Func<
+        Microsoft.AspNetCore.Http.HttpContext,
+        System.Func<System.Threading.Tasks.Task>,
+        System.Threading.Tasks.Task
     >;
 
     internal static class ReadStreamMiddleware
     {
-        public static MidFunc UseStreamStore(IStreamStore streamStore)
+        public static IApplicationBuilder UseReadStream(this IApplicationBuilder builder, IStreamStore streamStore)
         {
             var streams = new StreamResource(streamStore);
             var streamMessages = new StreamMessageResource(streamStore);
 
-            var builder = new AppBuilder()
+            return builder
                 .MapWhen(IsStreamMessage, inner => inner.Use(GetStreamMessage(streamMessages)))
                 .MapWhen(IsStream, inner => inner.Use(GetStream(streams)));
-
-            return next =>
-            {
-                builder.Run(ctx => next(ctx.Environment));
-
-                return builder.Build();
-            };
         }
 
-        private static bool IsStream(IOwinContext context)
+        private static bool IsStream(HttpContext context)
             => context.IsGetOrHead() && context.Request.Path.IsStream();
 
-        private static bool IsStreamMessage(IOwinContext context)
+        private static bool IsStreamMessage(HttpContext context)
             => context.IsGetOrHead() && context.Request.Path.IsStreamMessage();
 
-        private static MidFunc GetStream(StreamResource streams) => next => async env =>
+        private static MidFunc GetStream(StreamResource streams) => async (context, next) =>
         {
-            var context = new OwinContext(env);
-
             var options = new ReadStreamOperation(context.Request);
 
-            var response = await streams.GetPage(options, context.Request.CallCancelled);
+            var response = await streams.GetPage(options, context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {
@@ -49,13 +39,11 @@ namespace SqlStreamStore.HAL
             }
         };
 
-        private static MidFunc GetStreamMessage(StreamMessageResource streamMessages) => next => async env =>
+        private static MidFunc GetStreamMessage(StreamMessageResource streamMessages) => async (context, next) =>
         {
-            var context = new OwinContext(env);
-
             var options = new ReadStreamMessageByStreamVersionOperation(context.Request);
 
-            var response = await streamMessages.GetMessage(options, context.Request.CallCancelled);
+            var response = await streamMessages.GetMessage(options, context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {

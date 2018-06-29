@@ -4,26 +4,8 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using KestrelPureOwin;
-    using Microsoft.AspNetCore.Server.Kestrel.Core;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Hosting;
     using SqlStreamStore.Streams;
-    using MidFunc = System.Func<
-        System.Func<
-            System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>,
-        System.Func<
-            System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>>;
-
-    using BuildFunc = System.Action<
-        System.Func<
-            System.Func<
-                System.Collections.Generic.IDictionary<string, object>,
-                System.Threading.Tasks.Task>,
-            System.Func<
-                System.Collections.Generic.IDictionary<string, object>,
-                System.Threading.Tasks.Task>>>;
 
     internal static class Program
     {
@@ -32,61 +14,31 @@
 
         public static async Task<int> Main(string[] args)
         {
-            var options = new KestrelServerOptions
-            {
-                AddServerHeader = false
-            };
-
             if(!int.TryParse(args.FirstOrDefault(), out var port))
             {
                 port = DefaultPort;
-            };
+            }
 
-            using(var server = new KestrelOwinServer(options))
+            var url = new UriBuilder { Port = port }.Uri.ToString();
+
+            using(var cts = new CancellationTokenSource())
             using(var streamStore = new InMemoryStreamStore())
+            using(var host = new WebHostBuilder()
+                .UseUrls(url)
+                .UseKestrel()
+                .UseStartup(new DevServerStartup(streamStore))
+                .Build())
             {
-                var url = new UriBuilder { Port = port }.Uri.ToString();
-                var owinPipeline = Configure(streamStore);
 
-                await server.Start(url, owinPipeline, CancellationToken.None);
+                var serverTask = host.RunAsync(cts.Token);
 
                 DisplayMenu(streamStore, url);
+
+                await serverTask;
             }
 
             return 0;
         }
-
-        private static Action<BuildFunc> Configure(IStreamStore streamStore)
-            => builder => builder
-                .Use(CatchAndDisplayErrors)
-                .Use(AllowAllOrigins)
-                .Use(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(streamStore));
-
-        private static MidFunc CatchAndDisplayErrors => next => async env =>
-        {
-            try
-            {
-                await next(env);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex);    
-            }
-        };
-
-        // don't actually do this in production
-        private static MidFunc AllowAllOrigins => next => env =>
-        {
-            var context = new OwinContext(env);
-            
-            context.Response.OnSendingHeaders(_ =>
-            {
-                var response = (IOwinResponse) _;
-                response.Headers["Access-Control-Allow-Origin"] = "*";
-            }, context.Response);
-            
-            return next(env);
-        };
 
         private static void DisplayMenu(IStreamStore streamStore, string url)
         {
@@ -138,8 +90,11 @@
                 .Select(_ => new NewStreamMessage(
                     Guid.NewGuid(),
                     "test",
-                    $@"{{ ""foo"": ""{Guid.NewGuid()}"", ""baz"": {{  }}, ""qux"": [ {string.Join(", ", Enumerable
-                        .Range(0, messageCount).Select(max => s_random.Next(max)))} ] }}",
+                    $@"{{ ""foo"": ""{Guid.NewGuid()}"", ""baz"": {{  }}, ""qux"": [ {
+                            string.Join(", ",
+                                Enumerable
+                                    .Range(0, messageCount).Select(max => s_random.Next(max)))
+                        } ] }}",
                     "{}"))
                 .ToArray();
         }

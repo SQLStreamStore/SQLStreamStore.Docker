@@ -2,11 +2,11 @@ namespace SqlStreamStore.HAL.Resources
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
 
     internal class DeleteStreamOperation : IStreamStoreOperation<Unit>
     {
-        public DeleteStreamOperation(IOwinRequest request)
+        public DeleteStreamOperation(HttpRequest request)
         {
             StreamId = request.Path.Value.Remove(0, 1);
 

@@ -3,32 +3,38 @@
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.TestHost;
+    using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.Streams;
-    using MidFunc = System.Func<
-        System.Func<
-            System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>,
-        System.Func<
-            System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>>;
 
-    public class SqlStreamStoreHalMiddlewareFixture : IDisposable
+    internal class SqlStreamStoreHalMiddlewareFixture : IDisposable
     {
-        private readonly MiddlewareFixture _inner;
         public IStreamStore StreamStore { get; }
-        public HttpClient HttpClient => _inner.HttpClient;
+        public HttpClient HttpClient { get; }
+
+        private readonly TestServer _server;
 
         public SqlStreamStoreHalMiddlewareFixture()
         {
-           StreamStore = new InMemoryStreamStore();
-            _inner = new MiddlewareFixture(SqlStreamStoreHalMiddleware.UseSqlStreamStoreHal(StreamStore));
+            StreamStore = new InMemoryStreamStore();
+
+            _server = new TestServer(
+                new WebHostBuilder()
+                    .ConfigureServices(services => services.AddSingleton<IStartup>(new TestStartup(StreamStore)))
+                    .UseSetting(WebHostDefaults.ApplicationKey, "WHY"));
+
+            HttpClient = _server.CreateClient();
+            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/hal+json"));
         }
 
         public void Dispose()
         {
-            StreamStore.Dispose();
-            _inner.Dispose();
+            StreamStore?.Dispose();
+            HttpClient?.Dispose();
+            _server?.Dispose();
         }
 
         public Task<AppendResult> WriteNMessages(string streamId, int n)

@@ -3,12 +3,12 @@ namespace SqlStreamStore.HAL.Resources
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.Streams;
 
     internal class ReadAllStreamMessageOperation : IStreamStoreOperation<StreamMessage>
     {
-        public ReadAllStreamMessageOperation(IOwinRequest request)
+        public ReadAllStreamMessageOperation(HttpRequest request)
         {
             Position = long.Parse(request.Path.Value.Remove(0, 1));
         }

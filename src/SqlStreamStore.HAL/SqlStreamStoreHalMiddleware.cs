@@ -5,42 +5,21 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using Microsoft.Owin;
-    using Microsoft.Owin.Builder;
-    using Owin;
-    using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task
-        >, System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
+    using MidFunc = System.Func<
+        Microsoft.AspNetCore.Http.HttpContext,
+        System.Func<System.Threading.Tasks.Task>,
+        System.Threading.Tasks.Task
     >;
 
     public static class SqlStreamStoreHalMiddleware
     {
-        private static MidFunc AddReasonPhrase => next => env =>
+        private static MidFunc MethodsNotAllowed(params string[] methods) => (context, next) =>
         {
-            var context = new OwinContext(env);
-
-            context.Response.OnSendingHeaders(_ =>
-                {
-                    if(!Constants.ReasonPhrases.TryGetValue(context.Response.StatusCode, out var reasonPhrase))
-                    {
-                        return;
-                    }
-
-                    context.Response.ReasonPhrase = reasonPhrase;
-                },
-                null);
-
-            return next(env);
-        };
-
-        private static MidFunc MethodsNotAllowed(params string[] methods) => next => env =>
-        {
-            var context = new OwinContext(env);
-
             if(!methods.Contains(context.Request.Method))
             {
-                return next(env);
+                return next();
             }
 
             context.Response.StatusCode = 405;
@@ -48,19 +27,16 @@
             return Task.CompletedTask;
         };
 
-        private static MidFunc AcceptOnlyHalJson => next => env =>
+        private static MidFunc AcceptOnlyHalJson => (context, next) =>
         {
-            var context = new OwinContext(env);
-
-            var accept = context.Request.Accept?.Split(',')
-                             .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
-                                 ? header.MediaType
-                                 : null)
-                         ?? Enumerable.Empty<string>();
+            var accept = context.Request.Headers.GetCommaSeparatedValues("Accept")
+                .Select(value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
+                    ? header.MediaType
+                    : null);
 
             return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
                                         || header == Constants.Headers.ContentTypes.Any)
-                ? next(env)
+                ? next()
                 : context.WriteHalResponse(new Response(new HALResponse(new
                     {
                         type = "Not Acceptable",
@@ -70,13 +46,11 @@
                     406));
         };
 
-        private static MidFunc Index => next => env =>
+        private static MidFunc Index => (context, next) =>
         {
-            var context = new OwinContext(env);
-
             if((context.Request.Path.Value ?? "/") != "/")
             {
-                return next(env);
+                return next();
             }
 
             var response = new Response(new HALResponse(null)
@@ -87,42 +61,38 @@
             return context.WriteHalResponse(response);
         };
 
-        public static MidFunc UseSqlStreamStoreHal(IStreamStore streamStore)
+        public static IApplicationBuilder UseSqlStreamStoreHal(
+            this IApplicationBuilder builder,
+            IStreamStore streamStore)
         {
+            if(builder == null)
+                throw new ArgumentNullException(nameof(builder));
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
 
-            var builder = new AppBuilder()
+            return builder
                 .Use(ExceptionHandlingMiddleware.HandleExceptions)
-                .Use(AddReasonPhrase)
                 .Use(AcceptOnlyHalJson)
                 .Use(Index)
                 .Map("/stream", UseAllStream(streamStore))
                 .Map("/streams", UseStream(streamStore));
-
-            return next =>
-            {
-                builder.Run(ctx => next(ctx.Environment));
-
-                return builder.Build();
-            };
         }
 
-        private static Action<IAppBuilder> UseStream(IStreamStore streamStore)
+        private static Action<IApplicationBuilder> UseStream(IStreamStore streamStore)
             => builder => builder
-                .MapWhen(IsOptions, inner => inner.Use(StreamOptionsMiddleware.UseStreamStore(streamStore)))
-                .Use(StreamMetadataMiddleware.UseStreamStore(streamStore))
-                .Use(ReadStreamMiddleware.UseStreamStore(streamStore))
-                .Use(AppendStreamMiddleware.UseStreamStore(streamStore))
-                .Use(DeleteStreamMiddleware.UseStreamStore(streamStore))
+                .MapWhen(IsOptions, inner => inner.UseStreamOptions(streamStore))
+                .UseStreamMetadata(streamStore)
+                .UseReadStream(streamStore)
+                .UseAppendStream(streamStore)
+                .UseDeleteStream(streamStore)
                 .Use(MethodsNotAllowed("TRACE", "PATCH"));
 
-        private static Action<IAppBuilder> UseAllStream(IStreamStore streamStore)
+        private static Action<IApplicationBuilder> UseAllStream(IStreamStore streamStore)
             => builder => builder
-                .MapWhen(IsOptions, inner => inner.Use(AllStreamOptionsMiddleware.UseStreamStore(streamStore)))
-                .Use(ReadAllStreamMiddleware.UseStreamStore(streamStore))
+                .MapWhen(IsOptions, inner => inner.UseAllStreamOptions(streamStore))
+                .UseReadAllStream(streamStore)
                 .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH"));
 
-        private static bool IsOptions(IOwinContext context) => context.IsOptions();
+        private static bool IsOptions(HttpContext context) => context.IsOptions();
     }
 }

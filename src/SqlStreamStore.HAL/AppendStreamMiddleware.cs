@@ -1,42 +1,31 @@
 namespace SqlStreamStore.HAL
 {
-    using Microsoft.Owin;
-    using Microsoft.Owin.Builder;
-    using Owin;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.HAL.Resources;
-    using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task
-        >, System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>
+    using MidFunc = System.Func<
+        Microsoft.AspNetCore.Http.HttpContext,
+        System.Func<System.Threading.Tasks.Task>,
+        System.Threading.Tasks.Task
     >;
 
     internal static class AppendStreamMiddleware
     {
-        public static MidFunc UseStreamStore(IStreamStore streamStore)
+        public static IApplicationBuilder UseAppendStream(this IApplicationBuilder builder, IStreamStore streamStore)
         {
             var stream = new StreamResource(streamStore);
             
-            var builder = new AppBuilder()
-                .MapWhen(IsStream, inner => inner.Use(AppendStream(stream)));
-
-            return next =>
-            {
-                builder.Run(ctx => next(ctx.Environment));
-
-                return builder.Build();
-            };
+            return builder.MapWhen(IsStream, inner => inner.Use(AppendStream(stream)));
         }
         
-        private static bool IsStream(IOwinContext context)
+        private static bool IsStream(HttpContext context)
             => context.IsPost() && context.Request.Path.IsStream();
 
-        private static MidFunc AppendStream(StreamResource stream) => next => async env =>
+        private static MidFunc AppendStream(StreamResource stream) => async (context, next) =>
         {
-            var context = new OwinContext(env);
+            var options = await AppendStreamOperation.Create(context.Request, context.RequestAborted);
 
-            var options = await AppendStreamOperation.Create(context.Request, context.Request.CallCancelled);
-
-            var response = await stream.AppendMessages(options, context.Request.CallCancelled);
+            var response = await stream.AppendMessages(options, context.RequestAborted);
 
             await context.WriteHalResponse(response);
         };

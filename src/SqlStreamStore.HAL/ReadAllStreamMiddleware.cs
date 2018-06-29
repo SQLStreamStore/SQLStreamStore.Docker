@@ -1,62 +1,50 @@
 namespace SqlStreamStore.HAL
 {
-    using Microsoft.Owin;
-    using Microsoft.Owin.Builder;
-    using Owin;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.HAL.Resources;
-    using MidFunc = System.Func<System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task
-        >, System.Func<System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>
+    using MidFunc = System.Func<
+        Microsoft.AspNetCore.Http.HttpContext,
+        System.Func<System.Threading.Tasks.Task>,
+        System.Threading.Tasks.Task
     >;
 
     internal static class ReadAllStreamMiddleware
     {
-        public static MidFunc UseStreamStore(IStreamStore streamStore)
+        public static IApplicationBuilder UseReadAllStream(this IApplicationBuilder builder, IStreamStore streamStore)
         {
             var allStream = new AllStreamResource(streamStore);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
 
-            var builder = new AppBuilder()
+            return builder
                 .MapWhen(IsAllStream, inner => inner.Use(GetStream(allStream)))
                 .MapWhen(IsAllStreamMessage, inner => inner.Use(GetStreamMessage(allStreamMessages)));
-
-            return next =>
-            {
-                builder.Run(ctx => next(ctx.Environment));
-
-                return builder.Build();
-            };
         }
 
-        private static bool IsAllStream(IOwinContext context)
+        private static bool IsAllStream(HttpContext context)
             => context.IsGetOrHead() && context.Request.Path.IsAllStream();
 
-        private static bool IsAllStreamMessage(IOwinContext context)
+        private static bool IsAllStreamMessage(HttpContext context)
             => context.IsGetOrHead() && context.Request.Path.IsAllStreamMessage();
 
 
-        private static MidFunc GetStream(AllStreamResource allStream) => next => async env =>
+        private static MidFunc GetStream(AllStreamResource allStream) => async (context, next) =>
         {
-            var context = new OwinContext(env);
-
             var options = new ReadAllStreamOperation(context.Request);
 
-            var response = await allStream.GetPage(options, context.Request.CallCancelled);
+            var response = await allStream.GetPage(options, context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {
                 await context.WriteHalResponse(response);
             }
         };
-        
-        private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => next => async env =>
-        {
-            var context = new OwinContext(env);
 
+        private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => async (context, next) => 
+        {
             var response = await allStreamMessages.GetMessage(
                 new ReadAllStreamMessageOperation(context.Request),
-                context.Request.CallCancelled);
+                context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {

@@ -2,12 +2,12 @@ namespace SqlStreamStore.HAL.Resources
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.Streams;
 
     internal class GetStreamMetadataOperation : IStreamStoreOperation<StreamMetadataResult>
     {
-        public GetStreamMetadataOperation(IOwinRequest request)
+        public GetStreamMetadataOperation(HttpRequest request)
         {
             StreamId = request.Path.Value.Split('/')[1];
         }

@@ -2,7 +2,7 @@ namespace SqlStreamStore.HAL.Resources
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Owin;
+    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.Streams;
 
     internal class ReadAllStreamOperation : IStreamStoreOperation<ReadAllPage>
@@ -10,20 +10,20 @@ namespace SqlStreamStore.HAL.Resources
         private readonly long _fromPositionInclusive;
         private readonly int _maxCount;
 
-        public ReadAllStreamOperation(IOwinRequest request)
+        public ReadAllStreamOperation(HttpRequest request)
         {
-            EmbedPayload = request.Query.Get("e") != null;
+            EmbedPayload = request.Query.TryGetValue("e", out _);
 
-            ReadDirection = request.Query.Get("d") == "f"
+            ReadDirection = request.Query["d"] == "f"
                 ? Constants.ReadDirection.Forwards
                 : Constants.ReadDirection.Backwards;
 
-            if(!long.TryParse(request.Query.Get("p"), out _fromPositionInclusive))
+            if(!long.TryParse(request.Query["p"], out _fromPositionInclusive))
             {
                 _fromPositionInclusive = ReadDirection > 0 ? Position.Start : Position.End;
             }
 
-            if(!int.TryParse(request.Query.Get("m"), out _maxCount))
+            if(!int.TryParse(request.Query["m"], out _maxCount))
             {
                 _maxCount = Constants.MaxCount;
             }
