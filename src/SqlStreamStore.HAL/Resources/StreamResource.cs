@@ -96,7 +96,9 @@ namespace SqlStreamStore.HAL.Resources
                                     payload,
                                     metadata = message.JsonMetadata
                                 })
-                                .AddLinks(Links.Message.Self(message)))),
+                                .AddLinks(
+                                    Links.Message.Self(message),
+                                    Links.Message.Feed(message)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
         }
 
@@ -201,6 +203,10 @@ namespace SqlStreamStore.HAL.Resources
                 public static Link Self(StreamMessage message) => new Link(
                     Constants.Relations.Self,
                     $"{message.StreamId}/{message.StreamVersion}");
+
+                public static Link Feed(StreamMessage message) => new Link(
+                    Constants.Relations.Feed,
+                    message.StreamId);
             }
         }
     }
