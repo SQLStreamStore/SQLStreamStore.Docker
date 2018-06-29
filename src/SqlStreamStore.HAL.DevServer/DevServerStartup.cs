@@ -73,12 +73,22 @@
                     ? header.MediaType
                     : null);
 
-        private MidFunc SqlStreamStreamBrowserJavascript => (context, next)
-            => context.Request.Path.Value?.EndsWith(".js") ?? false
-                ? ForwardToClientDevServer(
+        private MidFunc SqlStreamStreamBrowserJavascript => (context, next) =>
+        {
+            if(context.Request.Path.Value?.EndsWith(".js") ?? false)
+            {
+                var segments = context.Request.Path.ToUriComponent().Split('/');
+                if(segments.Length > 2)
+                {
+                    return RedirectToPathBase(context, $"/{segments.Last()}");
+                }
+
+                return ForwardToClientDevServer(
                     context,
-                    $"{context.Request.PathBase.ToUriComponent()}{context.Request.Path.ToUriComponent()}")
-                : next();
+                    context.Request.PathBase + context.Request.Path);
+            }
+            return next();
+        };
 
         private MidFunc SqlStreamStreamBrowserHtml => (context, next)
             => GetAcceptHeaders(context.Request)
@@ -86,7 +96,14 @@
                 ? ForwardToClientDevServer(context, context.Request.PathBase.ToUriComponent())
                 : next();
 
-        private async Task ForwardToClientDevServer(HttpContext context, string path)
+        private Task RedirectToPathBase(HttpContext context, PathString path)
+        {
+            context.Response.Redirect(context.Request.PathBase + path);
+            
+            return Task.CompletedTask;
+        }
+
+        private async Task ForwardToClientDevServer(HttpContext context, PathString path)
         {
             using(var request = new HttpRequestMessage(
                 new HttpMethod(context.Request.Method),
@@ -94,7 +111,7 @@
                 {
                     Port = 3000,
                     Host = "localhost",
-                    Path = path,
+                    Path = path.ToUriComponent(),
                     Query = context.Request.QueryString.ToUriComponent()
                 }.Uri))
             using(var response = await _httpClient.SendAsync(request))
