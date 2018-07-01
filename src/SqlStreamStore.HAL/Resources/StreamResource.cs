@@ -75,6 +75,7 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Navigation(page, operation))
                     .AddLinks(Links.Feed(operation))
                     .AddLinks(Links.Metadata(operation))
+                    .AddLinks(Links.Index())
                     .AddEmbeddedResource(
                         Constants.Relations.AppendToStream,
                         Schemas.AppendToStream)
@@ -180,6 +181,11 @@ namespace SqlStreamStore.HAL.Resources
                 => new Link(
                     Constants.Relations.Metadata,
                     $"{operation.StreamId}/metadata");
+
+            public static Link Index()
+                => new Link(
+                    Constants.Relations.Index,
+                    "..");
 
             public static IEnumerable<Link> Navigation(ReadStreamPage page, ReadStreamOperation operation)
             {
