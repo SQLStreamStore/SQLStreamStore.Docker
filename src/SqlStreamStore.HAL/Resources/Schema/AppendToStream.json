@@ -9,7 +9,11 @@
   "properties": {
     "messageId": {
       "type": "string",
-      "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+      "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$",
+      "x-schema-form": {
+        "key": "messageId",
+        "type": "uuid"
+      }
     },
     "type": {
       "type": "string"
