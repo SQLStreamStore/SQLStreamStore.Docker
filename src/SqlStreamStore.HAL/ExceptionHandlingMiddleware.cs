@@ -39,7 +39,8 @@
                 [typeof(InvalidAppendRequestException)] = ex => new Response(new HALResponse(new
                 {
                     type = ex.GetType().Name,
-                    title = "Bad format."
+                    title = "Bad format.",
+                    detail = ex.Message
                 }), 400),
                 [typeof(Exception)] = s_defaultExceptionHandler
             };

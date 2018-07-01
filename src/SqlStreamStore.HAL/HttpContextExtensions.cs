@@ -31,11 +31,6 @@ namespace SqlStreamStore.HAL
                 context.Response.Headers.Append(header.Key, header.Value);
             }
 
-            if(context.IsDelete())
-            {
-                return;
-            }
-
             using(var writer = new JsonTextWriter(new StreamWriter(context.Response.Body))
             {
                 CloseOutput = false
