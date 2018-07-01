@@ -33,8 +33,8 @@
 
         public void Configure(IApplicationBuilder app) => app
             .UseResponseCompression()
+            .Use(VaryAccept)
             .Use(CatchAndDisplayErrors)
-            .Use(AllowAllOrigins)
             .Use(SqlStreamStreamBrowserJavascript)
             .Use(SqlStreamStreamBrowserHtml)
             .UseSqlStreamStoreHal(_streamStore);
@@ -51,27 +51,21 @@
             }
         };
 
-        // don't actually do this in production
-        private static MidFunc AllowAllOrigins => (context, next) =>
+        private static MidFunc VaryAccept => (context, next) =>
         {
-            context.Response.OnStarting(_ =>
-                {
-                    var response = (HttpResponse) _;
-                    response.Headers["Access-Control-Allow-Origin"] = "*";
+            Task Vary(object state)
+            {
+                var response = (HttpResponse)state;
 
-                    return Task.CompletedTask;
-                },
-                context.Response);
+                response.Headers.AppendCommaSeparatedValues("Vary", "Accept");
 
+                return Task.CompletedTask;
+            }
+            
+            context.Response.OnStarting(Vary, context.Response);
+            
             return next();
         };
-
-        private static string[] GetAcceptHeaders(HttpRequest contextRequest)
-            => Array.ConvertAll(
-                contextRequest.Headers.GetCommaSeparatedValues("Accept"),
-                value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
-                    ? header.MediaType
-                    : null);
 
         private MidFunc SqlStreamStreamBrowserJavascript => (context, next) =>
         {
@@ -95,6 +89,13 @@
                 .Any(header => header == "text/html")
                 ? ForwardToClientDevServer(context, context.Request.PathBase.ToUriComponent())
                 : next();
+
+        private static string[] GetAcceptHeaders(HttpRequest contextRequest)
+            => Array.ConvertAll(
+                contextRequest.Headers.GetCommaSeparatedValues("Accept"),
+                value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
+                    ? header.MediaType
+                    : null);
 
         private Task RedirectToPathBase(HttpContext context, PathString path)
         {
