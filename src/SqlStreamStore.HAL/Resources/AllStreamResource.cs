@@ -66,7 +66,9 @@
                                     payload,
                                     metadata = message.JsonMetadata
                                 })
-                                .AddLinks(Links.Message.Self(message)))));
+                                .AddLinks(
+                                    Links.Message.Self(message),
+                                    Links.Message.Feed(message)))));
 
             if(operation.FromPositionInclusive == Position.End)
             {
@@ -157,6 +159,10 @@
                 public static Link Self(StreamMessage message) => new Link(
                     Constants.Relations.Self,
                     $"streams/{message.StreamId}/{message.StreamVersion}");
+
+                public static Link Feed(StreamMessage message) => new Link(
+                    Constants.Relations.Feed,
+                    $"streams/{message.StreamId}");
             }
         }
     }

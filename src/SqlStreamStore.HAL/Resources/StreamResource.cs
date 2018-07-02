@@ -75,6 +75,13 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Navigation(page, operation))
                     .AddLinks(Links.Feed(operation))
                     .AddLinks(Links.Metadata(operation))
+                    .AddLinks(Links.Index())
+                    .AddEmbeddedResource(
+                        Constants.Relations.AppendToStream,
+                        Schemas.AppendToStream)
+                    .AddEmbeddedResource(
+                        Constants.Relations.Delete,
+                        Schemas.DeleteStream)
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         streamMessages.Zip(
@@ -90,7 +97,9 @@ namespace SqlStreamStore.HAL.Resources
                                     payload,
                                     metadata = message.JsonMetadata
                                 })
-                                .AddLinks(Links.Message.Self(message)))),
+                                .AddLinks(
+                                    Links.Message.Self(message),
+                                    Links.Message.Feed(message)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
         }
 
@@ -173,6 +182,11 @@ namespace SqlStreamStore.HAL.Resources
                     Constants.Relations.Metadata,
                     $"{operation.StreamId}/metadata");
 
+            public static Link Index()
+                => new Link(
+                    Constants.Relations.Index,
+                    "..");
+
             public static IEnumerable<Link> Navigation(ReadStreamPage page, ReadStreamOperation operation)
             {
                 var first = First(page, operation);
@@ -195,6 +209,10 @@ namespace SqlStreamStore.HAL.Resources
                 public static Link Self(StreamMessage message) => new Link(
                     Constants.Relations.Self,
                     $"{message.StreamId}/{message.StreamVersion}");
+
+                public static Link Feed(StreamMessage message) => new Link(
+                    Constants.Relations.Feed,
+                    message.StreamId);
             }
         }
     }

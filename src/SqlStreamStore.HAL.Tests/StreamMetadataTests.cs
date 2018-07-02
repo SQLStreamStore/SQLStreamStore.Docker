@@ -40,7 +40,8 @@
                 ((string) resource.State.metadataJson).ShouldBeNull();
 
                 resource.ShouldLink(Constants.Relations.Self, "metadata");
-                resource.ShouldLink(Constants.Relations.Feed, "../");
+                resource.ShouldLink(Constants.Relations.Metadata, "metadata");
+                resource.ShouldLink(Constants.Relations.Feed, $"../{StreamId}");
             }
         }
 
@@ -85,7 +86,8 @@
                     })).ShouldBeTrue();
 
                 resource.ShouldLink(Constants.Relations.Self, "metadata");
-                resource.ShouldLink(Constants.Relations.Feed, "../");
+                resource.ShouldLink(Constants.Relations.Metadata, "metadata");
+                resource.ShouldLink(Constants.Relations.Feed, $"../{StreamId}");
             }
         }
 
@@ -126,7 +128,8 @@
                     })).ShouldBeTrue();
 
                 resource.ShouldLink(Constants.Relations.Self, "metadata");
-                resource.ShouldLink(Constants.Relations.Feed, "../");
+                resource.ShouldLink(Constants.Relations.Metadata, "metadata");
+                resource.ShouldLink(Constants.Relations.Feed, $"../{StreamId}");
             }
         }
 

@@ -1,0 +1,5 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-07/hyper-schema#",
+  "title": "Delete Stream",
+  "type": "object"
+}

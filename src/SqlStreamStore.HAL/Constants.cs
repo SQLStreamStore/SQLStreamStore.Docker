@@ -31,6 +31,8 @@ namespace SqlStreamStore.HAL
             public const string Feed = "streamStore:feed";
             public const string Message = "streamStore:message";
             public const string Metadata = "streamStore:metadata";
+            public const string AppendToStream = "streamStore:append";
+            public const string Delete = "streamStore:delete";
         }
 
         public static class Streams
@@ -38,18 +40,6 @@ namespace SqlStreamStore.HAL
             public const string All = "stream";
             public const string Metadata = "metadata";
         }
-        
-        public static IReadOnlyDictionary<int, string> ReasonPhrases { get; }
-            = new ReadOnlyDictionary<int, string>(new Dictionary<int, string>
-            {
-                [200] = "OK",
-                [201] = "Created",
-                [307] = "Moved Temporarily",
-                [400] = "Bad Request",
-                [404] = "Not Found",
-                [405] = "Method Not Allowed",
-                [409] = "Conflict"
-            });
 
         public static class ReadDirection
         {

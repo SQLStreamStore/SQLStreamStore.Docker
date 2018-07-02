@@ -1,12 +1,15 @@
 namespace SqlStreamStore.HAL
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
+    using SqlStreamStore.Streams;
 
     internal static class HttpContextExtensions
     {
@@ -76,6 +79,14 @@ namespace SqlStreamStore.HAL
                 request.Headers[Constants.Headers.ExpectedVersion],
                 out var expectedVersion)
                 ? expectedVersion
-                : Streams.ExpectedVersion.Any;
+                : ExpectedVersion.Any;
+
+        public static string[] GetAcceptHeaders(this HttpRequest contextRequest)
+            => Array.ConvertAll(
+                contextRequest.Headers
+                    .GetCommaSeparatedValues("Accept"),
+                value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
+                    ? header.MediaType
+                    : null);
     }
 }
