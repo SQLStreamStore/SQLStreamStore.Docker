@@ -1,7 +1,5 @@
 ﻿namespace SqlStreamStore.HAL.DevServer
 {
-    using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Hosting;
