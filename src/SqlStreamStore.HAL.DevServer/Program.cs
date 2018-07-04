@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Serilog;
     using SqlStreamStore.Streams;
 
     internal class Program : IDisposable
@@ -20,6 +21,12 @@
 
         public static async Task<int> Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+
             using(var program = new Program(args))
             {
                 return await program.Run();
@@ -33,6 +40,7 @@
             _host = new WebHostBuilder()
                 .UseKestrel()
                 .UseStartup(new DevServerStartup(_streamStore))
+                .UseSerilog()
                 .Build();
             _configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
@@ -48,6 +56,7 @@
 
                 if(Interactive)
                 {
+                    Log.Warning("Running interactively.");
                     DisplayMenu(_streamStore);
                 }
 
@@ -57,10 +66,13 @@
             }
             catch(Exception ex)
             {
-                Console.Error.WriteLine(ex.Message);
+                Log.Fatal(ex, "Host terminated unexpectedly.");
+                return 1;
             }
-
-            return 1;
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         private static void DisplayMenu(IStreamStore streamStore, string url = null)
@@ -102,14 +114,14 @@
 
             Task.Run(() => Task.WhenAll(
                 from streamId in streams
-                select streamStore.AppendToStream(streamId,
+                select streamStore.AppendToStream(
+                    streamId,
                     ExpectedVersion.NoStream,
                     GenerateMessages(messageCount))));
         }
 
         private static NewStreamMessage[] GenerateMessages(int messageCount)
-        {
-            return Enumerable.Range(0, messageCount)
+            => Enumerable.Range(0, messageCount)
                 .Select(_ => new NewStreamMessage(
                     Guid.NewGuid(),
                     "test",
@@ -120,7 +132,6 @@
                         } ] }}",
                     "{}"))
                 .ToArray();
-        }
 
         public void Dispose()
         {
