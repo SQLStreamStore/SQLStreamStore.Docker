@@ -16,7 +16,8 @@ WORKDIR /src/SqlStreamStore.HAL.DevServer
 RUN dotnet publish -c Release -o /build
 
 FROM microsoft/dotnet:2.1.1-aspnetcore-runtime-alpine3.7 AS runtime
-EXPOSE 80
+
 WORKDIR /app
 COPY --from=build /build ./
+
 ENTRYPOINT ["dotnet", "SqlStreamStore.HAL.DevServer.dll"]
