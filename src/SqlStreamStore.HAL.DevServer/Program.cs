@@ -5,42 +5,77 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
+    using Serilog;
     using SqlStreamStore.Streams;
 
-    internal static class Program
+    internal class Program : IDisposable
     {
         private static readonly Random s_random = new Random();
-        private const int DefaultPort = 8001;
+        private readonly CancellationTokenSource _cts;
+        private readonly InMemoryStreamStore _streamStore;
+        private readonly IWebHost _host;
+        private readonly IConfigurationRoot _configuration;
+
+        private bool Interactive => _configuration.GetValue<bool>("interactive");
 
         public static async Task<int> Main(string[] args)
         {
-            if(!int.TryParse(args.FirstOrDefault(), out var port))
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            using(var program = new Program(args))
             {
-                port = DefaultPort;
+                return await program.Run();
             }
-
-            var url = new UriBuilder { Port = port }.Uri.ToString();
-
-            using(var cts = new CancellationTokenSource())
-            using(var streamStore = new InMemoryStreamStore())
-            using(var host = new WebHostBuilder()
-                .UseUrls(url)
-                .UseKestrel()
-                .UseStartup(new DevServerStartup(streamStore))
-                .Build())
-            {
-
-                var serverTask = host.RunAsync(cts.Token);
-
-                DisplayMenu(streamStore, url);
-
-                await serverTask;
-            }
-
-            return 0;
         }
 
-        private static void DisplayMenu(IStreamStore streamStore, string url)
+        private Program(string[] args)
+        {
+            _cts = new CancellationTokenSource();
+            _streamStore = new InMemoryStreamStore();
+            _host = new WebHostBuilder()
+                .UseKestrel()
+                .UseStartup(new DevServerStartup(_streamStore))
+                .UseSerilog()
+                .Build();
+            _configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
+        }
+
+        private async Task<int> Run()
+        {
+            try
+            {
+                var serverTask = _host.RunAsync(_cts.Token);
+
+                if(Interactive)
+                {
+                    Log.Warning("Running interactively.");
+                    DisplayMenu(_streamStore);
+                }
+
+                await serverTask;
+
+                return 0;
+            }
+            catch(Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly.");
+                return 1;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
+
+        private static void DisplayMenu(IStreamStore streamStore, string url = null)
         {
             while(true)
             {
@@ -79,14 +114,14 @@
 
             Task.Run(() => Task.WhenAll(
                 from streamId in streams
-                select streamStore.AppendToStream(streamId,
+                select streamStore.AppendToStream(
+                    streamId,
                     ExpectedVersion.NoStream,
                     GenerateMessages(messageCount))));
         }
 
         private static NewStreamMessage[] GenerateMessages(int messageCount)
-        {
-            return Enumerable.Range(0, messageCount)
+            => Enumerable.Range(0, messageCount)
                 .Select(_ => new NewStreamMessage(
                     Guid.NewGuid(),
                     "test",
@@ -97,6 +132,12 @@
                         } ] }}",
                     "{}"))
                 .ToArray();
+
+        public void Dispose()
+        {
+            _host?.Dispose();
+            _streamStore?.Dispose();
+            _cts?.Dispose();
         }
     }
 }

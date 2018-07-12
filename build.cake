@@ -36,13 +36,9 @@ Task("RunTests")
 {
     var testProjects = new string[] { "SqlStreamStore.HAL.Tests" };
 
-    foreach(var testProject in testProjects) {
-        var projectDir = srcDir + Directory(testProject);
-        StartProcess("dotnet", new ProcessSettings {
-            Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
-            WorkingDirectory = projectDir
-        });
-    }
+    Parallel.Invoke(new ParallelOptions {
+
+    }, Array.ConvertAll(testProjects, RunTest));
 });
 
 Task("Publish")
@@ -75,3 +71,8 @@ Task("Default")
     .IsDependentOn("NuGetPack");
 
 RunTarget(target);
+
+Action RunTest(string testProject) => () => DotNetCoreTest(srcDir + Directory(testProject), new DotNetCoreTestSettings {
+    NoBuild = true,
+    NoRestore = true
+});

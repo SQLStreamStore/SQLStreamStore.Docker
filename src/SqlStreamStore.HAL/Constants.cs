@@ -1,8 +1,5 @@
 namespace SqlStreamStore.HAL
 {
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-
     internal static class Constants
     {
         public static class Headers

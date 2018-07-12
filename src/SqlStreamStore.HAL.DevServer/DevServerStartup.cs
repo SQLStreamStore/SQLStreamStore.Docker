@@ -35,7 +35,7 @@
             .UseResponseCompression()
             .Use(VaryAccept)
             .Use(CatchAndDisplayErrors)
-            .Use(SqlStreamStreamBrowserJavascript)
+            .Use(SqlStreamStreamBrowserStatic)
             .Use(SqlStreamStreamBrowserHtml)
             .UseSqlStreamStoreHal(_streamStore);
 
@@ -55,34 +55,25 @@
         {
             Task Vary(object state)
             {
-                var response = (HttpResponse)state;
+                var response = (HttpResponse) state;
 
                 response.Headers.AppendCommaSeparatedValues("Vary", "Accept");
 
                 return Task.CompletedTask;
             }
-            
+
             context.Response.OnStarting(Vary, context.Response);
-            
+
             return next();
         };
 
-        private MidFunc SqlStreamStreamBrowserJavascript => (context, next) =>
-        {
-            if(context.Request.Path.Value?.EndsWith(".js") ?? false)
-            {
-                var segments = context.Request.Path.ToUriComponent().Split('/');
-                if(segments.Length > 2)
-                {
-                    return RedirectToPathBase(context, $"/{segments.Last()}");
-                }
-
-                return ForwardToClientDevServer(
+        private MidFunc SqlStreamStreamBrowserStatic => (context, next)
+            => context.Request.Path.StartsWithSegments(new PathString("/static"))
+                || context.Request.Path.StartsWithSegments(new PathString("/sockjs-node"))
+                ? ForwardToClientDevServer(
                     context,
-                    context.Request.PathBase + context.Request.Path);
-            }
-            return next();
-        };
+                    context.Request.Path)
+                : next();
 
         private MidFunc SqlStreamStreamBrowserHtml => (context, next)
             => GetAcceptHeaders(context.Request)
@@ -100,7 +91,7 @@
         private Task RedirectToPathBase(HttpContext context, PathString path)
         {
             context.Response.Redirect(context.Request.PathBase + path);
-            
+
             return Task.CompletedTask;
         }
 

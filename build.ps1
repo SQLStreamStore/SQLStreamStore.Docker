@@ -55,7 +55,7 @@ $proj = @"
 ##########################
 # Install .NET Core CLI
 ##########################
-$dotNetCoreVersion = "2.0.0"
+$dotNetCoreVersion = "2.1.301"
 $dotNetInstallerUri = "https://dot.net/dotnet-install.ps1"
 Function Remove-PathVariable([string]$variableToRemove)
 {
