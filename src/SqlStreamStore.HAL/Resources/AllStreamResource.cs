@@ -13,7 +13,7 @@
     {
         private readonly IStreamStore _streamStore;
 
-        public HttpMethod[] Options { get; } =
+        public HttpMethod[] Allowed { get; } =
         {
             HttpMethod.Get,
             HttpMethod.Head,
@@ -27,7 +27,7 @@
             _streamStore = streamStore;
         }
 
-        public async Task<Response> GetPage(
+        public async Task<Response> Get(
             ReadAllStreamOperation operation,
             CancellationToken cancellationToken)
         {
@@ -35,11 +35,12 @@
 
             var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();
 
-            var payloads = await Task.WhenAll(streamMessages
-                .Select(message => operation.EmbedPayload
-                    ? message.GetJsonData(cancellationToken)
-                    : Task.FromResult<string>(null))
-                .ToArray());
+            var payloads = await Task.WhenAll(
+                Array.ConvertAll(
+                    streamMessages,
+                    message => operation.EmbedPayload
+                        ? message.GetJsonData(cancellationToken)
+                        : SkippedPayload.Instance));
 
             var response = new Response(
                 new HALResponse(new

@@ -32,7 +32,7 @@ namespace SqlStreamStore.HAL
         {
             var options = new ReadAllStreamOperation(context.Request);
 
-            var response = await allStream.GetPage(options, context.RequestAborted);
+            var response = await allStream.Get(options, context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {
@@ -42,7 +42,7 @@ namespace SqlStreamStore.HAL
 
         private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => async (context, next) => 
         {
-            var response = await allStreamMessages.GetMessage(
+            var response = await allStreamMessages.Get(
                 new ReadAllStreamMessageOperation(context.Request),
                 context.RequestAborted);
 

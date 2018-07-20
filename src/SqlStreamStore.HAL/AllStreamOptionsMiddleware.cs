@@ -34,7 +34,7 @@
 
         private static MidFunc Options(IResource resource) => (context, next) =>
         {
-            context.SetStandardCorsHeaders(resource.Options);
+            context.SetStandardCorsHeaders(resource.Allowed);
 
             return Task.CompletedTask;
         };

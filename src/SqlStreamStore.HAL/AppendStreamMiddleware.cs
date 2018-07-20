@@ -25,7 +25,7 @@ namespace SqlStreamStore.HAL
         {
             var options = await AppendStreamOperation.Create(context.Request, context.RequestAborted);
 
-            var response = await stream.AppendMessages(options, context.RequestAborted);
+            var response = await stream.Post(options, context.RequestAborted);
 
             await context.WriteHalResponse(response);
         };

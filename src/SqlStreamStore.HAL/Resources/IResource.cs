@@ -4,6 +4,6 @@
 
     internal interface IResource
     {
-        HttpMethod[] Options { get; }
+        HttpMethod[] Allowed { get; }
     }
 }

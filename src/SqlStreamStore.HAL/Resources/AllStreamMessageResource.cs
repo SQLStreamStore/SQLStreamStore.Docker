@@ -11,7 +11,7 @@
     {
         private readonly IStreamStore _streamStore;
 
-        public HttpMethod[] Options { get; } =
+        public HttpMethod[] Allowed { get; } =
         {
             HttpMethod.Get,
             HttpMethod.Head,
@@ -25,7 +25,7 @@
             _streamStore = streamStore;
         }
 
-        public async Task<Response> GetMessage(
+        public async Task<Response> Get(
             ReadAllStreamMessageOperation operation,
             CancellationToken cancellationToken)
         {

@@ -13,7 +13,7 @@ namespace SqlStreamStore.HAL.Resources
     {
         private readonly IStreamStore _streamStore;
 
-        public HttpMethod[] Options { get; } =
+        public HttpMethod[] Allowed { get; } =
         {
             HttpMethod.Get,
             HttpMethod.Head,
@@ -29,7 +29,7 @@ namespace SqlStreamStore.HAL.Resources
             _streamStore = streamStore;
         }
 
-        public async Task<Response> AppendMessages(
+        public async Task<Response> Post(
             AppendStreamOperation operation,
             CancellationToken cancellationToken)
         {
@@ -50,17 +50,18 @@ namespace SqlStreamStore.HAL.Resources
             return response;
         }
 
-        public async Task<Response> GetPage(ReadStreamOperation operation, CancellationToken cancellationToken)
+        public async Task<Response> Get(ReadStreamOperation operation, CancellationToken cancellationToken)
         {
             var page = await operation.Invoke(_streamStore, cancellationToken);
 
             var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();
 
-            var payloads = await Task.WhenAll(streamMessages
-                .Select(message => operation.EmbedPayload
-                    ? message.GetJsonData(cancellationToken)
-                    : Task.FromResult<string>(null))
-                .ToArray());
+            var payloads = await Task.WhenAll(
+                Array.ConvertAll(
+                    streamMessages,
+                    message => operation.EmbedPayload
+                        ? message.GetJsonData(cancellationToken)
+                        : SkippedPayload.Instance));
 
             return new Response(
                 new HALResponse(new
