@@ -31,6 +31,14 @@
             ReadAllStreamOperation operation,
             CancellationToken cancellationToken)
         {
+            if(!operation.IsUriCanonical)
+            {
+                return new Response(new HALResponse(null), 308)
+                {
+                    Headers = { [Constants.Headers.Location] = new[] { operation.Self } }
+                };
+            }
+
             var page = await operation.Invoke(_streamStore, cancellationToken);
 
             var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();

@@ -33,7 +33,8 @@
         [Theory, MemberData(nameof(GetNoMessagesPagingCases))]
         public async Task read_head_link_no_messages(string stream, string baseAddress, HttpStatusCode statusCode)
         {
-            using(var response = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}"))
+            using(var firstResponse = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}"))
+            using(var response = await _fixture.HttpClient.GetAsync($"{baseAddress}{firstResponse.Headers.Location}"))
             {
                 response.StatusCode.ShouldBe(statusCode);
 
@@ -65,25 +66,31 @@
         {
             await _fixture.WriteNMessages("a-stream", 30);
 
-            using(var response = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}"))
+            using(var firstResponse = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}"))
             {
-                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                firstResponse.StatusCode.ShouldBe(HttpStatusCode.PermanentRedirect);
 
-                var resource = await response.AsHal();
-
-                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{LastLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9");
-
-                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
-
-                if(!IsAllStream($"{baseAddress}{stream}"))
+                using(var response =
+                    await _fixture.HttpClient.GetAsync($"{baseAddress}{firstResponse.Headers.Location}"))
                 {
-                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                    response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+                    var resource = await response.AsHal();
+
+                    resource.ShouldLink(Constants.Relations.Self, $"{stream}?{LastLinkQuery}");
+
+                    resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
+
+                    resource.ShouldLink(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9");
+
+                    resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
+
+                    resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
+
+                    if(!IsAllStream($"{baseAddress}{stream}"))
+                    {
+                        resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                    }
                 }
             }
         }
@@ -149,7 +156,8 @@
 
             var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", StreamVersion.Start, 10, false);
 
-            using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream"))
+            using(var firstResponse = await _fixture.HttpClient.GetAsync("/streams/a-stream"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/streams/{firstResponse.Headers.Location}"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
 

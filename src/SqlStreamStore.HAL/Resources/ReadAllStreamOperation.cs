@@ -27,16 +27,29 @@ namespace SqlStreamStore.HAL.Resources
             {
                 _maxCount = Constants.MaxCount;
             }
+
+            Self = ReadDirection == Constants.ReadDirection.Forwards
+                ? LinkFormatter.FormatForwardLink(
+                    Constants.Streams.All,
+                    MaxCount,
+                    FromPositionInclusive,
+                    EmbedPayload)
+                : LinkFormatter.FormatBackwardLink(
+                    Constants.Streams.All,
+                    MaxCount,
+                    FromPositionInclusive,
+                    EmbedPayload);
+
+            IsUriCanonical = Self.Remove(0, Constants.Streams.All.Length)
+                             == request.QueryString.ToUriComponent();
         }
 
         public long FromPositionInclusive => _fromPositionInclusive;
         public int MaxCount => _maxCount;
         public bool EmbedPayload { get; }
         public int ReadDirection { get; }
-
-        public string Self => ReadDirection == Constants.ReadDirection.Forwards
-            ? LinkFormatter.FormatForwardLink(Constants.Streams.All, MaxCount, FromPositionInclusive, EmbedPayload)
-            : LinkFormatter.FormatBackwardLink(Constants.Streams.All, MaxCount, FromPositionInclusive, EmbedPayload);
+        public string Self { get; }
+        public bool IsUriCanonical { get; }
 
         public Task<ReadAllPage> Invoke(IStreamStore streamStore, CancellationToken ct)
             => ReadDirection == Constants.ReadDirection.Forwards

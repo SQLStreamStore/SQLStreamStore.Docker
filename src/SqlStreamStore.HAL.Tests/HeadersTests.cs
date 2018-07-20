@@ -5,6 +5,8 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using Shouldly;
+    using SqlStreamStore.HAL.Resources;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class HeadersTests : IDisposable
@@ -32,7 +34,10 @@
 
             var position = await _fixture.StreamStore.ReadHeadPosition();
 
-            using(var response = await _fixture.HttpClient.SendAsync(new HttpRequestMessage(method, "/stream")))
+            using(var response = await _fixture.HttpClient.SendAsync(
+                new HttpRequestMessage(
+                    method,
+                    LinkFormatter.FormatBackwardLink("/stream", 20, Position.End, true))))
             {
                 response.IsSuccessStatusCode.ShouldBeTrue();
 
