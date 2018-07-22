@@ -65,7 +65,8 @@
                 let format = formatters[forward]
                 let canonicalUri = format(_.streamId, 20, 0, prefetch)
                 from queryString in GetQueryStrings(forward, prefetch)
-                    .Concat(new[] { $"d={(forward ? 'F' : 'B')}&M=20&P=0{(prefetch ? "&E" : string.Empty)}" })
+                    // query strings are supposed to be case sensitive!!
+                    //.Concat(new[] { $"d={(forward ? 'F' : 'B')}&M=20&P=0{(prefetch ? "&E" : string.Empty)}" })
                 where $"{_.streamId}?{queryString}" != canonicalUri
                 select ($"{_.path}?{queryString}", new Uri(
                     canonicalUri,
