@@ -14,7 +14,8 @@ namespace SqlStreamStore.HAL.Resources
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
-            EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out _);
+            EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
+                           && embedPayload == "1";
 
             ReadDirection = request.Query.TryGetValueCaseInsensitive('d', out var readDirection)
                             && readDirection == "f" || readDirection == "F"
