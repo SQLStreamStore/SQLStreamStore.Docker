@@ -31,7 +31,7 @@ namespace SqlStreamStore.HAL
         {
             var options = new ReadStreamOperation(context.Request);
 
-            var response = await streams.GetPage(options, context.RequestAborted);
+            var response = await streams.Get(options, context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {
@@ -43,7 +43,7 @@ namespace SqlStreamStore.HAL
         {
             var options = new ReadStreamMessageByStreamVersionOperation(context.Request);
 
-            var response = await streamMessages.GetMessage(options, context.RequestAborted);
+            var response = await streamMessages.Get(options, context.RequestAborted);
 
             using(new OptionalHeadRequestWrapper(context))
             {

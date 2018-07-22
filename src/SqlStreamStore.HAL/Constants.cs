@@ -8,7 +8,7 @@ namespace SqlStreamStore.HAL
             public const string HeadPosition = "SSS-HeadPosition";
             public const string MessageId = "SSS-MessageId";
             public const string Location = "Location";
-            
+
             public static class ContentTypes
             {
                 public const string Json = "application/json";
@@ -43,7 +43,7 @@ namespace SqlStreamStore.HAL
             public const int Forwards = 1;
             public const int Backwards = -1;
         }
-        
+
         public const int MaxCount = 20;
     }
 }

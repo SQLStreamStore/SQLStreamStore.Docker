@@ -13,6 +13,7 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />

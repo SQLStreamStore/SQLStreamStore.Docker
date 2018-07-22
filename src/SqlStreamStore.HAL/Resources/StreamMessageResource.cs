@@ -13,7 +13,7 @@ namespace SqlStreamStore.HAL.Resources
     {
         private readonly IStreamStore _streamStore;
 
-        public HttpMethod[] Options { get; } =
+        public HttpMethod[] Allowed { get; } =
         {
             HttpMethod.Get,
             HttpMethod.Head,
@@ -27,7 +27,7 @@ namespace SqlStreamStore.HAL.Resources
             _streamStore = streamStore;
         }
 
-        public async Task<Response> GetMessage(
+        public async Task<Response> Get(
             ReadStreamMessageByStreamVersionOperation operation,
             CancellationToken cancellationToken)
         {

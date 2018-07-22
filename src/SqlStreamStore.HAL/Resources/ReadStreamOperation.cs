@@ -31,6 +31,13 @@ namespace SqlStreamStore.HAL.Resources
             {
                 _maxCount = Constants.MaxCount;
             }
+
+            Self = ReadDirection == Constants.ReadDirection.Forwards
+                ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload)
+                : LinkFormatter.FormatBackwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload);
+
+            IsUriCanonical = Self.Remove(0, StreamId.Length)
+                             == request.QueryString.ToUriComponent();
         }
 
         public long FromVersionInclusive => _fromVersionInclusive;
@@ -38,10 +45,8 @@ namespace SqlStreamStore.HAL.Resources
         public bool EmbedPayload { get; }
         public int ReadDirection { get; }
         public string StreamId { get; }
-
-        public string Self => ReadDirection == Constants.ReadDirection.Forwards
-            ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload)
-            : LinkFormatter.FormatBackwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload);
+        public string Self { get; }
+        public bool IsUriCanonical { get; }
 
         public Task<ReadStreamPage> Invoke(IStreamStore streamStore, CancellationToken ct)
             => ReadDirection == Constants.ReadDirection.Forwards

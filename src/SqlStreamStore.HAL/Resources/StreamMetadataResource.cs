@@ -10,7 +10,7 @@ namespace SqlStreamStore.HAL.Resources
     {
         private readonly IStreamStore _streamStore;
 
-        public HttpMethod[] Options { get; } =
+        public HttpMethod[] Allowed { get; } =
         {
             HttpMethod.Get,
             HttpMethod.Head,
@@ -25,7 +25,7 @@ namespace SqlStreamStore.HAL.Resources
             _streamStore = streamStore;
         }
 
-        public async Task<Response> GetStreamMetadata(
+        public async Task<Response> Get(
             GetStreamMetadataOperation operation,
             CancellationToken cancellationToken)
         {
@@ -51,7 +51,7 @@ namespace SqlStreamStore.HAL.Resources
             return response;
         }
 
-        public async Task<Response> SetStreamMetadata(
+        public async Task<Response> Post(
             SetStreamMetadataOperation operation,
             CancellationToken cancellationToken)
         {

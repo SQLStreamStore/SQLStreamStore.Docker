@@ -2,7 +2,6 @@ namespace SqlStreamStore.HAL
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
@@ -46,8 +45,9 @@ namespace SqlStreamStore.HAL
         {
             if(allowedMethods?.Length > 0)
             {
-                context.Response.Headers.Append("Access-Control-Allow-Methods",
-                    allowedMethods.Select(_ => _.Method).ToArray());
+                context.Response.Headers.Append(
+                    "Access-Control-Allow-Methods",
+                    Array.ConvertAll(allowedMethods, _ => _.Method));
             }
 
             context.Response.Headers.Append(

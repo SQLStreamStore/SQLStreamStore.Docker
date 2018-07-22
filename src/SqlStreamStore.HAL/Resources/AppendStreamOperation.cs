@@ -43,8 +43,7 @@ namespace SqlStreamStore.HAL.Resources
         private AppendStreamOperation(HttpRequest request, JArray body)
             : this(request)
         {
-            NewStreamMessages = body.Select(ParseNewStreamMessage)
-                .ToArray();
+            NewStreamMessages = body.Select(ParseNewStreamMessage).ToArray();
         }
 
         private AppendStreamOperation(HttpRequest request, JObject body)

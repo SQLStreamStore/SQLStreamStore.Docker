@@ -31,7 +31,7 @@
             {
                 var options = await SetStreamMetadataOperation.Create(context.Request, context.RequestAborted);
 
-                var response = await streamsMetadata.SetStreamMetadata(options, context.RequestAborted);
+                var response = await streamsMetadata.Post(options, context.RequestAborted);
 
                 await context.WriteHalResponse(response);
             };
@@ -41,7 +41,7 @@
             {
                 var options = new GetStreamMetadataOperation(context.Request);
 
-                var response = await streamsMetadata.GetStreamMetadata(options, context.RequestAborted);
+                var response = await streamsMetadata.Get(options, context.RequestAborted);
 
                 using(new OptionalHeadRequestWrapper(context))
                 {
