@@ -39,7 +39,7 @@ Param(
     [string[]]$ScriptArgs
 )
 
-$cakeVersion = "0.26.0"
+$cakeVersion = "0.29.0"
 $buildPath = "$PSScriptRoot/build"
 $proj = @"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -55,7 +55,7 @@ $proj = @"
 ##########################
 # Install .NET Core CLI
 ##########################
-$dotNetCoreVersion = "2.1.301"
+$dotNetCoreVersion = "2.1.400"
 $dotNetInstallerUri = "https://dot.net/dotnet-install.ps1"
 Function Remove-PathVariable([string]$variableToRemove)
 {

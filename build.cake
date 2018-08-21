@@ -1,11 +1,13 @@
 #addin "nuget:?package=Cake.FileHelpers&version=2.0.0"
+#addin "nuget:?package=Cake.Incubator&version=3.0.0"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
 var srcDir          = Directory("./src");
 var solution        = srcDir + File("SqlStreamStore.HAL.sln");
-var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
+var buildNumber     = EnvironmentVariable("TRAVIS_BUILD_NUMBER", 0);
+var mygetApiKey     = EnvironmentVariable("MYGET_API_KEY");
 
 Task("Clean")
     .Does(() =>
@@ -30,7 +32,7 @@ Task("Build")
     });
 });
 
-Task("RunTests")
+Task("Test")
     .IsDependentOn("Build")
     .Does(() =>
 {
@@ -52,7 +54,7 @@ Task("Publish")
     });
 });
 
-Task("NuGetPack")
+Task("Package")
     .IsDependentOn("Build")
     .Does(() =>
 {
@@ -66,13 +68,34 @@ Task("NuGetPack")
     });
 });
 
+Task("MyGetPush")
+    .IsDependentOn("Package")
+    .Does(() =>
+{
+    if (string.IsNullOrEmpty(mygetApiKey)) {
+        Warning("MyGet API key not available. Packages will not be pushed.");
+        return;
+    }
+
+    var files = GetFiles("artifacts/*.nupkg");
+    foreach(var file in files) {
+        Information(file);
+        DotNetCoreNuGetPush(file.FullPath, new DotNetCoreNuGetPushSettings
+        {
+            ApiKey = EnvironmentVariable("MYGET_API_KEY"),
+            Source = "https://www.myget.org/F/sqlstreamstore/api/v3/index.json"
+        });
+    }
+});
+
 Task("Default")
-    .IsDependentOn("RunTests")
-    .IsDependentOn("NuGetPack");
+    .IsDependentOn("Test")
+    .IsDependentOn("MyGetPush");
 
 RunTarget(target);
 
 Action RunTest(string testProject) => () => DotNetCoreTest(srcDir + Directory(testProject), new DotNetCoreTestSettings {
     NoBuild = true,
-    NoRestore = true
+    NoRestore = true,
+    Configuration = configuration
 });
