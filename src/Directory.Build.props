@@ -3,8 +3,8 @@
   <PropertyGroup>
     <VersionPrefix>1.0.0-rc2</VersionPrefix>
     <Authors>João P. Bragança</Authors>
-    <PackageProjectUrl>https://github.com/damianh/SqlStreamStore.HAL</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/damianh/SqlStreamStore.HAL/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore.HAL</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore.HAL/blob/master/LICENSE</PackageLicenseUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
   </PropertyGroup>
