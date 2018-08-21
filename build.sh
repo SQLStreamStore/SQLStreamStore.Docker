@@ -21,7 +21,7 @@ fi
 ###########################################################################
 # Install .NET Core CLI
 ###########################################################################
-curl -sSL https://dot.net/dotnet-install.sh | bash /dev/stdin --channel current --version 2.1.301 --install-dir $DOTNET_INSTALL_PATH
+curl -sSL https://dot.net/dotnet-install.sh | bash /dev/stdin --channel current --version 2.1.400 --install-dir $DOTNET_INSTALL_PATH
  
 ###########################################################################
 # INSTALL CAKE
