@@ -1,13 +1,12 @@
 #addin "nuget:?package=Cake.FileHelpers&version=2.0.0"
+#addin "nuget:?package=Cake.Incubator&version=3.0.0"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
 var srcDir          = Directory("./src");
 var solution        = srcDir + File("SqlStreamStore.HAL.sln");
-var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER"))
-                        ? "0"
-                        : EnvironmentVariable("BUILD_NUMBER");
+var buildNumber     = EnvironmentVariable("TRAVIS_BUILD_NUMBER", 0);
 var mygetApiKey     = EnvironmentVariable("MYGET_API_KEY");
 
 Task("Clean")
