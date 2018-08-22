@@ -2,14 +2,16 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE;LIBLOG_PROVIDERS_ONLY</DefineConstants>
+    <Description>HTTP Server for SQL Stream Store</Description>
+    <AssemblyTitle>Stream Store - HAL Server</AssemblyTitle>    
     <DebugSymbols>true</DebugSymbols>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Halcyon" Version="2.5.1" />
-    <PackageReference Include="LibLog" Version="5.0.0" PrivateAssets="All" />
+    <PackageReference Include="LibLog" Version="5.0.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="SqlStreamStore" Version="1.1.2" />
   </ItemGroup>
   <ItemGroup>
