@@ -14,6 +14,21 @@
 
     public static class SqlStreamStoreHalMiddleware
     {
+        private static MidFunc CaseSensitiveQueryStrings => (context, next) =>
+        {
+            if(context.Request.QueryString != QueryString.Empty)
+            {
+                var queryString = context.Request.QueryString;
+                context.Request.Query = new CaseSensitiveQueryCollection(queryString);
+                // Setting context.Request.Query mutates context.Request.QueryString.
+                // This has the unfortunate side effect of turning ?a=1&b into ?a=1&b=.
+                // so, replace with original context.Request.QueryString and call it a day.
+                context.Request.QueryString = queryString;
+            }
+
+            return next();
+        };
+
         private static MidFunc MethodsNotAllowed(params string[] methods) => (context, next) =>
         {
             if(!methods.Contains(context.Request.Method))
@@ -68,6 +83,7 @@
 
             return builder
                 .Use(ExceptionHandlingMiddleware.HandleExceptions)
+                .Use(CaseSensitiveQueryStrings)
                 .Use(AcceptHalJson)
                 .Use(Index)
                 .Map("/stream", UseAllStream(streamStore))
