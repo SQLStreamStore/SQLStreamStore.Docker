@@ -14,23 +14,36 @@ namespace SqlStreamStore.HAL.Resources
         {
             StreamId = request.Path.Value.Remove(0, 1);
 
-            EmbedPayload = request.Query.TryGetValue("e", out _);
+            EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out _);
 
-            ReadDirection = request.Query["d"] == "f"
+            ReadDirection = request.Query.TryGetValueCaseInsensitive('d', out var readDirection)
+                            && readDirection == "f" || readDirection == "F"
                 ? Constants.ReadDirection.Forwards
                 : Constants.ReadDirection.Backwards;
 
-            if(!int.TryParse(request.Query["p"], out _fromVersionInclusive))
-            {
-                _fromVersionInclusive = ReadDirection == Constants.ReadDirection.Forwards
+            _fromVersionInclusive = request.Query.TryGetValueCaseInsensitive('p', out var position)
+                ? (int.TryParse(position, out _fromVersionInclusive)
+                    ? (ReadDirection == Constants.ReadDirection.Forwards
+                        ? (_fromVersionInclusive < StreamVersion.Start
+                            ? StreamVersion.Start
+                            : _fromVersionInclusive)
+                        : (_fromVersionInclusive < StreamVersion.End
+                            ? StreamVersion.End
+                            : _fromVersionInclusive))
+                    : (ReadDirection == Constants.ReadDirection.Forwards
+                        ? StreamVersion.Start
+                        : StreamVersion.End))
+                : (ReadDirection == Constants.ReadDirection.Forwards
                     ? StreamVersion.Start
-                    : StreamVersion.End;
-            }
+                    : StreamVersion.End);
 
-            if(!int.TryParse(request.Query["m"], out _maxCount))
-            {
-                _maxCount = Constants.MaxCount;
-            }
+            _maxCount = request.Query.TryGetValueCaseInsensitive('m', out var maxCount)
+                ? (int.TryParse(maxCount, out _maxCount)
+                    ? (_maxCount <= 0 
+                        ? Constants.MaxCount 
+                        : _maxCount)
+                    : Constants.MaxCount)
+                : Constants.MaxCount;
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
                 ? LinkFormatter.FormatForwardLink(StreamId, MaxCount, FromVersionInclusive, EmbedPayload)

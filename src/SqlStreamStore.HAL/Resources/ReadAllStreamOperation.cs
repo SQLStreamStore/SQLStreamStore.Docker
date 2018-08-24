@@ -12,21 +12,32 @@ namespace SqlStreamStore.HAL.Resources
 
         public ReadAllStreamOperation(HttpRequest request)
         {
-            EmbedPayload = request.Query.TryGetValue("e", out _);
+            EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out _);
 
-            ReadDirection = request.Query["d"] == "f"
+            ReadDirection = request.Query.TryGetValueCaseInsensitive('d', out var readDirection)
+                            && readDirection == "f" || readDirection == "F"
                 ? Constants.ReadDirection.Forwards
                 : Constants.ReadDirection.Backwards;
 
-            if(!long.TryParse(request.Query["p"], out _fromPositionInclusive))
-            {
-                _fromPositionInclusive = ReadDirection > 0 ? Position.Start : Position.End;
-            }
+            _fromPositionInclusive = request.Query.TryGetValueCaseInsensitive('p', out var position)
+                ? (long.TryParse(position, out _fromPositionInclusive)
+                    ? (_fromPositionInclusive < Position.End
+                        ? Position.End
+                        : _fromPositionInclusive)
+                    : (ReadDirection == Constants.ReadDirection.Forwards
+                        ? Position.Start
+                        : Position.End))
+                : (ReadDirection == Constants.ReadDirection.Forwards
+                    ? Position.Start
+                    : Position.End);
 
-            if(!int.TryParse(request.Query["m"], out _maxCount))
-            {
-                _maxCount = Constants.MaxCount;
-            }
+            _maxCount = request.Query.TryGetValueCaseInsensitive('m', out var maxCount)
+                ? (int.TryParse(maxCount, out _maxCount)
+                    ? (_maxCount <= 0
+                        ? Constants.MaxCount
+                        : _maxCount)
+                    : Constants.MaxCount)
+                : Constants.MaxCount;
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
                 ? LinkFormatter.FormatForwardLink(
