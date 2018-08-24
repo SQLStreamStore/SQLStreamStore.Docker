@@ -4,7 +4,7 @@ Fully RESTful HTTP Server for [SQL Stream Store](https://github.com/SQLStreamSto
 
 # Clients
 
-- Official dotnet client (currently WIP, see SQLStreamStore/SQLStreamStore#104 for status)
+- [Official dotnet client](https://github.com/SQLStreamStore/SQLStreamStore)
 - [Javascript ops user interface](https://github.com/SQLStreamStore/sql-stream-store-browser)
 
 # Help & Support
