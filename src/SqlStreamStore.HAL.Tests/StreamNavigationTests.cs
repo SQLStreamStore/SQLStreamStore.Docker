@@ -10,8 +10,8 @@
 
     public class StreamNavigationTests : IDisposable
     {
-        private const string FirstLinkQuery = "d=f&m=20&p=0";
-        private const string LastLinkQuery = "d=b&m=20&p=-1";
+        private const string FirstLinkQuery = "d=f&m=20&p=0&e=0";
+        private const string LastLinkQuery = "d=b&m=20&p=-1&e=0";
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
@@ -81,7 +81,7 @@
 
                     resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
 
-                    resource.ShouldLink(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9");
+                    resource.ShouldLink(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9&e=0");
 
                     resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 
@@ -136,7 +136,7 @@
 
                 resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
 
-                resource.ShouldLink(Constants.Relations.Next, $"{stream}?d=f&m=20&p=20");
+                resource.ShouldLink(Constants.Relations.Next, $"{stream}?d=f&m=20&p=20&e=0");
 
                 resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
 

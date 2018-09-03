@@ -60,6 +60,7 @@
                     .AddLinks(Links.Self(operation))
                     .AddLinks(Links.Navigation(page, operation))
                     .AddLinks(Links.Feed(operation))
+                    .AddLinks(Links.Find())
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         streamMessages.Zip(
@@ -93,6 +94,8 @@
 
         private static class Links
         {
+            public static Link Find() => SqlStreamStore.HAL.Links.Find("../streams/{streamId}");
+
             public static Link Self(ReadAllStreamOperation operation)
                 => new Link(Constants.Relations.Self, operation.Self);
 

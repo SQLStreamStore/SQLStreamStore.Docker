@@ -31,7 +31,7 @@
 
             var d = $"d={(forward ? 'f' : 'b')}";
             var m = "m=20";
-            var e = prefetch ? "e" : null;
+            var e = $"e={(prefetch ? '1' : '0')}";
             var p = "p=0";
 
             var parameters = new[]

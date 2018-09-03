@@ -57,21 +57,6 @@
                     406));
         };
 
-        private static MidFunc Index => (context, next) =>
-        {
-            if((context.Request.Path.Value ?? "/") != "/")
-            {
-                return next();
-            }
-
-            var response = new Response(new HALResponse(null)
-                .AddLinks(new Link(Constants.Relations.Feed, "stream"))
-                .AddLinks(new Link(Constants.Relations.Self, string.Empty))
-                .AddLinks(new Link(Constants.Relations.Index, string.Empty)));
-
-            return context.WriteHalResponse(response);
-        };
-
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
             IStreamStore streamStore)
@@ -85,7 +70,7 @@
                 .Use(ExceptionHandlingMiddleware.HandleExceptions)
                 .Use(CaseSensitiveQueryStrings)
                 .Use(AcceptHalJson)
-                .Use(Index)
+                .UseIndex()
                 .Map("/stream", UseAllStream(streamStore))
                 .Map("/streams", UseStream(streamStore));
         }

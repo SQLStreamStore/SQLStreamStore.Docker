@@ -38,7 +38,8 @@ namespace SqlStreamStore.HAL.Resources
             var response = new Response(
                 new HALResponse(result)
                     .AddLinks(Links.Self(operation))
-                    .AddLinks(Links.Feed(operation)),
+                    .AddLinks(Links.Feed(operation))
+                    .AddLinks(Links.Find()),
                 result.CurrentVersion == 0
                     ? 201
                     : 200);
@@ -85,6 +86,7 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Feed(operation))
                     .AddLinks(Links.Metadata(operation))
                     .AddLinks(Links.Index())
+                    .AddLinks(Links.Find())
                     .AddEmbeddedResource(
                         Constants.Relations.AppendToStream,
                         Schemas.AppendToStream)
@@ -121,6 +123,8 @@ namespace SqlStreamStore.HAL.Resources
 
         private static class Links
         {
+            public static Link Find() => SqlStreamStore.HAL.Links.Find("../streams/{streamId}");
+            
             public static Link First(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.First,

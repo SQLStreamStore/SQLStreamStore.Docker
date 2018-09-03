@@ -74,6 +74,7 @@ namespace SqlStreamStore.HAL.Resources
 
         private static class Links
         {
+            public static Link Find() => SqlStreamStore.HAL.Links.Find("../{streamId}");
             public static Link Self() => new Link(Constants.Relations.Self, Constants.Streams.Metadata);
             public static Link Metadata() => new Link(Constants.Relations.Metadata, Constants.Streams.Metadata);
             public static Link Feed(GetStreamMetadataOperation operation) => Link(operation.StreamId);

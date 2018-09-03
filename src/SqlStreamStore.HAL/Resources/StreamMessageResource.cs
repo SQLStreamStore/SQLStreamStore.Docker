@@ -43,7 +43,8 @@ namespace SqlStreamStore.HAL.Resources
                         })
                         .AddLinks(Links.Self(operation))
                         .AddLinks(Links.Navigation(operation))
-                        .AddLinks(Links.Message(operation)),
+                        .AddLinks(Links.Message(operation))
+                        .AddLinks(Links.Find()),
                     404);
             }
 
@@ -77,7 +78,8 @@ namespace SqlStreamStore.HAL.Resources
                         Schemas.DeleteStreamMessage)
                     .AddLinks(Links.Self(operation))
                     .AddLinks(Links.Navigation(operation, message))
-                    .AddLinks(Links.Message(operation)));
+                    .AddLinks(Links.Message(operation))
+                    .AddLinks(Links.Find()));
         }
 
         public async Task<Response> DeleteMessage(
@@ -92,6 +94,8 @@ namespace SqlStreamStore.HAL.Resources
 
         private static class Links
         {
+            public static Link Find() => SqlStreamStore.HAL.Links.Find("../../streams/{streamId}");
+
             public static Link Self(ReadStreamMessageByStreamVersionOperation operation) => new Link(
                 Constants.Relations.Self,
                 $"{operation.StreamVersion}");
