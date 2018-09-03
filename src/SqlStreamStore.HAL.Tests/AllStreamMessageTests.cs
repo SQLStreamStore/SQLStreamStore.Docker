@@ -33,12 +33,14 @@ namespace SqlStreamStore.HAL.Tests
                 {
                     Constants.Relations.Self, 
                     Constants.Relations.Message, 
-                    Constants.Relations.Feed
+                    Constants.Relations.Feed,
+                    Constants.Relations.Find
                 });
 
                 resource.ShouldLink(Constants.Relations.Self, "0");
                 resource.ShouldLink(Constants.Relations.Message, "0");
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfAll);
+                resource.ShouldLink(Constants.Relations.Find, "../streams/{streamId}", "Find a Stream");
             }
         }
 
@@ -51,9 +53,14 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[] { Constants.Relations.Feed });
+                resource.Links.Keys.ShouldBe(new[]
+                {
+                    Constants.Relations.Feed,
+                    Constants.Relations.Find
+                });
 
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfAll);
+                resource.ShouldLink(Constants.Relations.Find, "../streams/{streamId}", "Find a Stream");
             }
         }
     }

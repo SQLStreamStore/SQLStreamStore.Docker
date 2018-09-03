@@ -36,7 +36,8 @@
                     Constants.Relations.Next,
                     Constants.Relations.Last,
                     Constants.Relations.Feed,
-                    Constants.Relations.Message
+                    Constants.Relations.Message,
+                    Constants.Relations.Find
                 });
 
                 resource.ShouldLink(Constants.Relations.Self, "0");
@@ -45,6 +46,7 @@
                 resource.ShouldLink(Constants.Relations.Last, "-1");
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
                 resource.ShouldLink(Constants.Relations.Message, "0");
+                resource.ShouldLink(Constants.Relations.Find, "../../streams/{streamId}", "Find a Stream");
             }
         }
 
@@ -63,7 +65,8 @@
                     Constants.Relations.First,
                     Constants.Relations.Last,
                     Constants.Relations.Feed,
-                    Constants.Relations.Message
+                    Constants.Relations.Message,
+                    Constants.Relations.Find
                 });
 
                 resource.ShouldLink(Constants.Relations.Self, "0");
@@ -71,6 +74,7 @@
                 resource.ShouldLink(Constants.Relations.Last, "-1");
                 resource.ShouldLink(Constants.Relations.Feed, HeadOfStream);
                 resource.ShouldLink(Constants.Relations.Message, "0");
+                resource.ShouldLink(Constants.Relations.Find, "../../streams/{streamId}", "Find a Stream");
             }
         }
 

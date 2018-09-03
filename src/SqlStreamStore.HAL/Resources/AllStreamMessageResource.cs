@@ -35,7 +35,8 @@
             {
                 return new Response(
                     new HALResponse(new HALModelConfig())
-                        .AddLinks(Links.Feed()),
+                        .AddLinks(Links.Feed())
+                        .AddLinks(Links.Find()),
                     404);
             }
 
@@ -55,11 +56,14 @@
                 }).AddLinks(
                     Links.Self(message),
                     Links.Message(message),
-                    Links.Feed()));
+                    Links.Feed(),
+                    Links.Find()));
         }
 
         private static class Links
         {
+            public static Link Find() => SqlStreamStore.HAL.Links.Find("../streams/{streamId}");
+
             public static Link Last()
                 => new Link(
                     Constants.Relations.Last,
