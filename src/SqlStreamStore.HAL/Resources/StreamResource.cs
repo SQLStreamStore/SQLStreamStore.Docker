@@ -196,9 +196,7 @@ namespace SqlStreamStore.HAL.Resources
                     $"{operation.StreamId}/metadata");
 
             public static Link Index()
-                => new Link(
-                    Constants.Relations.Index,
-                    "..");
+                => SqlStreamStore.HAL.Links.Index("..");
 
             public static IEnumerable<Link> Navigation(ReadStreamPage page, ReadStreamOperation operation)
             {
