@@ -13,8 +13,6 @@
     {
         private static readonly Random s_random = new Random();
         private readonly CancellationTokenSource _cts;
-        private readonly InMemoryStreamStore _streamStore;
-        private readonly IWebHost _host;
         private readonly IConfigurationRoot _configuration;
 
         private bool Interactive => _configuration.GetValue<bool>("interactive");
@@ -36,12 +34,6 @@
         private Program(string[] args)
         {
             _cts = new CancellationTokenSource();
-            _streamStore = new InMemoryStreamStore();
-            _host = new WebHostBuilder()
-                .UseKestrel()
-                .UseStartup(new DevServerStartup(_streamStore))
-                .UseSerilog()
-                .Build();
             _configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
@@ -52,17 +44,25 @@
         {
             try
             {
-                var serverTask = _host.RunAsync(_cts.Token);
-
-                if(Interactive)
+                using(var streamStore = await SqlStreamStoreFactory.Create())
+                using(var host = new WebHostBuilder()
+                    .UseKestrel()
+                    .UseStartup(new DevServerStartup(streamStore))
+                    .UseSerilog()
+                    .Build())
                 {
-                    Log.Warning("Running interactively.");
-                    DisplayMenu(_streamStore);
+                    var serverTask = host.RunAsync(_cts.Token);
+
+                    if(Interactive)
+                    {
+                        Log.Warning("Running interactively.");
+                        DisplayMenu(streamStore);
+                    }
+
+                    await serverTask;
+
+                    return 0;
                 }
-
-                await serverTask;
-
-                return 0;
             }
             catch(Exception ex)
             {
@@ -79,7 +79,6 @@
         {
             while(true)
             {
-                Console.WriteLine("Using stream store: {0}", streamStore.GetType().Name);
                 Console.WriteLine("Press w to write 10 messages each to 100 streams");
                 Console.WriteLine("Press t to write 100 messages each to 10 streams");
                 Console.WriteLine("Press ESC to exit");
@@ -135,8 +134,6 @@
 
         public void Dispose()
         {
-            _host?.Dispose();
-            _streamStore?.Dispose();
             _cts?.Dispose();
         }
     }
