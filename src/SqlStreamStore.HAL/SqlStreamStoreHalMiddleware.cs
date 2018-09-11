@@ -76,7 +76,7 @@
                 throw new ArgumentNullException(nameof(streamStore));
 
             return builder
-                .Use(ExceptionHandlingMiddleware.HandleExceptions)
+                .UseExceptionHandling()
                 .Use(CaseSensitiveQueryStrings)
                 .Use(AcceptHalJson)
                 .Use(HeadRequests)
