@@ -47,16 +47,14 @@
 
         private static MidFunc VaryAccept => (context, next) =>
         {
-            Task Vary(object state)
+            Task Vary()
             {
-                var response = (HttpResponse) state;
-
-                response.Headers.AppendCommaSeparatedValues("Vary", "Accept");
+                context.Response.Headers.AppendCommaSeparatedValues("Vary", "Accept");
 
                 return Task.CompletedTask;
             }
 
-            context.Response.OnStarting(Vary, context.Response);
+            context.Response.OnStarting(Vary);
 
             return next();
         };
