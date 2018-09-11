@@ -43,10 +43,7 @@
 
                 var response = await streamsMetadata.Get(options, context.RequestAborted);
 
-                using(new OptionalHeadRequestWrapper(context))
-                {
-                    await context.WriteHalResponse(response);
-                }
+                await context.WriteHalResponse(response);
             };
     }
 }

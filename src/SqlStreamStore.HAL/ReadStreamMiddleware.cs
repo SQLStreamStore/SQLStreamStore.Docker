@@ -33,10 +33,7 @@ namespace SqlStreamStore.HAL
 
             var response = await streams.Get(options, context.RequestAborted);
 
-            using(new OptionalHeadRequestWrapper(context))
-            {
-                await context.WriteHalResponse(response);
-            }
+            await context.WriteHalResponse(response);
         };
 
         private static MidFunc GetStreamMessage(StreamMessageResource streamMessages) => async (context, next) =>
@@ -45,10 +42,7 @@ namespace SqlStreamStore.HAL
 
             var response = await streamMessages.Get(options, context.RequestAborted);
 
-            using(new OptionalHeadRequestWrapper(context))
-            {
-                await context.WriteHalResponse(response);
-            }
+            await context.WriteHalResponse(response);
         };
     }
 }
