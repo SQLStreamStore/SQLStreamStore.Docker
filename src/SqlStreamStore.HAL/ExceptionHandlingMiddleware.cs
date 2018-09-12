@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using Halcyon.HAL;
+    using Microsoft.AspNetCore.Builder;
     using Newtonsoft.Json;
     using SqlStreamStore.Streams;
     using MidFunc = System.Func<
@@ -45,7 +46,10 @@
                 [typeof(Exception)] = s_defaultExceptionHandler
             };
 
-        public static MidFunc HandleExceptions => async (context, next) =>
+        public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder builder)
+            => builder.Use(HandleExceptions);
+
+        private static MidFunc HandleExceptions => async (context, next) =>
         {
             try
             {

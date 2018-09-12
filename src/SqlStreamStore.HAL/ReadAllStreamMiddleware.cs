@@ -34,22 +34,16 @@ namespace SqlStreamStore.HAL
 
             var response = await allStream.Get(options, context.RequestAborted);
 
-            using(new OptionalHeadRequestWrapper(context))
-            {
-                await context.WriteHalResponse(response);
-            }
+            await context.WriteHalResponse(response);
         };
 
-        private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => async (context, next) => 
+        private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => async (context, next) =>
         {
             var response = await allStreamMessages.Get(
                 new ReadAllStreamMessageOperation(context.Request),
                 context.RequestAborted);
 
-            using(new OptionalHeadRequestWrapper(context))
-            {
-                await context.WriteHalResponse(response);
-            }
+            await context.WriteHalResponse(response);
         };
     }
 }

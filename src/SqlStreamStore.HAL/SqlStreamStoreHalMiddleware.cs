@@ -1,7 +1,9 @@
 ﻿namespace SqlStreamStore.HAL
 {
     using System;
+    using System.IO;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Builder;
@@ -57,6 +59,13 @@
                     406));
         };
 
+        private static MidFunc HeadRequests => async (context, next) =>
+        {
+            using(new OptionalHeadRequestWrapper(context))
+            {
+                await next();
+            }
+        };
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
             IStreamStore streamStore)
@@ -67,9 +76,10 @@
                 throw new ArgumentNullException(nameof(streamStore));
 
             return builder
-                .Use(ExceptionHandlingMiddleware.HandleExceptions)
+                .UseExceptionHandling()
                 .Use(CaseSensitiveQueryStrings)
                 .Use(AcceptHalJson)
+                .Use(HeadRequests)
                 .UseIndex()
                 .Map("/stream", UseAllStream(streamStore))
                 .Map("/streams", UseStream(streamStore));
@@ -91,5 +101,56 @@
                 .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH"));
 
         private static bool IsOptions(HttpContext context) => context.IsOptions();
+
+        private class OptionalHeadRequestWrapper : IDisposable
+        {
+            private readonly HttpContext _context;
+            private readonly Stream _originalBody;
+
+            public OptionalHeadRequestWrapper(HttpContext context)
+            {
+                _context = context;
+                _originalBody = _context.Response.Body;
+                if(context.Request.Method == "HEAD")
+                {
+                    context.Response.Body = new HeadRequestStream();
+                }
+            }
+
+            public void Dispose()
+            {
+                _context.Response.Body = _originalBody;
+            }
+
+            private class HeadRequestStream : Stream
+            {
+                private long _length;
+
+                public override void Flush() => FlushAsync(CancellationToken.None).Wait();
+                public override int Read(byte[] buffer, int offset, int count) => throw new NotImplementedException();
+                public override long Seek(long offset, SeekOrigin origin) => throw new NotImplementedException();
+                public override void SetLength(long value) => throw new NotImplementedException();
+                public override void Write(byte[] buffer, int offset, int count) => throw new NotImplementedException();
+
+                public override Task WriteAsync(
+                    byte[] buffer,
+                    int offset,
+                    int count,
+                    CancellationToken cancellationToken)
+                {
+                    _length += count;
+                    Position += count;
+                    return Task.CompletedTask;
+                }
+
+                public override Task FlushAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+                public override bool CanRead { get; } = false;
+                public override bool CanSeek { get; } = false;
+                public override bool CanWrite { get; } = true;
+                public override long Length => _length;
+                public override long Position { get; set; }
+            }
+        }
     }
 }

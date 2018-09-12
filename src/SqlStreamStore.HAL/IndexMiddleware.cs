@@ -17,7 +17,7 @@ namespace SqlStreamStore.HAL
         private static bool IsIndex(HttpContext context)
             => (context.Request.Path.Value ?? "/") == "/";
 
-        private static MidFunc Index => async (context, next) =>
+        private static MidFunc Index => (context, next) =>
         {
             var response = new Response(new HALResponse(null)
                 .AddLinks(new Link(Constants.Relations.Feed, "stream"))
@@ -25,10 +25,7 @@ namespace SqlStreamStore.HAL
                 .AddLinks(Links.Index(string.Empty))
                 .AddLinks(Links.Find("streams/{streamId}")));
 
-            using(new OptionalHeadRequestWrapper(context))
-            {
-                await context.WriteHalResponse(response);
-            }
+            return context.WriteHalResponse(response);
         };
     }
 }
