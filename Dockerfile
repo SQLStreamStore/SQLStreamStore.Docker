@@ -34,4 +34,4 @@ FROM microsoft/dotnet:2.1.4-runtime-deps-alpine3.7 AS runtime
 WORKDIR /app
 COPY --from=build /publish ./
 
-ENTRYPOINT ["dotnet", "SqlStreamStore.HAL.DevServer.dll"]
+ENTRYPOINT ["/app/SqlStreamStore.HAL.DevServer"]
