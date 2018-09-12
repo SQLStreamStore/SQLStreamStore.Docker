@@ -79,7 +79,10 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Self(operation))
                     .AddLinks(Links.Navigation(operation, message))
                     .AddLinks(Links.Message(operation))
-                    .AddLinks(Links.Find()));
+                    .AddLinks(Links.Find()))
+            {
+                Headers = { [Constants.Headers.ETag] = new[] { $@"""{message.StreamVersion};{message.Position}""" } }
+            };
         }
 
         public async Task<Response> DeleteMessage(

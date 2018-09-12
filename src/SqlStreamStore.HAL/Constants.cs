@@ -8,6 +8,7 @@ namespace SqlStreamStore.HAL
             public const string HeadPosition = "SSS-HeadPosition";
             public const string MessageId = "SSS-MessageId";
             public const string Location = "Location";
+            public const string ETag = "ETag";
 
             public static class ContentTypes
             {

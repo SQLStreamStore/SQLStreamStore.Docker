@@ -1,29 +1,9 @@
 ﻿namespace SqlStreamStore.HAL
 {
-    using System;
     using System.Collections;
     using System.Collections.Generic;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.Primitives;
-
-    internal class CaseSensitiveQueryFeature : IQueryFeature
-    {
-        private readonly IFeatureCollection _features;
-
-        public CaseSensitiveQueryFeature(IFeatureCollection features)
-        {
-            if(features == null)
-                throw new ArgumentNullException(nameof(features));
-            _features = features;
-        }
-
-        public IQueryCollection Query
-        {
-            get;
-            set;
-        }
-    }
 
     internal class CaseSensitiveQueryCollection : IQueryCollection
     {
