@@ -1,4 +1,6 @@
 FROM microsoft/dotnet:2.1.401-sdk-alpine3.7 AS build
+ARG TRAVIS_BUILD_NUMBER
+ARG MYGET_API_KEY
 WORKDIR /src
 
 COPY ./src/*.sln ./
@@ -21,7 +23,7 @@ COPY ./build .
 
 WORKDIR /
 
-RUN dotnet run --project build/build.csproj
+RUN TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER MYGET_API_KEY=$MYGET_API_KEY dotnet run --project build/build.csproj
 
 WORKDIR /src/SqlStreamStore.HAL.DevServer
 
