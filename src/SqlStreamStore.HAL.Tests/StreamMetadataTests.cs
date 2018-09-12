@@ -30,6 +30,7 @@
                     new HttpRequestMessage(HttpMethod.Get, $"/streams/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(@"""-1"""));
 
                 var resource = await response.AsHal();
 
@@ -72,6 +73,7 @@
                     new HttpRequestMessage(HttpMethod.Get, $"/streams/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(@"""0"""));
 
                 var resource = await response.AsHal();
 

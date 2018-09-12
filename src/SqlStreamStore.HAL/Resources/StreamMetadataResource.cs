@@ -46,7 +46,10 @@ namespace SqlStreamStore.HAL.Resources
                     .AddEmbeddedResource(
                         Constants.Relations.Metadata,
                         Schemas.SetStreamMetadata),
-                result.MetadataStreamVersion >= 0 ? 200 : 404);
+                result.MetadataStreamVersion >= 0 ? 200 : 404)
+            {
+                Headers = { [Constants.Headers.ETag] = new[] { $@"""{result.MetadataStreamVersion}""" } }
+            };
 
             return response;
         }
