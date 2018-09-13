@@ -83,10 +83,7 @@ namespace SqlStreamStore.HAL.Resources
             {
                 Headers =
                 {
-                    [Constants.Headers.ETag] = new string[]
-                    {
-                        ETag.FromStreamVersion(message.StreamVersion)
-                    }
+                    [Constants.Headers.ETag] = ETag.FromStreamVersion(message.StreamVersion)
                 }
             };
         }

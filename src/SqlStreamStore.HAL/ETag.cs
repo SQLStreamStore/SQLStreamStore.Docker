@@ -8,6 +8,7 @@ namespace SqlStreamStore.HAL
         
         public static ETag FromPosition(long position) => new ETag($@"""{position}""");
         public static ETag FromStreamVersion(int streamVersion) => new ETag($@"""{streamVersion}""");
+        public static readonly ETag None = default;
         
         private ETag(string value)
         {
@@ -29,5 +30,6 @@ namespace SqlStreamStore.HAL
         public static bool operator ==(ETag left, ETag right) => left.Equals(right);
         public static bool operator !=(ETag left, ETag right) => !left.Equals(right);
         public static implicit operator string(ETag etag) => etag._value;
+        public static implicit operator string[](ETag etag) => new[] { etag._value };
     }
 }

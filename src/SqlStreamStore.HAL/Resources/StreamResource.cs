@@ -72,7 +72,7 @@ namespace SqlStreamStore.HAL.Resources
                         ? message.GetJsonData(cancellationToken)
                         : SkippedPayload.Instance));
 
-            return new Response(
+            var response = new Response(
                 new HALResponse(new
                     {
                         page.LastStreamVersion,
@@ -112,6 +112,13 @@ namespace SqlStreamStore.HAL.Resources
                                     Links.Message.Self(message),
                                     Links.Message.Feed(message)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
+
+            if (page.TryGetETag(out var eTag))
+            {
+                response.Headers[Constants.Headers.ETag] = eTag;
+            }
+
+            return response;
         }
 
         public async Task<Response> Delete(DeleteStreamOperation operation, CancellationToken cancellationToken)
@@ -124,7 +131,7 @@ namespace SqlStreamStore.HAL.Resources
         private static class Links
         {
             public static Link Find() => SqlStreamStore.HAL.Links.Find("../streams/{streamId}");
-            
+
             public static Link First(ReadStreamPage page, ReadStreamOperation operation)
                 => new Link(
                     Constants.Relations.First,

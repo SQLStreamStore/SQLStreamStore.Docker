@@ -23,27 +23,27 @@ namespace SqlStreamStore.HAL.Resources
                 : Constants.ReadDirection.Backwards;
 
             _fromVersionInclusive = request.Query.TryGetValueCaseInsensitive('p', out var position)
-                ? (int.TryParse(position, out _fromVersionInclusive)
-                    ? (ReadDirection == Constants.ReadDirection.Forwards
-                        ? (_fromVersionInclusive < StreamVersion.Start
+                ? int.TryParse(position, out _fromVersionInclusive)
+                    ? ReadDirection == Constants.ReadDirection.Forwards
+                        ? _fromVersionInclusive < StreamVersion.Start
                             ? StreamVersion.Start
-                            : _fromVersionInclusive)
-                        : (_fromVersionInclusive < StreamVersion.End
+                            : _fromVersionInclusive
+                        : _fromVersionInclusive < StreamVersion.End
                             ? StreamVersion.End
-                            : _fromVersionInclusive))
-                    : (ReadDirection == Constants.ReadDirection.Forwards
+                            : _fromVersionInclusive
+                    : ReadDirection == Constants.ReadDirection.Forwards
                         ? StreamVersion.Start
-                        : StreamVersion.End))
-                : (ReadDirection == Constants.ReadDirection.Forwards
+                        : StreamVersion.End
+                : ReadDirection == Constants.ReadDirection.Forwards
                     ? StreamVersion.Start
-                    : StreamVersion.End);
+                    : StreamVersion.End;
 
             _maxCount = request.Query.TryGetValueCaseInsensitive('m', out var maxCount)
-                ? (int.TryParse(maxCount, out _maxCount)
-                    ? (_maxCount <= 0 
-                        ? Constants.MaxCount 
-                        : _maxCount)
-                    : Constants.MaxCount)
+                ? int.TryParse(maxCount, out _maxCount)
+                    ? _maxCount <= 0
+                        ? Constants.MaxCount
+                        : _maxCount
+                    : Constants.MaxCount
                 : Constants.MaxCount;
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
