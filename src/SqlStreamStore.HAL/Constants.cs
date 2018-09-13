@@ -9,6 +9,7 @@ namespace SqlStreamStore.HAL
             public const string MessageId = "SSS-MessageId";
             public const string Location = "Location";
             public const string ETag = "ETag";
+            public const string IfNoneMatch = "If-None-Match";
 
             public static class ContentTypes
             {

@@ -61,6 +61,8 @@ namespace SqlStreamStore.HAL.Resources
 
             var payload = await message.GetJsonData(cancellationToken);
 
+            var eTag = ETag.FromStreamVersion(message.StreamVersion);
+
             return new Response(
                 new HALResponse(new
                     {
@@ -83,7 +85,7 @@ namespace SqlStreamStore.HAL.Resources
             {
                 Headers =
                 {
-                    [Constants.Headers.ETag] = ETag.FromStreamVersion(message.StreamVersion)
+                    [Constants.Headers.ETag] = eTag
                 }
             };
         }

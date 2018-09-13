@@ -73,7 +73,7 @@
 
                 var response = (exceptionHandler ?? s_defaultExceptionHandler)(ex);
 
-                await context.WriteHalResponse(response);
+                await context.WriteResponse(response);
             }
         };
     }

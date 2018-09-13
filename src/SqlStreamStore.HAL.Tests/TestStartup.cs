@@ -17,6 +17,5 @@
         public IServiceProvider ConfigureServices(IServiceCollection services) => services.BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app.UseSqlStreamStoreHal(_streamStore);
-
     }
 }

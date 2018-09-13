@@ -50,7 +50,7 @@
             return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
                                         || header == Constants.Headers.ContentTypes.Any)
                 ? next()
-                : context.WriteHalResponse(new Response(new HALResponse(new
+                : context.WriteResponse(new Response(new HALResponse(new
                     {
                         type = "Not Acceptable",
                         title = "Not Acceptable",
@@ -66,6 +66,7 @@
                 await next();
             }
         };
+
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
             IStreamStore streamStore)

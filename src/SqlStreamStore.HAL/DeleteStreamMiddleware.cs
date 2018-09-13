@@ -33,7 +33,7 @@ namespace SqlStreamStore.HAL
 
             var response = await stream.Delete(options, context.RequestAborted);
 
-            await context.WriteHalResponse(response);
+            await context.WriteResponse(response);
         };
 
         private static MidFunc DeleteStreamMessage(StreamMessageResource streamMessages) => async (context, next) =>
@@ -42,7 +42,7 @@ namespace SqlStreamStore.HAL
 
             var response = await streamMessages.DeleteMessage(options, context.RequestAborted);
 
-            await context.WriteHalResponse(response);
+            await context.WriteResponse(response);
         };
     }
 }

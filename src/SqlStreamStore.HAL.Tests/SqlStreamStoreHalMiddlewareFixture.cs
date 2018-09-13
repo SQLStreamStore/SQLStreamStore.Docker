@@ -17,7 +17,7 @@
 
         private readonly TestServer _server;
 
-        public SqlStreamStoreHalMiddlewareFixture()
+        public SqlStreamStoreHalMiddlewareFixture(bool followRedirects = false)
         {
             StreamStore = new InMemoryStreamStore();
 
@@ -26,7 +26,16 @@
                     .ConfigureServices(services => services.AddSingleton<IStartup>(new TestStartup(StreamStore)))
                     .UseSetting(WebHostDefaults.ApplicationKey, "WHY"));
 
-            HttpClient = _server.CreateClient();
+            var handler = _server.CreateHandler();
+            if(followRedirects)
+            {
+                handler = new RedirectingHandler
+                {
+                    InnerHandler = handler
+                };
+            }
+
+            HttpClient = new HttpClient(handler) { BaseAddress = new UriBuilder().Uri };
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/hal+json"));
         }
 

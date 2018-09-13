@@ -34,7 +34,7 @@ namespace SqlStreamStore.HAL
 
             var response = await allStream.Get(options, context.RequestAborted);
 
-            await context.WriteHalResponse(response);
+            await context.WriteResponse(response);
         };
 
         private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => async (context, next) =>
@@ -43,7 +43,7 @@ namespace SqlStreamStore.HAL
                 new ReadAllStreamMessageOperation(context.Request),
                 context.RequestAborted);
 
-            await context.WriteHalResponse(response);
+            await context.WriteResponse(response);
         };
     }
 }

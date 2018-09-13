@@ -33,7 +33,7 @@
 
                 var response = await streamsMetadata.Post(options, context.RequestAborted);
 
-                await context.WriteHalResponse(response);
+                await context.WriteResponse(response);
             };
 
         private static MidFunc GetStreamMetadata(StreamMetadataResource streamsMetadata)
@@ -43,7 +43,7 @@
 
                 var response = await streamsMetadata.Get(options, context.RequestAborted);
 
-                await context.WriteHalResponse(response);
+                await context.WriteResponse(response);
             };
     }
 }
