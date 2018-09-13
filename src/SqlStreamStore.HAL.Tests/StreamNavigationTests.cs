@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
@@ -37,6 +38,10 @@
             using(var response = await _fixture.HttpClient.GetAsync($"{baseAddress}{firstResponse.Headers.Location}"))
             {
                 response.StatusCode.ShouldBe(statusCode);
+                var eTag = IsAllStream(stream)
+                    ? ETag.FromPosition(Position.End)
+                    : ETag.FromStreamVersion(StreamVersion.End);
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(eTag));
 
                 var resource = await response.AsHal();
 
@@ -64,7 +69,7 @@
         [Theory, MemberData(nameof(GetPagingCases))]
         public async Task read_head_link_when_multiple_pages(string stream, string baseAddress)
         {
-            await _fixture.WriteNMessages("a-stream", 30);
+            var result = await _fixture.WriteNMessages("a-stream", 30);
 
             using(var firstResponse = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}"))
             {
@@ -74,6 +79,10 @@
                     await _fixture.HttpClient.GetAsync($"{baseAddress}{firstResponse.Headers.Location}"))
                 {
                     response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                    var eTag = IsAllStream(stream)
+                        ? ETag.FromPosition(result.CurrentPosition)
+                        : ETag.FromStreamVersion(result.CurrentVersion);
+                    response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(eTag));
 
                     var resource = await response.AsHal();
 
@@ -98,11 +107,15 @@
         [Theory, MemberData(nameof(GetPagingCases))]
         public async Task read_first_link(string stream, string baseAddress)
         {
-            await _fixture.WriteNMessages("a-stream", 10);
+            var result = await _fixture.WriteNMessages("a-stream", 10);
 
             using(var response = await _fixture.HttpClient.GetAsync($"{baseAddress}{stream}?{FirstLinkQuery}"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                var eTag = IsAllStream(stream)
+                    ? ETag.FromPosition(result.CurrentPosition)
+                    : ETag.FromStreamVersion(result.CurrentVersion);
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(eTag));
 
                 var resource = await response.AsHal();
 

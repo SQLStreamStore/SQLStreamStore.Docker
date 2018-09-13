@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
@@ -20,12 +21,12 @@
         [Fact]
         public async Task read_single_message_stream()
         {
-            // position of event in all stream would be helpful here
             var writeResult = await _fixture.WriteNMessages("a-stream", 1);
 
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue($@"""{writeResult.CurrentVersion}"""));
 
                 var resource = await response.AsHal();
 
@@ -56,6 +57,7 @@
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+                response.Headers.ETag.ShouldBeNull();
 
                 var resource = await response.AsHal();
 
@@ -91,6 +93,7 @@
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+                response.Headers.ETag.ShouldBeNull();
             }
         }
     }

@@ -14,6 +14,7 @@
     <DebugSymbols>true</DebugSymbols>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <NoWarn>1591</NoWarn>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />

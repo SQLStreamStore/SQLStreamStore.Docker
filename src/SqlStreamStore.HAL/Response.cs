@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore.HAL
 {
+    using System;
     using System.Collections.Generic;
     using Halcyon.HAL;
 
@@ -13,7 +14,7 @@
         {
             Hal = hal;
             StatusCode = statusCode;
-            Headers = new Dictionary<string, string[]>();
+            Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

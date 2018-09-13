@@ -27,7 +27,7 @@ namespace SqlStreamStore.HAL
 
             var response = await stream.Post(options, context.RequestAborted);
 
-            await context.WriteHalResponse(response);
+            await context.WriteResponse(response);
         };
     }
 }

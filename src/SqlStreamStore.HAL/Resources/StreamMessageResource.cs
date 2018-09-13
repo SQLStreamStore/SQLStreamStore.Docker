@@ -61,6 +61,8 @@ namespace SqlStreamStore.HAL.Resources
 
             var payload = await message.GetJsonData(cancellationToken);
 
+            var eTag = ETag.FromStreamVersion(message.StreamVersion);
+
             return new Response(
                 new HALResponse(new
                     {
@@ -79,7 +81,13 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Self(operation))
                     .AddLinks(Links.Navigation(operation, message))
                     .AddLinks(Links.Message(operation))
-                    .AddLinks(Links.Find()));
+                    .AddLinks(Links.Find()))
+            {
+                Headers =
+                {
+                    [Constants.Headers.ETag] = eTag
+                }
+            };
         }
 
         public async Task<Response> DeleteMessage(

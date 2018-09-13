@@ -15,8 +15,6 @@ namespace SqlStreamStore.HAL.Resources
         public string StreamId { get; }
 
         public Task<StreamMetadataResult> Invoke(IStreamStore streamStore, CancellationToken ct)
-        {
-            return streamStore.GetStreamMetadata(StreamId, ct);
-        }
+            => streamStore.GetStreamMetadata(StreamId, ct);
     }
 }

@@ -89,6 +89,11 @@
                 response.Headers[Constants.Headers.HeadPosition] = new[] { $"{headPosition}" };
             }
 
+            if(page.TryGetETag(operation.FromPositionInclusive, out var eTag))
+            {
+                response.Headers[Constants.Headers.ETag] = eTag;
+            }
+
             return response;
         }
 

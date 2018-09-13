@@ -25,7 +25,7 @@ namespace SqlStreamStore.HAL
                 .AddLinks(Links.Index(string.Empty))
                 .AddLinks(Links.Find("streams/{streamId}")));
 
-            return context.WriteHalResponse(response);
+            return context.WriteResponse(response);
         };
     }
 }
