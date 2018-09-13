@@ -26,7 +26,7 @@
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
-                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue($@"""{writeResult.CurrentVersion};{writeResult.CurrentPosition}"""));
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue($@"""{writeResult.CurrentVersion}"""));
 
                 var resource = await response.AsHal();
 

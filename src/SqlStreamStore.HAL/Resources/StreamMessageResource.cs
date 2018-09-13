@@ -81,7 +81,13 @@ namespace SqlStreamStore.HAL.Resources
                     .AddLinks(Links.Message(operation))
                     .AddLinks(Links.Find()))
             {
-                Headers = { [Constants.Headers.ETag] = new[] { $@"""{message.StreamVersion};{message.Position}""" } }
+                Headers =
+                {
+                    [Constants.Headers.ETag] = new string[]
+                    {
+                        ETag.FromStreamVersion(message.StreamVersion)
+                    }
+                }
             };
         }
 

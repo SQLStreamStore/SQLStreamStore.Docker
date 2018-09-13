@@ -48,7 +48,13 @@ namespace SqlStreamStore.HAL.Resources
                         Schemas.SetStreamMetadata),
                 result.MetadataStreamVersion >= 0 ? 200 : 404)
             {
-                Headers = { [Constants.Headers.ETag] = new[] { $@"""{result.MetadataStreamVersion}""" } }
+                Headers =
+                {
+                    [Constants.Headers.ETag] = new string[]
+                    {
+                        ETag.FromStreamVersion(result.MetadataStreamVersion)
+                    }
+                }
             };
 
             return response;
