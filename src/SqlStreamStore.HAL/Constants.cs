@@ -10,6 +10,7 @@ namespace SqlStreamStore.HAL
             public const string Location = "Location";
             public const string ETag = "ETag";
             public const string IfNoneMatch = "If-None-Match";
+            public const string CacheControl = "Cache-Control";
 
             public static class ContentTypes
             {

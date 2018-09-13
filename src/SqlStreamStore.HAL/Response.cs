@@ -14,10 +14,7 @@
         {
             Hal = hal;
             StatusCode = statusCode;
-            Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["Cache-Control"] = new[] { "max-age=0" }
-            };
+            Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
         }
     }
 }
