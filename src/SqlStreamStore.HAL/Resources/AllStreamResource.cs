@@ -91,7 +91,12 @@
 
             if(page.TryGetETag(operation.FromPositionInclusive, out var eTag))
             {
-                response.Headers[Constants.Headers.ETag] = eTag;
+                response.Headers.Add(eTag);
+                response.Headers.Add(CacheControl.NoCache);
+            }
+            else
+            {
+                response.Headers.Add(CacheControl.OneYear);
             }
 
             return response;

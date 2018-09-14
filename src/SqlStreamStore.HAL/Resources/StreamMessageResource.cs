@@ -85,7 +85,8 @@ namespace SqlStreamStore.HAL.Resources
             {
                 Headers =
                 {
-                    [Constants.Headers.ETag] = eTag
+                    eTag,
+                    CacheControl.OneYear
                 }
             };
         }
@@ -170,7 +171,7 @@ namespace SqlStreamStore.HAL.Resources
 
             public static IEnumerable<Link> Navigation(
                 ReadStreamMessageByStreamVersionOperation operation,
-                StreamMessage message = default(StreamMessage))
+                StreamMessage message = default)
             {
                 yield return First();
 
@@ -179,7 +180,7 @@ namespace SqlStreamStore.HAL.Resources
                     yield return Previous(operation);
                 }
 
-                if(message.MessageId != default(Guid))
+                if(message.MessageId != default)
                 {
                     yield return Next(operation);
                 }

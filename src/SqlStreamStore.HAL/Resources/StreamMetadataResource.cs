@@ -50,7 +50,7 @@ namespace SqlStreamStore.HAL.Resources
             {
                 Headers =
                 {
-                    [Constants.Headers.ETag] = ETag.FromStreamVersion(result.MetadataStreamVersion)
+                    ETag.FromStreamVersion(result.MetadataStreamVersion)
                 }
             };
 

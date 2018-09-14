@@ -115,7 +115,7 @@ namespace SqlStreamStore.HAL.Resources
 
             if (page.TryGetETag(out var eTag))
             {
-                response.Headers[Constants.Headers.ETag] = eTag;
+                response.Headers.Add(eTag);
             }
 
             return response;

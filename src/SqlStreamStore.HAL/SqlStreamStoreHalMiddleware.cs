@@ -79,23 +79,6 @@
             }
         };
 
-        private static MidFunc CacheControl => (context, next) =>
-        {
-            Task AddCacheControlHeaders()
-            {
-                context.Response.Headers[Constants.Headers.CacheControl] =
-                    context.Response.Headers.ContainsKey(Constants.Headers.ETag)
-                        ? s_NoCache
-                        : s_CacheForOneYear;
-
-                return Task.CompletedTask;
-            }
-
-            context.Response.OnStarting(AddCacheControlHeaders);
-
-            return next();
-        };
-
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
             IStreamStore streamStore)
@@ -110,7 +93,6 @@
                 .Use(CaseSensitiveQueryStrings)
                 .Use(AcceptHalJson)
                 .Use(HeadRequests)
-                .Use(CacheControl)
                 .UseIndex()
                 .Map("/stream", UseAllStream(streamStore))
                 .Map("/streams", UseStream(streamStore));
