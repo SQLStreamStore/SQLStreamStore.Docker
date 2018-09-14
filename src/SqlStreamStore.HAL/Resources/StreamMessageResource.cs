@@ -85,7 +85,8 @@ namespace SqlStreamStore.HAL.Resources
             {
                 Headers =
                 {
-                    [Constants.Headers.ETag] = eTag
+                    eTag,
+                    CacheControl.OneYear
                 }
             };
         }
