@@ -25,13 +25,16 @@ WORKDIR /
 
 RUN TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER MYGET_API_KEY=$MYGET_API_KEY dotnet run --project build/build.csproj
 
+FROM build as publish
+
 WORKDIR /src/SqlStreamStore.HAL.DevServer
 
-RUN dotnet publish --configuration=Release --output=/publish --no-restore --runtime=alpine.3.7-x64
+RUN dotnet add package ILLink.Tasks --version=0.1.5-preview-1841731 --source=https://dotnet.myget.org/F/dotnet-core/api/v3/index.json
+RUN dotnet publish --configuration=Release --output=/publish --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true
 
 FROM microsoft/dotnet:2.1.4-runtime-deps-alpine3.7 AS runtime
 
 WORKDIR /app
-COPY --from=build /publish ./
+COPY --from=publish /publish ./
 
 ENTRYPOINT ["/app/SqlStreamStore.HAL.DevServer"]
