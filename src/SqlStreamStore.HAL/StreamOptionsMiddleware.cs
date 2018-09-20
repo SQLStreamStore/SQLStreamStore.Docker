@@ -15,7 +15,7 @@
     {
         public static IApplicationBuilder UseStreamOptions(this IApplicationBuilder builder, IStreamStore streamStore)
         {
-            var streams = new StreamResource(streamStore);
+            var streams = new StreamResource(streamStore, false);
             var streamMessages = new StreamMessageResource(streamStore);
             var streamsMetadata = new StreamMetadataResource(streamStore);
 

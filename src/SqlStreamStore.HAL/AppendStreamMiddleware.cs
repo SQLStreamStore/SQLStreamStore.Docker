@@ -13,7 +13,7 @@ namespace SqlStreamStore.HAL
     {
         public static IApplicationBuilder UseAppendStream(this IApplicationBuilder builder, IStreamStore streamStore)
         {
-            var stream = new StreamResource(streamStore);
+            var stream = new StreamResource(streamStore, false);
             
             return builder.MapWhen(IsStream, inner => inner.Use(AppendStream(stream)));
         }

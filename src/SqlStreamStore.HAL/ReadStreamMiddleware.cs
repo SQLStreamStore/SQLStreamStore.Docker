@@ -11,9 +11,12 @@ namespace SqlStreamStore.HAL
 
     internal static class ReadStreamMiddleware
     {
-        public static IApplicationBuilder UseReadStream(this IApplicationBuilder builder, IStreamStore streamStore)
+        public static IApplicationBuilder UseReadStream(
+            this IApplicationBuilder builder,
+            IStreamStore streamStore, 
+            SqlStreamStoreMiddlewareOptions options)
         {
-            var streams = new StreamResource(streamStore);
+            var streams = new StreamResource(streamStore, options.UseCanonicalUrls);
             var streamMessages = new StreamMessageResource(streamStore);
 
             return builder

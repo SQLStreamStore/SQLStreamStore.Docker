@@ -12,6 +12,7 @@ namespace SqlStreamStore.HAL.Resources
     internal class StreamResource : IResource
     {
         private readonly IStreamStore _streamStore;
+        private readonly bool _useCanonicalUris;
 
         public HttpMethod[] Allowed { get; } =
         {
@@ -22,11 +23,12 @@ namespace SqlStreamStore.HAL.Resources
             HttpMethod.Delete
         };
 
-        public StreamResource(IStreamStore streamStore)
+        public StreamResource(IStreamStore streamStore, bool useCanonicalUris)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
+            _useCanonicalUris = useCanonicalUris;
         }
 
         public async Task<Response> Post(
