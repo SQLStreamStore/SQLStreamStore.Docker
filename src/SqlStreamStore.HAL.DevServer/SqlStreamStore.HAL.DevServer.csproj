@@ -5,6 +5,7 @@
     <RuntimeIdentifiers>alpine.3.7-x64</RuntimeIdentifiers>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <LangVersion>latest</LangVersion>
+    <CrossGenDuringPublish>false</CrossGenDuringPublish>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.1" />
