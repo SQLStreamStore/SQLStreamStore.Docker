@@ -16,10 +16,14 @@
     internal class DevServerStartup : IStartup
     {
         private readonly IStreamStore _streamStore;
+        private readonly SqlStreamStoreMiddlewareOptions _options;
 
-        public DevServerStartup(IStreamStore streamStore)
+        public DevServerStartup(
+            IStreamStore streamStore,
+            SqlStreamStoreMiddlewareOptions options)
         {
             _streamStore = streamStore;
+            _options = options;
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
@@ -31,7 +35,7 @@
             .Use(VaryAccept)
             .Use(CatchAndDisplayErrors)
             .UseSqlStreamStoreBrowser()
-            .UseSqlStreamStoreHal(_streamStore);
+            .UseSqlStreamStoreHal(_streamStore, _options);
 
         private static MidFunc CatchAndDisplayErrors => async (context, next) =>
         {
