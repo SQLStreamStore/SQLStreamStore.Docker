@@ -13,7 +13,7 @@ namespace SqlStreamStore.HAL
     {
         public static IApplicationBuilder UseDeleteStream(this IApplicationBuilder builder, IStreamStore streamStore)
         {
-            var streams = new StreamResource(streamStore);
+            var streams = new StreamResource(streamStore, false);
             var streamMessages = new StreamMessageResource(streamStore);
             
             return builder

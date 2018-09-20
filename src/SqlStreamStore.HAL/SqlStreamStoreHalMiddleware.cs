@@ -16,18 +16,6 @@
 
     public static class SqlStreamStoreHalMiddleware
     {
-        private static readonly string[] s_NoCache =
-        {
-            "max-age=0",
-            "no-cache",
-            "must-revalidate"
-        };
-
-        private static readonly string[] s_CacheForOneYear =
-        {
-            "max-age=31536000"
-        };
-
         private static MidFunc CaseSensitiveQueryStrings => (context, next) =>
         {
             if(context.Request.QueryString != QueryString.Empty)
@@ -81,12 +69,15 @@
 
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
-            IStreamStore streamStore)
+            IStreamStore streamStore,
+            SqlStreamStoreMiddlewareOptions options = default)
         {
             if(builder == null)
                 throw new ArgumentNullException(nameof(builder));
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
+
+            options = options ?? new SqlStreamStoreMiddlewareOptions();
 
             return builder
                 .UseExceptionHandling()
@@ -94,23 +85,27 @@
                 .Use(AcceptHalJson)
                 .Use(HeadRequests)
                 .UseIndex()
-                .Map("/stream", UseAllStream(streamStore))
-                .Map("/streams", UseStream(streamStore));
+                .Map("/stream", UseAllStream(streamStore, options))
+                .Map("/streams", UseStream(streamStore, options));
         }
 
-        private static Action<IApplicationBuilder> UseStream(IStreamStore streamStore)
+        private static Action<IApplicationBuilder> UseStream(
+            IStreamStore streamStore,
+            SqlStreamStoreMiddlewareOptions options)
             => builder => builder
                 .MapWhen(IsOptions, inner => inner.UseStreamOptions(streamStore))
                 .UseStreamMetadata(streamStore)
-                .UseReadStream(streamStore)
+                .UseReadStream(streamStore, options)
                 .UseAppendStream(streamStore)
                 .UseDeleteStream(streamStore)
                 .Use(MethodsNotAllowed("TRACE", "PATCH"));
 
-        private static Action<IApplicationBuilder> UseAllStream(IStreamStore streamStore)
+        private static Action<IApplicationBuilder> UseAllStream(
+            IStreamStore streamStore,
+            SqlStreamStoreMiddlewareOptions options)
             => builder => builder
                 .MapWhen(IsOptions, inner => inner.UseAllStreamOptions(streamStore))
-                .UseReadAllStream(streamStore)
+                .UseReadAllStream(streamStore, options)
                 .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH"));
 
         private static bool IsOptions(HttpContext context) => context.IsOptions();

@@ -15,7 +15,7 @@
     {
         public static IApplicationBuilder UseAllStreamOptions(this IApplicationBuilder builder, IStreamStore streamStore)
         {
-            var allStream = new AllStreamResource(streamStore);
+            var allStream = new AllStreamResource(streamStore, false);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
 
             return builder

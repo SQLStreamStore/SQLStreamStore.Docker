@@ -12,6 +12,7 @@
     internal class AllStreamResource : IResource
     {
         private readonly IStreamStore _streamStore;
+        private readonly bool _useCanonicalUrls;
 
         public HttpMethod[] Allowed { get; } =
         {
@@ -20,18 +21,19 @@
             HttpMethod.Options
         };
 
-        public AllStreamResource(IStreamStore streamStore)
+        public AllStreamResource(IStreamStore streamStore, bool useCanonicalUrls)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
+            _useCanonicalUrls = useCanonicalUrls;
         }
 
         public async Task<Response> Get(
             ReadAllStreamOperation operation,
             CancellationToken cancellationToken)
         {
-            if(!operation.IsUriCanonical)
+            if(_useCanonicalUrls && !operation.IsUriCanonical)
             {
                 return new Response(new HALResponse(null), 308)
                 {

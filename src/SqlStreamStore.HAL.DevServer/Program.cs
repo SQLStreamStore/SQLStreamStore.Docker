@@ -16,6 +16,7 @@
         private readonly IConfigurationRoot _configuration;
 
         private bool Interactive => _configuration.GetValue<bool>("interactive");
+        private bool UseCanonicalUrls => _configuration.GetValue<bool>("canonical");
 
         public static async Task<int> Main(string[] args)
         {
@@ -47,7 +48,10 @@
                 using(var streamStore = await SqlStreamStoreFactory.Create())
                 using(var host = new WebHostBuilder()
                     .UseKestrel()
-                    .UseStartup(new DevServerStartup(streamStore))
+                    .UseStartup(new DevServerStartup(streamStore, new SqlStreamStoreMiddlewareOptions
+                    {
+                        UseCanonicalUrls = UseCanonicalUrls
+                    }))
                     .UseSerilog()
                     .Build())
                 {
