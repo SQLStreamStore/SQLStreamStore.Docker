@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL", "SqlStreamStore.HAL\SqlStreamStore.HAL.csproj", "{022329C2-F59B-4350-8242-003CE480CD84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL", "SqlStreamStore.HAL\SqlStreamStore.HAL.csproj", "{022329C2-F59B-4350-8242-003CE480CD84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL.Tests", "SqlStreamStore.HAL.Tests\SqlStreamStore.HAL.Tests.csproj", "{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.Tests", "SqlStreamStore.HAL.Tests\SqlStreamStore.HAL.Tests.csproj", "{A2F4657C-2C11-44E8-8E19-A44AF9AE543D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.HAL.DevServer", "SqlStreamStore.HAL.DevServer\SqlStreamStore.HAL.DevServer.csproj", "{2A6776A3-1495-4106-8C6B-9AE1A1E63976}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.DevServer", "SqlStreamStore.HAL.DevServer\SqlStreamStore.HAL.DevServer.csproj", "{2A6776A3-1495-4106-8C6B-9AE1A1E63976}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example", "LittleHalHost.Example\Example.csproj", "{A3C8F869-4128-4BD4-A53D-CD783CD02EDB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +29,15 @@ Global
 		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A6776A3-1495-4106-8C6B-9AE1A1E63976}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3C8F869-4128-4BD4-A53D-CD783CD02EDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3C8F869-4128-4BD4-A53D-CD783CD02EDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3C8F869-4128-4BD4-A53D-CD783CD02EDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3C8F869-4128-4BD4-A53D-CD783CD02EDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {43E8286E-26FC-48C7-8685-C302817856A1}
 	EndGlobalSection
 EndGlobal
