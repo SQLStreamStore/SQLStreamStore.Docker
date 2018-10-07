@@ -2,7 +2,7 @@
 
 Fully RESTful HTTP Server for [SQL Stream Store](https://github.com/SQLStreamStore/SQLStreamStore). Uses [application/hal+json](https://tools.ietf.org/html/draft-kelly-json-hal-08) for resource navigation, with [JSON Hyper-Schema](https://json-schema.org/latest/json-schema-hypermedia.html) as [embedded resources](https://tools.ietf.org/html/draft-kelly-json-hal-08#section-4.1.2).
 
-The solution includes example of use  LittleHalHost.Example project. The url structue and parameters are described in LittleHalHost.Example/readme.md
+The solution includes example of use  LittleHalHost.Example project. The url structure and parameters are described in LittleHalHost.Example/readme.md
 
 # Clients
 
