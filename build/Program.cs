@@ -21,10 +21,6 @@ static class Program
 
     public static void Main(string[] args)
     {
-        var buildNumber = GetBuildNumber();
-        var branch = GetBranch();
-        var commitHash = GetCommitHash();
-        var buildMetadata = $"{branch}.{commitHash}";
         var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
 
         Target(Clean, () =>
@@ -78,7 +74,7 @@ static class Program
             DependsOn(GenerateDocumentation),
             () => Run(
                 "dotnet",
-                $"build src/SqlStreamStore.HAL.sln -c Release /p:BuildNumber={buildNumber} /p:BuildMetadata={buildMetadata}"));
+                $"build src/SqlStreamStore.HAL.sln -c Release"));
 
         Target(
             RunTests,
@@ -92,14 +88,14 @@ static class Program
             DependsOn(Build),
             () => Run(
                 "dotnet",
-                $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true /p:BuildNumber={buildNumber} /p:BuildMetadata={buildMetadata} src/SqlStreamStore.HAL.DevServer "));
+                $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.HAL.DevServer"));
         
         Target(
             Pack,
             DependsOn(Publish),
             () => Run(
                 "dotnet",
-                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} /p:BuildNumber={buildNumber} /p:BuildMetadata={buildMetadata} --no-build"));
+                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} --no-build"));
 
         Target(
             Push,
@@ -127,19 +123,4 @@ static class Program
 
         RunTargets(args);
     }
-
-    private static string GetBranch()
-        => (Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")?.ToLower() == "false"
-               ? null
-               : $"pr-{Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")}")
-           ?? Environment.GetEnvironmentVariable("TRAVIS_BRANCH")
-           ?? "none";
-
-    private static string GetCommitHash()
-        => Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST_SHA")
-           ?? Environment.GetEnvironmentVariable("TRAVIS_COMMIT")
-           ?? "none";
-
-    private static string GetBuildNumber()
-        => (Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0");
 }
