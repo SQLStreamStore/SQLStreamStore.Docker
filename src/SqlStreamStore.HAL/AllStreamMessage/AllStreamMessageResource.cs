@@ -62,7 +62,7 @@
                     message.Type,
                     payload,
                     metadata = message.JsonMetadata
-                }).AddLinks(links));
+             }).AddLinks(links));
         }
     }
 }
