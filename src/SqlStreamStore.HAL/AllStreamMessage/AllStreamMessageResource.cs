@@ -29,6 +29,7 @@
                 .FromOperation(operation)
                 .Index()
                 .Find()
+                .Browse()
                 .Add(
                     Constants.Relations.Message,
                     $"stream/{message.Position}",

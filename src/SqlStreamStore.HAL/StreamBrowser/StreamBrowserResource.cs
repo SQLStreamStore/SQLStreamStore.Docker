@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Resources
+namespace SqlStreamStore.HAL.StreamBrowser
 {
     using System;
     using System.Threading;
@@ -19,7 +19,7 @@ namespace SqlStreamStore.HAL.Resources
         {
             var listStreamsPage = await operation.Invoke(_streamStore, cancellationToken);
 
-            var halResponse = new HALResponse(new
+            return new HalJsonResponse(new HALResponse(new
                 {
                     listStreamsPage.ContinuationToken
                 })
@@ -29,23 +29,15 @@ namespace SqlStreamStore.HAL.Resources
                         listStreamsPage.StreamIds,
                         streamId =>
                         {
-                            var href = $"../../streams/{streamId}";
                             return new HALResponse(null)
                                 .AddLinks(
-                                    new Link(Constants.Relations.Self, href, streamId),
-                                    new Link(Constants.Relations.Feed, href, streamId));
+                                    Links
+                                        .FromOperation(operation)
+                                        .Index()
+                                        .Find()
+                                        .StreamBrowserNavigation(listStreamsPage, operation));
                         }
-                    ));
-
-            if(listStreamsPage.ContinuationToken != null)
-            {
-                halResponse.AddLinks(
-                    new Link(
-                        Constants.Relations.Next,
-                        $"browser?p={operation.Pattern.Value}&t={operation.PatternType}&c={listStreamsPage.ContinuationToken}&m={operation.MaxCount}"));
-            }
-
-            return new HalJsonResponse(halResponse);
+                    )));
         }
     }
 }

@@ -11,7 +11,6 @@
     using SqlStreamStore.HAL.Docs;
     using SqlStreamStore.HAL.Index;
     using SqlStreamStore.HAL.Logging;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.HAL.StreamBrowser;
     using SqlStreamStore.HAL.StreamMessage;
     using SqlStreamStore.HAL.StreamMetadata;

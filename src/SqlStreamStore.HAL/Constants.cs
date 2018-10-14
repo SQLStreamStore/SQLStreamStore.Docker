@@ -60,7 +60,7 @@ namespace SqlStreamStore.HAL
             public const string DeleteStream = StreamStorePrefix + ":delete-stream";
             public const string DeleteMessage = StreamStorePrefix + ":delete-message";
             public const string Find = StreamStorePrefix + ":find";
-            public const string ListStreams = StreamStorePrefix + ":feed-browser";
+            public const string Browse = StreamStorePrefix + ":feed-browser";
         }
 
         public static class Streams

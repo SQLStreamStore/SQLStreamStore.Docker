@@ -31,6 +31,7 @@ namespace SqlStreamStore.HAL.StreamMessage
                 .FromPath(operation.Path)
                 .Index()
                 .Find()
+                .Browse()
                 .StreamMessageNavigation(message, operation);
             
             if(message.MessageId == Guid.Empty)
