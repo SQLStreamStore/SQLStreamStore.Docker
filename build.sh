@@ -6,3 +6,5 @@ docker build \
     --build-arg MYGET_API_KEY=$MYGET_API_KEY \
     --tag sql-stream-store-server:${DOCKERTAG} \
     . 
+
+docker images --filter=reference="sql-stream-store-server:${DOCKERTAG}"
