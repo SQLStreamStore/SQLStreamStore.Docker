@@ -1,7 +1,5 @@
 namespace SqlStreamStore.HAL.Tests
 {
-    using System;
-    using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Shouldly;
 
     internal static class LinkAssertionExtensions

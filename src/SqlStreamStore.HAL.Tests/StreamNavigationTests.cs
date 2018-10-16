@@ -45,18 +45,21 @@
 
                 var resource = await response.AsHal();
 
-                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{LastLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
+                var links = TheLinks
+                    .RootedAt("../")
+                    .Index()
+                    .Find()
+                    .Add(Constants.Relations.Self, $"{stream}?{LastLinkQuery}")
+                    .Add(Constants.Relations.Last, $"{stream}?{LastLinkQuery}")
+                    .Add(Constants.Relations.First, $"{stream}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
 
                 if(!IsAllStream($"{baseAddress}{stream}"))
                 {
-                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                    links.Add(Constants.Relations.Metadata, $"{stream}/metadata");
                 }
+
+                resource.ShouldLink(links);
             }
         }
 
@@ -86,20 +89,22 @@
 
                     var resource = await response.AsHal();
 
-                    resource.ShouldLink(Constants.Relations.Self, $"{stream}?{LastLinkQuery}");
-
-                    resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
-
-                    resource.ShouldLink(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9&e=0");
-
-                    resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
-
-                    resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
+                    var links = TheLinks
+                        .RootedAt("../")
+                        .Index()
+                        .Find()
+                        .Add(Constants.Relations.Self, $"{stream}?{LastLinkQuery}")
+                        .Add(Constants.Relations.Last, $"{stream}?{LastLinkQuery}")
+                        .Add(Constants.Relations.Previous, $"{stream}?d=b&m=20&p=9&e=0")
+                        .Add(Constants.Relations.First, $"{stream}?{FirstLinkQuery}")
+                        .Add(Constants.Relations.Feed, $"{stream}?{LastLinkQuery}");
 
                     if(!IsAllStream($"{baseAddress}{stream}"))
                     {
-                        resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                        links.Add(Constants.Relations.Metadata, $"{stream}/metadata");
                     }
+
+                    resource.ShouldLink(links);
                 }
             }
         }
@@ -119,18 +124,20 @@
 
                 var resource = await response.AsHal();
 
-                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{FirstLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
+                var links = TheLinks.RootedAt("../")
+                    .Index()
+                    .Find()
+                    .Add(Constants.Relations.Self, $"{stream}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Last, $"{stream}?{LastLinkQuery}")
+                    .Add(Constants.Relations.First, $"{stream}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
 
                 if(!IsAllStream($"{baseAddress}{stream}"))
                 {
-                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                    links.Add(Constants.Relations.Metadata, $"{stream}/metadata");
                 }
+                
+                resource.ShouldLink(links);
             }
         }
 
@@ -145,20 +152,21 @@
 
                 var resource = await response.AsHal();
 
-                resource.ShouldLink(Constants.Relations.Self, $"{stream}?{FirstLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Last, $"{stream}?{LastLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Next, $"{stream}?d=f&m=20&p=20&e=0");
-
-                resource.ShouldLink(Constants.Relations.First, $"{stream}?{FirstLinkQuery}");
-
-                resource.ShouldLink(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
+                var links = TheLinks.RootedAt("../")
+                    .Index()
+                    .Find()
+                    .Add(Constants.Relations.Self, $"{stream}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Last, $"{stream}?{LastLinkQuery}")
+                    .Add(Constants.Relations.Next, $"{stream}?d=f&m=20&p=20&e=0")
+                    .Add(Constants.Relations.First, $"{stream}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Feed, $"{stream}?{FirstLinkQuery}");
 
                 if(!IsAllStream($"{baseAddress}{stream}"))
                 {
-                    resource.ShouldLink(Constants.Relations.Metadata, $"{stream}/metadata");
+                    links.Add(Constants.Relations.Metadata, $"{stream}/metadata");
                 }
+
+                resource.ShouldLink(links);
             }
         }
 

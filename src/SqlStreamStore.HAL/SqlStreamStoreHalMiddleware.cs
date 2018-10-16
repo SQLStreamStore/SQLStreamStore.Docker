@@ -8,6 +8,8 @@
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
+    using SqlStreamStore.HAL.AllStream;
+    using SqlStreamStore.HAL.AllStreamMessage;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -104,8 +106,8 @@
             IStreamStore streamStore,
             SqlStreamStoreMiddlewareOptions options)
             => builder => builder
-                .MapWhen(IsOptions, inner => inner.UseAllStreamOptions(streamStore))
                 .UseReadAllStream(streamStore, options)
+                .UseReadAllStreamMessage(streamStore)
                 .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH"));
 
         private static bool IsOptions(HttpContext context) => context.IsOptions();
