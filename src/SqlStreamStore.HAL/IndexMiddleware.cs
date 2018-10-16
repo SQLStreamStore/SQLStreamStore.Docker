@@ -12,20 +12,22 @@ namespace SqlStreamStore.HAL
     internal static class IndexMiddleware
     {
         public static IApplicationBuilder UseIndex(this IApplicationBuilder builder)
-            => builder.MapWhen(IsIndex, inner => inner.Use(Index));
+            => builder.MapWhen(IsIndex, inner => inner.Use(Index()));
 
         private static bool IsIndex(HttpContext context)
             => (context.Request.Path.Value ?? "/") == "/";
 
-        private static MidFunc Index => (context, next) =>
+        private static MidFunc Index()
         {
             var response = new Response(new HALResponse(null)
-                .AddLinks(new Link(Constants.Relations.Feed, "stream"))
-                .AddLinks(new Link(Constants.Relations.Self, string.Empty))
-                .AddLinks(Links.Index(string.Empty))
-                .AddLinks(Links.Find("streams/{streamId}")));
+                .AddLinks(
+                    TheLinks
+                        .RootedAt(string.Empty)
+                        .Index().Self()
+                        .Find()
+                        .Add(Constants.Relations.Feed, "stream")));
 
-            return context.WriteResponse(response);
-        };
+            return (context, next) => context.WriteResponse(response);
+        }
     }
 }
