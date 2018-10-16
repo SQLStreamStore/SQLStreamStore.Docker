@@ -2,6 +2,7 @@ namespace SqlStreamStore.HAL
 {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
+    using SqlStreamStore.HAL.AllStreamMessage;
     using SqlStreamStore.HAL.Resources;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,

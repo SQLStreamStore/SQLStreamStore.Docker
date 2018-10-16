@@ -1,5 +1,7 @@
 namespace SqlStreamStore.HAL.Tests
 {
+    using System;
+    using Microsoft.VisualStudio.TestPlatform.ObjectModel;
     using Shouldly;
 
     internal static class LinkAssertionExtensions
@@ -13,5 +15,20 @@ namespace SqlStreamStore.HAL.Tests
                     Rel = rel,
                     Title = title
                 });
+
+        public static void ShouldLink(this Resource resource, TheLinks links)
+        {
+            var halLinks = links.ToHalLinks();
+
+            foreach(var link in halLinks)
+            {
+                resource.Links[link.Rel].ShouldContain(new Link
+                {
+                    Rel = link.Rel,
+                    Href = link.Href,
+                    Title = link.Title
+                });
+            }
+        }
     }
 }

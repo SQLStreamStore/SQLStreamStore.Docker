@@ -1,10 +1,11 @@
-﻿namespace SqlStreamStore.HAL.Resources
+﻿namespace SqlStreamStore.HAL.AllStreamMessage
 {
     using System;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
+    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class AllStreamMessageResource : IResource
@@ -31,12 +32,23 @@
         {
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
+            var links = TheLinks.RootedAt("../")
+                .Index()
+                .Find()
+                .Add(Constants.Relations.Message, $"stream/{message.Position}").Self()
+                .Add(
+                    Constants.Relations.Feed,
+                    LinkFormatter.FormatBackwardLink(
+                        Constants.Streams.All,
+                        Constants.MaxCount,
+                        Position.End,
+                        false));
+
             if(message.MessageId == Guid.Empty)
             {
                 return new Response(
-                    new HALResponse(new HALModelConfig())
-                        .AddLinks(Links.Feed())
-                        .AddLinks(Links.Find()),
+                    new HALResponse(null)
+                        .AddLinks(links),
                     404);
             }
 
@@ -53,34 +65,7 @@
                     message.Type,
                     payload,
                     metadata = message.JsonMetadata
-                }).AddLinks(
-                    Links.Self(message),
-                    Links.Message(message),
-                    Links.Feed(),
-                    Links.Find()));
-        }
-
-        private static class Links
-        {
-            public static Link Find() => SqlStreamStore.HAL.Links.Find("../streams/{streamId}");
-
-            public static Link Last()
-                => new Link(
-                    Constants.Relations.Last,
-                    LinkFormatter.FormatBackwardLink(
-                        $"../{Constants.Streams.All}",
-                        Constants.MaxCount,
-                        Position.End,
-                        false));
-
-            public static Link Self(StreamMessage message)
-                => new Link(Constants.Relations.Self, $"{message.Position}");
-
-            public static Link Message(StreamMessage message)
-                => new Link(Constants.Relations.Message, $"{message.Position}");
-
-            public static Link Feed()
-                => new Link(Constants.Relations.Feed, Last().Href);
+                }).AddLinks(links));
         }
     }
 }
