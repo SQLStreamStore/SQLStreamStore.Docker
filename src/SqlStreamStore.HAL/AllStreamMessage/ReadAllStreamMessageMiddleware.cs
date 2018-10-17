@@ -1,7 +1,7 @@
 namespace SqlStreamStore.HAL.AllStreamMessage
 {
+    using System.Net.Http;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Http;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -10,22 +10,17 @@ namespace SqlStreamStore.HAL.AllStreamMessage
 
     internal static class ReadAllStreamMessageMiddleware
     {
-        public static IApplicationBuilder UseReadAllStreamMessage(
+        public static IApplicationBuilder UseAllStreamMessage(
             this IApplicationBuilder builder,
             IStreamStore streamStore)
         {
             var allStreamMessages = new AllStreamMessageResource(streamStore);
 
             return builder
-                .MapWhen(IsGetAllStreamMessage, inner => inner.Use(GetStreamMessage(allStreamMessages)))
-                .MapWhen(IsOptionsAllStreamMessage, inner => inner.UseOptions(allStreamMessages));
+                .MapWhen(HttpMethod.Get, inner => inner.Use(GetStreamMessage(allStreamMessages)))
+                .MapWhen(HttpMethod.Options, inner => inner.UseOptions(allStreamMessages))
+                .UseAllowedMethods(allStreamMessages);
         }
-
-        private static bool IsGetAllStreamMessage(HttpContext context)
-            => context.IsGetOrHead() && context.Request.Path.IsAllStreamMessage();
-
-        private static bool IsOptionsAllStreamMessage(HttpContext context)
-            => context.IsGetOrHead() && context.Request.Path.IsAllStreamMessage();
 
         private static MidFunc GetStreamMessage(AllStreamMessageResource allStreamMessages) => async (context, next) =>
         {

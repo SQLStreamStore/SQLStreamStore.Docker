@@ -1,8 +1,7 @@
-﻿namespace SqlStreamStore.HAL
+﻿namespace SqlStreamStore.HAL.StreamMetadata
 {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Resources;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,

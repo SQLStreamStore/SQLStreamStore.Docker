@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class AllStreamResource : IResource
@@ -61,7 +60,7 @@
                     })
                     .AddLinks(
                         TheLinks
-                            .RootedAt("../")
+                            .RootedAt(string.Empty)
                             .Index()
                             .Find()
                             .Navigation(page, operation))

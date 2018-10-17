@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Resources
+namespace SqlStreamStore.HAL.StreamMessage
 {
     using System;
     using System.Linq;
@@ -40,7 +40,7 @@ namespace SqlStreamStore.HAL.Resources
                                 true,
                                 ct))
                             .Messages.FirstOrDefault(
-                                message => StreamVersion == Streams.StreamVersion.End
+                                message => StreamVersion == SqlStreamStore.Streams.StreamVersion.End
                                            || message.StreamVersion == StreamVersion)
                             .MessageId;
             await streamStore.DeleteMessage(StreamId, messageId, ct);

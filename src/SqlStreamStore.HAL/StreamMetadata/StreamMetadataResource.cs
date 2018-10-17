@@ -1,10 +1,11 @@
-namespace SqlStreamStore.HAL.Resources
+namespace SqlStreamStore.HAL.StreamMetadata
 {
     using System;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
+    using SqlStreamStore.HAL.Resources;
 
     internal class StreamMetadataResource : IResource
     {
@@ -40,9 +41,11 @@ namespace SqlStreamStore.HAL.Resources
                         result.MetadataJson
                     })
                     .AddLinks(
-                        Links.Self(),
-                        Links.Metadata(),
-                        Links.Feed(operation))
+                        TheLinks
+                            .RootedAt("../../../")
+                            .Index()
+                            .Find()
+                            .MetadataNavigation(operation))
                     .AddEmbeddedResource(
                         Constants.Relations.Metadata,
                         Schemas.SetStreamMetadata),
@@ -71,23 +74,13 @@ namespace SqlStreamStore.HAL.Resources
                     operation.MetadataJson
                 })
                 .AddLinks(
-                    Links.Self(),
-                    Links.Metadata(),
-                    Links.Feed(operation)));
+                    TheLinks
+                        .RootedAt("../../../")
+                        .Index()
+                        .Find()
+                        .MetadataNavigation(operation)));
 
             return response;
-        }
-
-        private static class Links
-        {
-            public static Link Find() => SqlStreamStore.HAL.Links.Find("../{streamId}");
-            public static Link Self() => new Link(Constants.Relations.Self, Constants.Streams.Metadata);
-            public static Link Metadata() => new Link(Constants.Relations.Metadata, Constants.Streams.Metadata);
-            public static Link Feed(GetStreamMetadataOperation operation) => Link(operation.StreamId);
-            public static Link Feed(SetStreamMetadataOperation operation) => Link(operation.StreamId);
-
-            private static Link Link(string streamId)
-                => new Link(Constants.Relations.Feed, $"../{streamId}");
         }
     }
 }

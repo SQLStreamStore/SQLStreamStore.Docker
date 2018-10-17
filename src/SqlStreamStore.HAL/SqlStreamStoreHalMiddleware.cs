@@ -10,6 +10,10 @@
     using Microsoft.AspNetCore.Http;
     using SqlStreamStore.HAL.AllStream;
     using SqlStreamStore.HAL.AllStreamMessage;
+    using SqlStreamStore.HAL.Index;
+    using SqlStreamStore.HAL.StreamMessage;
+    using SqlStreamStore.HAL.StreamMetadata;
+    using SqlStreamStore.HAL.Streams;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -31,18 +35,6 @@
             }
 
             return next();
-        };
-
-        private static MidFunc MethodsNotAllowed(params string[] methods) => (context, next) =>
-        {
-            if(!methods.Contains(context.Request.Method))
-            {
-                return next();
-            }
-
-            context.Response.StatusCode = 405;
-
-            return Task.CompletedTask;
         };
 
         private static MidFunc AcceptHalJson => (context, next) =>
@@ -88,29 +80,31 @@
                 .Use(HeadRequests)
                 .UseIndex()
                 .Map("/stream", UseAllStream(streamStore, options))
-                .Map("/streams", UseStream(streamStore, options));
+                .Map("/streams", UseStream(streamStore));
         }
 
         private static Action<IApplicationBuilder> UseStream(
-            IStreamStore streamStore,
-            SqlStreamStoreMiddlewareOptions options)
+            IStreamStore streamStore)
             => builder => builder
-                .MapWhen(IsOptions, inner => inner.UseStreamOptions(streamStore))
-                .UseStreamMetadata(streamStore)
-                .UseReadStream(streamStore, options)
-                .UseAppendStream(streamStore)
-                .UseDeleteStream(streamStore)
-                .Use(MethodsNotAllowed("TRACE", "PATCH"));
+                .MapWhen(IsStream, inner => inner.UseStreams(streamStore))
+                .MapWhen(IsStreamMessage, inner => inner.UseStreamMessages(streamStore))
+                .MapWhen(IsStreamMetadata, inner => inner.UseStreamMetadata(streamStore));
 
         private static Action<IApplicationBuilder> UseAllStream(
             IStreamStore streamStore,
             SqlStreamStoreMiddlewareOptions options)
             => builder => builder
-                .UseReadAllStream(streamStore, options)
-                .UseReadAllStreamMessage(streamStore)
-                .Use(MethodsNotAllowed("POST", "PUT", "DELETE", "TRACE", "PATCH"));
+                .MapWhen(IsAllStream, inner => inner.UseAllStream(streamStore, options))
+                .MapWhen(IsAllStreamMessage, inner => inner.UseAllStreamMessage(streamStore));
 
-        private static bool IsOptions(HttpContext context) => context.IsOptions();
+        private static bool IsStreamMessage(HttpContext context) => context.Request.Path.IsStreamMessage();
+
+        private static bool IsStream(HttpContext context) => context.Request.Path.IsStream();
+
+        private static bool IsStreamMetadata(HttpContext context) => context.Request.Path.IsStreamMetadata();
+
+        private static bool IsAllStreamMessage(HttpContext context) => context.Request.Path.IsAllStreamMessage();
+        private static bool IsAllStream(HttpContext context) => context.Request.Path.IsAllStream();
 
         private class OptionalHeadRequestWrapper : IDisposable
         {
@@ -121,15 +115,20 @@
             {
                 _context = context;
                 _originalBody = _context.Response.Body;
-                if(context.Request.Method == "HEAD")
+                if(_context.Request.Method == "HEAD")
                 {
-                    context.Response.Body = new HeadRequestStream();
+                    _context.Request.Method = "GET";
+                    _context.Response.Body = new HeadRequestStream();
                 }
             }
 
             public void Dispose()
             {
                 _context.Response.Body = _originalBody;
+                if(_context.Request.Method == "GET")
+                {
+                    _context.Request.Method = "HEAD";
+                }
             }
 
             private class HeadRequestStream : Stream

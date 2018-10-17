@@ -36,13 +36,17 @@
 
                 ((string) resource.State.streamId).ShouldBe(StreamId);
                 ((int) resource.State.metadataStreamVersion).ShouldBe(ExpectedVersion.NoStream);
-                ((int?) resource.State.maxAge).ShouldBe(default(int?));
-                ((int?) resource.State.maxCount).ShouldBe(default(int?));
+                ((int?) resource.State.maxAge).ShouldBe(default);
+                ((int?) resource.State.maxCount).ShouldBe(default);
                 ((string) resource.State.metadataJson).ShouldBeNull();
 
-                resource.ShouldLink(Constants.Relations.Self, "metadata");
-                resource.ShouldLink(Constants.Relations.Metadata, "metadata");
-                resource.ShouldLink(Constants.Relations.Feed, $"../{StreamId}");
+                resource.ShouldLink(
+                    TheLinks
+                        .RootedAt("../../../")
+                        .Index()
+                        .Find()
+                        .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
+                        .Add(Constants.Relations.Feed, $"streams/{StreamId}"));
             }
         }
 
@@ -87,9 +91,13 @@
                         type = "a-type"
                     })).ShouldBeTrue();
 
-                resource.ShouldLink(Constants.Relations.Self, "metadata");
-                resource.ShouldLink(Constants.Relations.Metadata, "metadata");
-                resource.ShouldLink(Constants.Relations.Feed, $"../{StreamId}");
+                resource.ShouldLink(
+                    TheLinks
+                        .RootedAt("../../../")
+                        .Index()
+                        .Find()
+                        .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
+                        .Add(Constants.Relations.Feed, $"streams/{StreamId}"));
             }
         }
 
@@ -129,9 +137,13 @@
                         type = "a-type"
                     })).ShouldBeTrue();
 
-                resource.ShouldLink(Constants.Relations.Self, "metadata");
-                resource.ShouldLink(Constants.Relations.Metadata, "metadata");
-                resource.ShouldLink(Constants.Relations.Feed, $"../{StreamId}");
+                resource.ShouldLink(
+                    TheLinks
+                        .RootedAt("../../../")
+                        .Index()
+                        .Find()
+                        .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
+                        .Add(Constants.Relations.Feed, $"streams/{StreamId}"));
             }
         }
 

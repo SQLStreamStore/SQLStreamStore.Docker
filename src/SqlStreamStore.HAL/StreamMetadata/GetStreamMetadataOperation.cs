@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Resources
+namespace SqlStreamStore.HAL.StreamMetadata
 {
     using System.Threading;
     using System.Threading.Tasks;

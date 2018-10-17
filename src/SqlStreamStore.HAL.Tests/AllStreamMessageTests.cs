@@ -32,6 +32,8 @@ namespace SqlStreamStore.HAL.Tests
                 resource.ShouldLink(
                     TheLinks
                         .RootedAt("../")
+                        .Find()
+                        .Index()
                         .AddSelf(Constants.Relations.Message, "stream/0")
                         .Add(Constants.Relations.Feed, HeadOfAll));
             }

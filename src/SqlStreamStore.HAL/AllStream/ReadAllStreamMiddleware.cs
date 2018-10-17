@@ -10,7 +10,7 @@ namespace SqlStreamStore.HAL.AllStream
 
     internal static class ReadAllStreamMiddleware
     {
-        public static IApplicationBuilder UseReadAllStream(
+        public static IApplicationBuilder UseAllStream(
             this IApplicationBuilder builder,
             IStreamStore streamStore,
             SqlStreamStoreMiddlewareOptions options)
@@ -18,15 +18,14 @@ namespace SqlStreamStore.HAL.AllStream
             var allStream = new AllStreamResource(streamStore, options.UseCanonicalUrls);
 
             return builder
-                .MapWhen(IsGetAllStream, inner => inner.Use(GetStream(allStream)))
-                .MapWhen(IsOptionsAllStream, inner => inner.UseOptions(allStream));
+                .MapWhen(IsGet, inner => inner.Use(GetStream(allStream)))
+                .MapWhen(IsOptions, inner => inner.UseOptions(allStream))
+                .UseAllowedMethods(allStream);
         }
 
-        private static bool IsGetAllStream(HttpContext context)
-            => context.IsGetOrHead() && context.Request.Path.IsAllStream();
+        private static bool IsGet(HttpContext context) => context.IsGetOrHead();
 
-        private static bool IsOptionsAllStream(HttpContext context)
-            => context.IsOptions() && context.Request.Path.IsAllStream();
+        private static bool IsOptions(HttpContext context) => context.IsOptions();
 
         private static MidFunc GetStream(AllStreamResource allStream) => async (context, next) =>
         {

@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.HAL.Resources
+﻿namespace SqlStreamStore.HAL.Streams
 {
     using System;
     using Newtonsoft.Json.Linq;

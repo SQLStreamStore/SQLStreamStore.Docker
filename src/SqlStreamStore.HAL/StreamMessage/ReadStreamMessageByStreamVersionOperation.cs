@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Resources
+namespace SqlStreamStore.HAL.StreamMessage
 {
     using System.Linq;
     using System.Threading;
@@ -22,7 +22,7 @@ namespace SqlStreamStore.HAL.Resources
 
         public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
             => (await streamStore.ReadStreamBackwards(StreamId, StreamVersion, 1, true, ct))
-                .Messages.FirstOrDefault(message => StreamVersion == Streams.StreamVersion.End
+                .Messages.FirstOrDefault(message => StreamVersion == SqlStreamStore.Streams.StreamVersion.End
                                                     || message.StreamVersion == StreamVersion);
     }
 }

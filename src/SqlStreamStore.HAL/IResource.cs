@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.HAL.Resources
+﻿namespace SqlStreamStore.HAL
 {
     using System.Net.Http;
 

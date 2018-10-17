@@ -4,7 +4,6 @@ namespace SqlStreamStore.HAL.AllStreamMessage
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class ReadAllStreamMessageOperation : IStreamStoreOperation<StreamMessage>

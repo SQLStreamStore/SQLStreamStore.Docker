@@ -2,7 +2,6 @@ namespace SqlStreamStore.HAL
 {
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
-    using SqlStreamStore.HAL.Resources;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,

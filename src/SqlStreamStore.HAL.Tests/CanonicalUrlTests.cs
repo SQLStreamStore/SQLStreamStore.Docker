@@ -46,31 +46,33 @@
 
         private static IEnumerable<(string, Uri)> NonCanonical()
         {
+            var bools = new[] { true, false };
+         
             var formatters = new Dictionary<bool, Func<string, int, long, bool, string>>
             {
                 [true] = LinkFormatter.FormatForwardLink,
                 [false] = LinkFormatter.FormatBackwardLink
             };
 
-            (string streamId, string path)[] streams =
+            (string streamId, string path, string root)[] streams =
             {
-                (StreamId, $"/streams/{StreamId}"),
-                (Constants.Streams.All, Constants.Streams.All)
+                (StreamId, $"streams/{StreamId}", "../"),
+                (Constants.Streams.All, Constants.Streams.All, string.Empty)
             };
 
             return
                 from _ in streams
-                from prefetch in new[] { true, false }
-                from forward in new[] { true, false }
+                from prefetch in bools
+                from forward in bools
                 let format = formatters[forward]
-                let canonicalUri = format(_.streamId, 20, 0, prefetch)
+                let canonicalUri = new Uri(
+                    format($"{_.root}{_.path}", 20, 0, prefetch),
+                    UriKind.Relative)
                 from queryString in GetQueryStrings(forward, prefetch)
                     // query strings are supposed to be case sensitive!!
                     //.Concat(new[] { $"d={(forward ? 'F' : 'B')}&M=20&P=0{(prefetch ? "&E" : string.Empty)}" })
-                where $"{_.streamId}?{queryString}" != canonicalUri
-                select ($"{_.path}?{queryString}", new Uri(
-                    canonicalUri,
-                    UriKind.Relative));
+                where !canonicalUri.OriginalString.EndsWith($"?{queryString}")
+                select ($"{_.path}?{queryString}", canonicalUri);
         }
 
         public static IEnumerable<object[]> NonCanonicalUriCases()
