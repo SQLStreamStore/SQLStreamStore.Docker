@@ -1,7 +1,6 @@
 ﻿namespace SqlStreamStore.HAL.AllStreamMessage
 {
     using System;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
@@ -11,13 +10,6 @@
     internal class AllStreamMessageResource : IResource
     {
         private readonly IStreamStore _streamStore;
-
-        public HttpMethod[] Allowed { get; } =
-        {
-            HttpMethod.Get,
-            HttpMethod.Head,
-            HttpMethod.Options
-        };
 
         public AllStreamMessageResource(IStreamStore streamStore)
         {

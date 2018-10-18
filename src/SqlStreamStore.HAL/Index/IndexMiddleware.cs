@@ -1,6 +1,7 @@
 namespace SqlStreamStore.HAL.Index
 {
-    using Halcyon.HAL;
+    using System;
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
     using MidFunc = System.Func<
@@ -17,12 +18,8 @@ namespace SqlStreamStore.HAL.Index
 
             return builder
                 .MapWhen(IsGetIndex, inner => inner.Use(Index()))
-                .MapWhen(IsOptions, inner => inner.UseOptions(index))
                 .MapWhen(IsIndex, inner => inner.UseAllowedMethods(index));
         }
-
-        private static bool IsOptions(HttpContext context)
-            => context.IsOptions() && context.Request.Path.IsIndex();
 
         private static bool IsGetIndex(HttpContext context)
             => context.IsGetOrHead() && context.Request.Path.IsIndex();
@@ -32,15 +29,13 @@ namespace SqlStreamStore.HAL.Index
 
         private static MidFunc Index()
         {
-            var response = new Response(new HALResponse(null)
-                .AddLinks(
-                    TheLinks
-                        .RootedAt(string.Empty)
-                        .Index().Self()
-                        .Find()
-                        .Add(Constants.Relations.Feed, "stream")));
+            var resource = new IndexResource();
+            
+            var response = resource.Get();
 
-            return (context, next) => context.WriteResponse(response);
+            Task Index(HttpContext context, Func<Task> next) => context.WriteResponse(response);
+
+            return Index;
         }
     }
 }

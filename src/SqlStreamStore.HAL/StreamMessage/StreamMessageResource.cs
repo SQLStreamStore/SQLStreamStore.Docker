@@ -1,7 +1,6 @@
 namespace SqlStreamStore.HAL.StreamMessage
 {
     using System;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
@@ -11,13 +10,6 @@ namespace SqlStreamStore.HAL.StreamMessage
     internal class StreamMessageResource : IResource
     {
         private readonly IStreamStore _streamStore;
-
-        public HttpMethod[] Allowed { get; } =
-        {
-            HttpMethod.Get,
-            HttpMethod.Head,
-            HttpMethod.Options
-        };
 
         public StreamMessageResource(IStreamStore streamStore)
         {
@@ -90,7 +82,7 @@ namespace SqlStreamStore.HAL.StreamMessage
             };
         }
 
-        public async Task<Response> DeleteMessage(
+        public async Task<Response> Delete(
             DeleteStreamMessageOperation operation,
             CancellationToken cancellationToken)
         {

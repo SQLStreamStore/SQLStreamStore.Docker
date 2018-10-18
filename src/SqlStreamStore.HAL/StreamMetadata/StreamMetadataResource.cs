@@ -1,7 +1,6 @@
 namespace SqlStreamStore.HAL.StreamMetadata
 {
     using System;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
@@ -10,14 +9,6 @@ namespace SqlStreamStore.HAL.StreamMetadata
     internal class StreamMetadataResource : IResource
     {
         private readonly IStreamStore _streamStore;
-
-        public HttpMethod[] Allowed { get; } =
-        {
-            HttpMethod.Get,
-            HttpMethod.Head,
-            HttpMethod.Options,
-            HttpMethod.Post
-        };
 
         public StreamMetadataResource(IStreamStore streamStore)
         {

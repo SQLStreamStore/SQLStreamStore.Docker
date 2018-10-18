@@ -18,7 +18,6 @@ namespace SqlStreamStore.HAL.AllStreamMessage
 
             return builder
                 .MapWhen(HttpMethod.Get, inner => inner.Use(GetStreamMessage(allStreamMessages)))
-                .MapWhen(HttpMethod.Options, inner => inner.UseOptions(allStreamMessages))
                 .UseAllowedMethods(allStreamMessages);
         }
 

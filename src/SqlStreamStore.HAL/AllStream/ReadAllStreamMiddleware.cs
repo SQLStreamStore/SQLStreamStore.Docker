@@ -19,13 +19,10 @@ namespace SqlStreamStore.HAL.AllStream
 
             return builder
                 .MapWhen(IsGet, inner => inner.Use(GetStream(allStream)))
-                .MapWhen(IsOptions, inner => inner.UseOptions(allStream))
                 .UseAllowedMethods(allStream);
         }
 
         private static bool IsGet(HttpContext context) => context.IsGetOrHead();
-
-        private static bool IsOptions(HttpContext context) => context.IsOptions();
 
         private static MidFunc GetStream(AllStreamResource allStream) => async (context, next) =>
         {

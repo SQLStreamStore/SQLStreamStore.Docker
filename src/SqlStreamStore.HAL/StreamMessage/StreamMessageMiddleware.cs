@@ -16,7 +16,6 @@ namespace SqlStreamStore.HAL.StreamMessage
             return builder
                 .MapWhen(HttpMethod.Get, inner => inner.Use(GetStreamMessage(streamMessages)))
                 .MapWhen(HttpMethod.Delete, inner => inner.Use(DeleteStreamMessage(streamMessages)))
-                .MapWhen(HttpMethod.Options, inner => inner.UseOptions(streamMessages))
                 .UseAllowedMethods(streamMessages);
         }
 
@@ -33,7 +32,7 @@ namespace SqlStreamStore.HAL.StreamMessage
         {
             var options = new DeleteStreamMessageOperation(context.Request);
 
-            var response = await streamMessages.DeleteMessage(options, context.RequestAborted);
+            var response = await streamMessages.Delete(options, context.RequestAborted);
 
             await context.WriteResponse(response);
         };

@@ -2,7 +2,6 @@ namespace SqlStreamStore.HAL.Streams
 {
     using System;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
@@ -13,15 +12,6 @@ namespace SqlStreamStore.HAL.Streams
     {
         private readonly IStreamStore _streamStore;
         private readonly string _relativePathToRoot;
-
-        public HttpMethod[] Allowed { get; } =
-        {
-            HttpMethod.Get,
-            HttpMethod.Head,
-            HttpMethod.Options,
-            HttpMethod.Post,
-            HttpMethod.Delete
-        };
 
         public StreamResource(IStreamStore streamStore)
         {

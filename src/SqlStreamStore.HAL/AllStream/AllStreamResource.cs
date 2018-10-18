@@ -2,7 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
@@ -12,13 +11,6 @@
     {
         private readonly IStreamStore _streamStore;
         private readonly bool _useCanonicalUrls;
-
-        public HttpMethod[] Allowed { get; } =
-        {
-            HttpMethod.Get,
-            HttpMethod.Head,
-            HttpMethod.Options
-        };
 
         public AllStreamResource(IStreamStore streamStore, bool useCanonicalUrls)
         {

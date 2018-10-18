@@ -5,6 +5,7 @@ namespace SqlStreamStore.HAL
     using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -23,17 +24,33 @@ namespace SqlStreamStore.HAL
                 StringComparison.OrdinalIgnoreCase),
             configure);
 
-        public static IApplicationBuilder UseAllowedMethods(this IApplicationBuilder builder, IResource resource)
-            => builder.Use((context, next) =>
+        public static IApplicationBuilder UseAllowedMethods<TResource>(this IApplicationBuilder builder, TResource resource)
+            where TResource : IResource
+        {
+            var allowed = ResourceMethods.Discover<TResource>();
+
+            Task AllowedMethods(HttpContext context, Func<Task> next)
             {
-                if(!resource.Allowed.Contains(new HttpMethod(context.Request.Method)))
+                if(!allowed.Contains(new HttpMethod(context.Request.Method)))
                 {
                     context.Response.StatusCode = 405;
                     return Task.CompletedTask;
                 }
 
                 return next();
-            });
+            }
 
+
+            return builder
+                .Use(Options(allowed))
+                .Use(AllowedMethods);
+        }
+
+        private static MidFunc Options(HttpMethod[] allowed) => (context, next) =>
+        {
+            context.SetStandardCorsHeaders(allowed);
+
+            return Task.CompletedTask;
+        };
     }
 }

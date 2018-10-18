@@ -1,14 +1,15 @@
 namespace SqlStreamStore.HAL.Index
 {
-    using System.Net.Http;
+    using Halcyon.HAL;
 
     internal class IndexResource : IResource
     {
-        public HttpMethod[] Allowed { get; } =
-        {
-            HttpMethod.Get,
-            HttpMethod.Head,
-            HttpMethod.Options
-        };
+        public Response Get() => new Response(new HALResponse(null)
+            .AddLinks(
+                TheLinks
+                    .RootedAt(string.Empty)
+                    .Index().Self()
+                    .Find()
+                    .Add(Constants.Relations.Feed, "stream")));
     }
 }

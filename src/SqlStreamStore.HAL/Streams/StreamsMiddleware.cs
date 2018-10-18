@@ -18,7 +18,6 @@ namespace SqlStreamStore.HAL.Streams
                 .MapWhen(HttpMethod.Get, inner => inner.Use(GetStream(streams)))
                 .MapWhen(HttpMethod.Delete, inner => inner.Use(DeleteStream(streams)))
                 .MapWhen(HttpMethod.Post, inner => inner.Use(AppendStream(streams)))
-                .MapWhen(HttpMethod.Options, inner => inner.UseOptions(streams))
                 .UseAllowedMethods(streams);
         }
 
