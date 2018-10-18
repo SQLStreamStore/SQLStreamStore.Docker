@@ -6,7 +6,6 @@
     using System.Net;
     using System.Threading.Tasks;
     using Shouldly;
-    using SqlStreamStore.HAL.Resources;
     using Xunit;
 
     public class CanonicalUrlTests
@@ -50,8 +49,8 @@
          
             var formatters = new Dictionary<bool, Func<string, int, long, bool, string>>
             {
-                [true] = LinkFormatter.FormatForwardLink,
-                [false] = LinkFormatter.FormatBackwardLink
+                [true] = Links.FormatForwardLink,
+                [false] = Links.FormatBackwardLink
             };
 
             (string streamId, string path, string root)[] streams =

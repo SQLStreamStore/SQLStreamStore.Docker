@@ -35,11 +35,11 @@ namespace SqlStreamStore.HAL.StreamMetadata
                         result.MetadataJson
                     })
                     .AddLinks(
-                        TheLinks
+                        Links
                             .RootedAt("../../../")
                             .Index()
                             .Find()
-                            .MetadataNavigation(operation))
+                            .StreamMetadataNavigation(operation))
                     .AddEmbeddedResource(
                         Constants.Relations.Metadata,
                         SetStreamMetadata),
@@ -68,11 +68,11 @@ namespace SqlStreamStore.HAL.StreamMetadata
                     operation.MetadataJson
                 })
                 .AddLinks(
-                    TheLinks
+                    Links
                         .RootedAt("../../../")
                         .Index()
                         .Find()
-                        .MetadataNavigation(operation)));
+                        .StreamMetadataNavigation(operation)));
 
             return response;
         }

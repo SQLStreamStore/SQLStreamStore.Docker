@@ -4,7 +4,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class AllStreamMessageResource : IResource
@@ -24,13 +23,13 @@
         {
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
-            var links = TheLinks.RootedAt("../")
+            var links = Links.RootedAt("../")
                 .Index()
                 .Find()
                 .Add(Constants.Relations.Message, $"stream/{message.Position}").Self()
                 .Add(
                     Constants.Relations.Feed,
-                    LinkFormatter.FormatBackwardLink(
+                    Links.FormatBackwardLink(
                         Constants.Streams.All,
                         Constants.MaxCount,
                         Position.End,

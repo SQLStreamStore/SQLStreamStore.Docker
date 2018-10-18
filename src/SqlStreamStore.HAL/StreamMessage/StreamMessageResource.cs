@@ -26,11 +26,11 @@ namespace SqlStreamStore.HAL.StreamMessage
         {
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
-            var links = TheLinks
+            var links = Links
                 .RootedAt("../../")
                 .Index()
                 .Find()
-                .Navigation(message, operation);
+                .StreamMessageNavigation(message, operation);
             
             if(message.MessageId == Guid.Empty)
             {

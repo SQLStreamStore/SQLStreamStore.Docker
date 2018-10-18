@@ -41,7 +41,7 @@
                 ((string) resource.State.metadataJson).ShouldBeNull();
 
                 resource.ShouldLink(
-                    TheLinks
+                    Links
                         .RootedAt("../../../")
                         .Index()
                         .Find()
@@ -92,7 +92,7 @@
                     })).ShouldBeTrue();
 
                 resource.ShouldLink(
-                    TheLinks
+                    Links
                         .RootedAt("../../../")
                         .Index()
                         .Find()
@@ -138,7 +138,7 @@
                     })).ShouldBeTrue();
 
                 resource.ShouldLink(
-                    TheLinks
+                    Links
                         .RootedAt("../../../")
                         .Index()
                         .Find()

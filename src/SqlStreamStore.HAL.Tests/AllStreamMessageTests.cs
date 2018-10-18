@@ -30,7 +30,7 @@ namespace SqlStreamStore.HAL.Tests
                 var resource = await response.AsHal();
 
                 resource.ShouldLink(
-                    TheLinks
+                    Links
                         .RootedAt("../")
                         .Find()
                         .Index()
@@ -48,7 +48,7 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.ShouldLink(TheLinks
+                resource.ShouldLink(Links
                     .RootedAt("../")
                     .AddSelf(Constants.Relations.Message, "stream/0")
                     .Add(Constants.Relations.Feed, HeadOfAll));

@@ -14,7 +14,7 @@ namespace SqlStreamStore.HAL.Tests
                     Title = title
                 });
 
-        public static void ShouldLink(this Resource resource, TheLinks links)
+        public static void ShouldLink(this Resource resource, Links links)
         {
             var halLinks = links.ToHalLinks();
 

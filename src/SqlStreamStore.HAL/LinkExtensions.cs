@@ -2,10 +2,10 @@ namespace SqlStreamStore.HAL
 {
     internal static class LinkExtensions
     {
-        public static TheLinks Index(this TheLinks links) =>
+        public static Links Index(this Links links) =>
             links.Add(Constants.Relations.Index, string.Empty, "Index");
 
-        public static TheLinks Find(this TheLinks links)
+        public static Links Find(this Links links)
             => links.Add(Constants.Relations.Find, "streams/{streamId}", "Find a Stream");
     }
 }

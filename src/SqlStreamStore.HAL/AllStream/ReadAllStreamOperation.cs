@@ -3,7 +3,6 @@ namespace SqlStreamStore.HAL.AllStream
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class ReadAllStreamOperation : IStreamStoreOperation<ReadAllPage>
@@ -42,12 +41,12 @@ namespace SqlStreamStore.HAL.AllStream
                 : Constants.MaxCount;
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
-                ? LinkFormatter.FormatForwardLink(
+                ? Links.FormatForwardLink(
                     Constants.Streams.All,
                     MaxCount,
                     FromPositionInclusive,
                     EmbedPayload)
-                : LinkFormatter.FormatBackwardLink(
+                : Links.FormatBackwardLink(
                     Constants.Streams.All,
                     MaxCount,
                     FromPositionInclusive,

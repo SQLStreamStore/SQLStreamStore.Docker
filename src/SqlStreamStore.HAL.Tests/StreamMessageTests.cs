@@ -30,7 +30,7 @@
 
                 var resource = await response.AsHal();
 
-                resource.ShouldLink(TheLinks
+                resource.ShouldLink(Links
                     .RootedAt("../../")
                     .Index()
                     .Find()
@@ -53,7 +53,7 @@
 
                 var resource = await response.AsHal();
 
-                resource.ShouldLink(TheLinks
+                resource.ShouldLink(Links
                     .RootedAt("../../")
                     .Index()
                     .Find()

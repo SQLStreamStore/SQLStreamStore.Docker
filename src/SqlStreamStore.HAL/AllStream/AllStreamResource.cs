@@ -51,11 +51,11 @@
                         page.IsEnd
                     })
                     .AddLinks(
-                        TheLinks
+                        Links
                             .RootedAt(string.Empty)
                             .Index()
                             .Find()
-                            .Navigation(page, operation))
+                            .AllStreamNavigation(page, operation))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         streamMessages.Zip(
@@ -72,7 +72,7 @@
                                     metadata = message.JsonMetadata
                                 })
                                 .AddLinks(
-                                    TheLinks.RootedAt(string.Empty)
+                                    Links.RootedAt(string.Empty)
                                         .Add(
                                             Constants.Relations.Message,
                                             $"streams/{message.StreamId}/{message.StreamVersion}")

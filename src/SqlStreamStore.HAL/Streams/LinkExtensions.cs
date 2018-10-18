@@ -1,22 +1,21 @@
 namespace SqlStreamStore.HAL.Streams
 {
     using System.Linq;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal static class StreamsLinkExtensions
     {
-        public static TheLinks StreamsNavigation(this TheLinks links, ReadStreamPage page, ReadStreamOperation operation)
+        public static Links StreamsNavigation(this Links links, ReadStreamPage page, ReadStreamOperation operation)
         {
             var baseAddress = $"streams/{operation.StreamId}";
 
-            var first = LinkFormatter.FormatForwardLink(
+            var first = Links.FormatForwardLink(
                 baseAddress,
                 operation.MaxCount,
                 StreamVersion.Start,
                 operation.EmbedPayload);
 
-            var last = LinkFormatter.FormatBackwardLink(
+            var last = Links.FormatBackwardLink(
                 baseAddress,
                 operation.MaxCount,
                 StreamVersion.End,
@@ -28,7 +27,7 @@ namespace SqlStreamStore.HAL.Streams
             {
                 links.Add(
                     Constants.Relations.Previous,
-                    LinkFormatter.FormatBackwardLink(
+                    Links.FormatBackwardLink(
                         baseAddress,
                         operation.MaxCount,
                         page.Messages.Min(m => m.StreamVersion) - 1,
@@ -41,7 +40,7 @@ namespace SqlStreamStore.HAL.Streams
             {
                 links.Add(
                     Constants.Relations.Next,
-                    LinkFormatter.FormatForwardLink(
+                    Links.FormatForwardLink(
                         baseAddress,
                         operation.MaxCount,
                         page.Messages.Max(m => m.StreamVersion) + 1,

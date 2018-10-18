@@ -3,7 +3,6 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamPage>
@@ -50,8 +49,8 @@ namespace SqlStreamStore.HAL.Streams
             var baseAddress = $"streams/{StreamId}";
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
-                ? LinkFormatter.FormatForwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload)
-                : LinkFormatter.FormatBackwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload);
+                ? Links.FormatForwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload)
+                : Links.FormatBackwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload);
 
             IsUriCanonical = Self.Remove(0, baseAddress.Length)
                              == request.QueryString.ToUriComponent();

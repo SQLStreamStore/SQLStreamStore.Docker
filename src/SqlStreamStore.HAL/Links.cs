@@ -4,16 +4,16 @@ namespace SqlStreamStore.HAL
     using System.Collections.Generic;
     using Halcyon.HAL;
 
-    internal class TheLinks
+    internal class Links
     {
         private readonly List<(string rel, string href, string title)> _links;
         private readonly string _relativePathToRoot;
 
-        public static TheLinks RootedAt(string relativePathToRoot) => new TheLinks(relativePathToRoot);
+        public static Links RootedAt(string relativePathToRoot) => new Links(relativePathToRoot);
 
-        private TheLinks(string relativePathToRoot)
+        private Links(string relativePathToRoot)
         {
-            if(!string.IsNullOrEmpty(relativePathToRoot))
+            if(!String.IsNullOrEmpty(relativePathToRoot))
             {
                 if(!relativePathToRoot.StartsWith(".."))
                 {
@@ -28,11 +28,11 @@ namespace SqlStreamStore.HAL
                 }
             }
 
-            _relativePathToRoot = relativePathToRoot ?? string.Empty;
+            _relativePathToRoot = relativePathToRoot ?? String.Empty;
             _links = new List<(string rel, string href, string title)>();
         }
 
-        public TheLinks Add(string rel, string href, string title = null)
+        public Links Add(string rel, string href, string title = null)
         {
             if(rel == null)
                 throw new ArgumentNullException(nameof(rel));
@@ -43,14 +43,14 @@ namespace SqlStreamStore.HAL
             return this;
         }
 
-        public TheLinks Self()
+        public Links Self()
         {
             var link = _links[_links.Count - 1];
 
             return Add(Constants.Relations.Self, link.href, link.title);
         }
 
-        public TheLinks AddSelf(string rel, string href, string title = null)
+        public Links AddSelf(string rel, string href, string title = null)
             => Add(rel, href, title)
                 .Add(Constants.Relations.Self, href, title);
 
@@ -69,6 +69,15 @@ namespace SqlStreamStore.HAL
             return links;
         }
 
-        public static implicit operator Link[](TheLinks theLinks) => theLinks.ToHalLinks();
+        public static implicit operator Link[](Links links) => links.ToHalLinks();
+
+        private static string FormatLink(string baseAddress, string direction, int maxCount, long position, bool prefetch)
+            => $"{baseAddress}?d={direction}&m={maxCount}&p={position}&e={(prefetch ? 1 : 0)}";
+
+        public static string FormatForwardLink(string baseAddress, int maxCount, long position, bool prefetch)
+            => FormatLink(baseAddress, "f", maxCount, position, prefetch);
+
+        public static string FormatBackwardLink(string baseAddress, int maxCount, long position, bool prefetch)
+            => FormatLink(baseAddress, "b", maxCount, position, prefetch);
     }
 }

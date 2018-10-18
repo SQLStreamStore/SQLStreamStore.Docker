@@ -6,7 +6,7 @@ namespace SqlStreamStore.HAL.Index
     {
         public Response Get() => new Response(new HALResponse(null)
             .AddLinks(
-                TheLinks
+                Links
                     .RootedAt(string.Empty)
                     .Index().Self()
                     .Find()

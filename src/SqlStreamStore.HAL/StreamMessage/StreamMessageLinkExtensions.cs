@@ -1,12 +1,11 @@
 namespace SqlStreamStore.HAL.StreamMessage
 {
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
-    internal static class LinkExtensions
+    internal static class StreamMessageLinkExtensions
     {
-        public static TheLinks Navigation(
-            this TheLinks links,
+        public static Links StreamMessageNavigation(
+            this Links links,
             StreamMessage message,
             ReadStreamMessageByStreamVersionOperation operation)
         {
@@ -25,7 +24,7 @@ namespace SqlStreamStore.HAL.StreamMessage
             return links.Add(Constants.Relations.Last, $"{StreamId(operation)}/-1")
                 .Add(
                     Constants.Relations.Feed,
-                    LinkFormatter.FormatBackwardLink(
+                    Links.FormatBackwardLink(
                         StreamId(operation),
                         Constants.MaxCount,
                         StreamVersion.End,
