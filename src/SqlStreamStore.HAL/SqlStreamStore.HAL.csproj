@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE;LIBLOG_PROVIDERS_ONLY</DefineConstants>
+    <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
     <Description>HTTP Server for SQL Stream Store</Description>
     <AssemblyTitle>Stream Store - HAL Server</AssemblyTitle>    
     <DebugSymbols>true</DebugSymbols>
@@ -17,6 +17,8 @@
     <PackageReference Include="SqlStreamStore" Version="1.2.0-*" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Schema\*.json" />
+    <EmbeddedResource Include="**\Schema\*.json">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

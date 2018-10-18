@@ -5,6 +5,9 @@
 
     internal static class PathStringExtensions
     {
+        public static bool IsIndex(this PathString requestPath)
+            => (requestPath.Value ?? "/") == "/";
+        
         public static bool IsAllStream(this PathString requestPath)
             => !requestPath.HasValue;
 

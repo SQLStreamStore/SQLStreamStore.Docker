@@ -15,7 +15,7 @@ namespace SqlStreamStore.HAL.Tests
 
         public void Dispose() => _fixture.Dispose();
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
-        private const string HeadOfAll = "../stream?d=b&m=20&p=-1&e=0";
+        private const string HeadOfAll = "stream?d=b&m=20&p=-1&e=0";
 
         [Fact]
         public async Task read_single_message_all_stream()
@@ -29,18 +29,13 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[]
-                {
-                    Constants.Relations.Self, 
-                    Constants.Relations.Message, 
-                    Constants.Relations.Feed,
-                    Constants.Relations.Find
-                });
-
-                resource.ShouldLink(Constants.Relations.Self, "0");
-                resource.ShouldLink(Constants.Relations.Message, "0");
-                resource.ShouldLink(Constants.Relations.Feed, HeadOfAll);
-                resource.ShouldLink(Constants.Relations.Find, "../streams/{streamId}", "Find a Stream");
+                resource.ShouldLink(
+                    Links
+                        .RootedAt("../")
+                        .Find()
+                        .Index()
+                        .AddSelf(Constants.Relations.Message, "stream/0")
+                        .Add(Constants.Relations.Feed, HeadOfAll));
             }
         }
 
@@ -53,14 +48,10 @@ namespace SqlStreamStore.HAL.Tests
 
                 var resource = await response.AsHal();
 
-                resource.Links.Keys.ShouldBe(new[]
-                {
-                    Constants.Relations.Feed,
-                    Constants.Relations.Find
-                });
-
-                resource.ShouldLink(Constants.Relations.Feed, HeadOfAll);
-                resource.ShouldLink(Constants.Relations.Find, "../streams/{streamId}", "Find a Stream");
+                resource.ShouldLink(Links
+                    .RootedAt("../")
+                    .AddSelf(Constants.Relations.Message, "stream/0")
+                    .Add(Constants.Relations.Feed, HeadOfAll));
             }
         }
     }

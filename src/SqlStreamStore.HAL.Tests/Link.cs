@@ -14,7 +14,8 @@ namespace SqlStreamStore.HAL.Tests
                 return false;
             if(ReferenceEquals(this, other))
                 return true;
-            return string.Equals(Rel, other.Rel) && string.Equals(Href, other.Href)
+            return string.Equals(Rel, other.Rel) 
+                   && string.Equals(Href ?? string.Empty, other.Href ?? string.Empty)
                    && string.Equals(Title, other.Title);
         }
 

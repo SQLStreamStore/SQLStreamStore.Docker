@@ -43,7 +43,7 @@ namespace SqlStreamStore.HAL.Tests
             yield return new object[]
             {
                 "/streams/a-stream/0",
-                new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options }
+                new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
         }
 
