@@ -4,12 +4,12 @@ namespace SqlStreamStore.HAL.StreamMessage
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class StreamMessageResource : IResource
     {
         private readonly IStreamStore _streamStore;
+        private readonly SchemaSet<StreamMessageResource> _schema = new SchemaSet<StreamMessageResource>();
 
         public StreamMessageResource(IStreamStore streamStore)
         {
@@ -17,6 +17,8 @@ namespace SqlStreamStore.HAL.StreamMessage
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
         }
+
+        private HALResponse DeleteStreamMessage => _schema.GetSchema(nameof(DeleteStreamMessage));
 
         public async Task<Response> Get(
             ReadStreamMessageByStreamVersionOperation operation,
@@ -71,7 +73,7 @@ namespace SqlStreamStore.HAL.StreamMessage
                     })
                     .AddEmbeddedResource(
                         Constants.Relations.Delete,
-                        Schemas.DeleteStreamMessage)
+                        DeleteStreamMessage)
                     .AddLinks(links))
             {
                 Headers =

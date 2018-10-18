@@ -12,6 +12,7 @@ namespace SqlStreamStore.HAL.Streams
     {
         private readonly IStreamStore _streamStore;
         private readonly string _relativePathToRoot;
+        private readonly SchemaSet<StreamResource> _schema;
 
         public StreamResource(IStreamStore streamStore)
         {
@@ -19,7 +20,11 @@ namespace SqlStreamStore.HAL.Streams
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
             _relativePathToRoot = "../";
+            _schema = new SchemaSet<StreamResource>();
         }
+
+        private HALResponse AppendToStream => _schema.GetSchema(nameof(AppendToStream));
+        private HALResponse DeleteStream => _schema.GetSchema(nameof(DeleteStream));
 
         public async Task<Response> Post(
             AppendStreamOperation operation,
@@ -81,10 +86,10 @@ namespace SqlStreamStore.HAL.Streams
                         .StreamsNavigation(page, operation))
                     .AddEmbeddedResource(
                         Constants.Relations.AppendToStream,
-                        Schemas.AppendToStream)
+                        AppendToStream)
                     .AddEmbeddedResource(
                         Constants.Relations.Delete,
-                        Schemas.DeleteStream)
+                        DeleteStream)
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         streamMessages.Zip(
