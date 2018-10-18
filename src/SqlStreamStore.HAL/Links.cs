@@ -4,24 +4,6 @@ namespace SqlStreamStore.HAL
     using System.Collections.Generic;
     using Halcyon.HAL;
 
-    internal static class Links
-    {
-        public static Link Find(string href) =>
-            new Link(Constants.Relations.Find, href, "Find a Stream", replaceParameters: false);
-
-        public static Link Index(string href) =>
-            new Link(Constants.Relations.Index, href, "Index", replaceParameters: false);
-    }
-
-    internal static class LinkExtensions
-    {
-        public static TheLinks Index(this TheLinks links) =>
-            links.Add(Constants.Relations.Index, string.Empty, "Index");
-
-        public static TheLinks Find(this TheLinks links)
-            => links.Add(Constants.Relations.Find, "streams/{streamId}", "Find a Stream");
-    }
-
     internal class TheLinks
     {
         private readonly List<(string rel, string href, string title)> _links;

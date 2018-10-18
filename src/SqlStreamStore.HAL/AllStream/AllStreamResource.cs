@@ -72,8 +72,12 @@
                                     metadata = message.JsonMetadata
                                 })
                                 .AddLinks(
-                                    Links.Message.Self(message),
-                                    Links.Message.Feed(message)))));
+                                    TheLinks.RootedAt(string.Empty)
+                                        .Add(
+                                            Constants.Relations.Message,
+                                            $"streams/{message.StreamId}/{message.StreamVersion}")
+                                        .Self()
+                                        .Add(Constants.Relations.Feed, $"streams/{message.StreamId}")))));
 
             if(operation.FromPositionInclusive == Position.End)
             {
@@ -95,20 +99,6 @@
             }
 
             return response;
-        }
-
-        private static class Links
-        {
-            public static class Message
-            {
-                public static Link Self(StreamMessage message) => new Link(
-                    Constants.Relations.Self,
-                    $"streams/{message.StreamId}/{message.StreamVersion}");
-
-                public static Link Feed(StreamMessage message) => new Link(
-                    Constants.Relations.Feed,
-                    $"streams/{message.StreamId}");
-            }
         }
     }
 }

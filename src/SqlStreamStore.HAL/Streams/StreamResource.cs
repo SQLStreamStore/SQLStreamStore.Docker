@@ -5,7 +5,6 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using SqlStreamStore.HAL.Resources;
     using SqlStreamStore.Streams;
 
     internal class StreamResource : IResource
@@ -32,11 +31,14 @@ namespace SqlStreamStore.HAL.Streams
         {
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
+            var links = TheLinks.RootedAt(_relativePathToRoot)
+                .Index()
+                .Find()
+                .Add(Constants.Relations.Feed, $"streams/{operation.StreamId}").Self();
+
             var response = new Response(
                 new HALResponse(result)
-                    .AddLinks(Links.Self(operation))
-                    .AddLinks(Links.Feed(operation))
-                    .AddLinks(Links.Find()),
+                    .AddLinks(links),
                 result.CurrentVersion == 0
                     ? 201
                     : 200);
@@ -106,8 +108,12 @@ namespace SqlStreamStore.HAL.Streams
                                     metadata = message.JsonMetadata
                                 })
                                 .AddLinks(
-                                    Links.Message.Self(message),
-                                    Links.Message.Feed(message)))),
+                                    TheLinks.RootedAt(_relativePathToRoot)
+                                        .Add(
+                                            Constants.Relations.Message, 
+                                            $"{message.StreamId}/{message.StreamVersion}")
+                                        .Self()
+                                        .Add(Constants.Relations.Feed, message.StreamId)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
 
             if(page.TryGetETag(out var eTag))
@@ -123,35 +129,6 @@ namespace SqlStreamStore.HAL.Streams
             await operation.Invoke(_streamStore, cancellationToken);
 
             return new Response(new HALResponse(new object()));
-        }
-
-        private static class Links
-        {
-            public static Link Find() => SqlStreamStore.HAL.Links.Find("../streams/{streamId}");
-
-            public static Link Self(AppendStreamOperation operation) => new Link(
-                Constants.Relations.Self,
-                $"{operation.StreamId}");
-
-            public static Link Feed(AppendStreamOperation operation)
-                => new Link(
-                    Constants.Relations.Feed,
-                    LinkFormatter.FormatBackwardLink(
-                        operation.StreamId,
-                        Constants.MaxCount,
-                        StreamVersion.End,
-                        false));
-
-            public static class Message
-            {
-                public static Link Self(StreamMessage message) => new Link(
-                    Constants.Relations.Self,
-                    $"{message.StreamId}/{message.StreamVersion}");
-
-                public static Link Feed(StreamMessage message) => new Link(
-                    Constants.Relations.Feed,
-                    message.StreamId);
-            }
         }
     }
 }
