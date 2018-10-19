@@ -19,7 +19,7 @@ namespace SqlStreamStore.HAL
         {
             using(Stream stream = typeof(TResource)
                 .GetTypeInfo().Assembly
-                .GetManifestResourceStream(typeof(TResource), $"Schema.{name}.json"))
+                .GetManifestResourceStream(typeof(TResource), $"Schema.{name}.schema.json"))
             {
                 if(stream == null)
                 {
