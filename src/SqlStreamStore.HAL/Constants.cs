@@ -22,18 +22,20 @@ namespace SqlStreamStore.HAL
 
         public static class Relations
         {
+            public const string StreamStorePrefix = "streamStore";
+            public const string Curies = "curies";
             public const string Self = "self";
             public const string First = "first";
             public const string Previous = "previous";
             public const string Next = "next";
             public const string Last = "last";
-            public const string Index = "streamStore:index";
-            public const string Feed = "streamStore:feed";
-            public const string Message = "streamStore:message";
-            public const string Metadata = "streamStore:metadata";
-            public const string AppendToStream = "streamStore:append";
-            public const string Delete = "streamStore:delete";
-            public const string Find = "streamStore:find";
+            public const string Index = StreamStorePrefix + ":index";
+            public const string Feed = StreamStorePrefix + ":feed";
+            public const string Message = StreamStorePrefix + ":message";
+            public const string Metadata = StreamStorePrefix + ":metadata";
+            public const string AppendToStream = StreamStorePrefix + ":append";
+            public const string Delete = StreamStorePrefix + ":delete";
+            public const string Find = StreamStorePrefix + ":find";
         }
 
         public static class Streams

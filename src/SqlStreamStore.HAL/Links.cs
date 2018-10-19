@@ -56,7 +56,7 @@ namespace SqlStreamStore.HAL
 
         public Link[] ToHalLinks()
         {
-            var links = new Link[_links.Count];
+            var links = new Link[_links.Count + 1];
 
             for(var i = 0; i < _links.Count; i++)
             {
@@ -66,12 +66,25 @@ namespace SqlStreamStore.HAL
                 links[i] = new Link(rel, resolvedHref, title, replaceParameters: false);
             }
 
+            links[_links.Count] = new Link(
+                Constants.Relations.Curies,
+                $"{_relativePathToRoot}docs/{{rel}}",
+                replaceParameters: false)
+            {
+                Name = Constants.Relations.StreamStorePrefix
+            };
+
             return links;
         }
 
         public static implicit operator Link[](Links links) => links.ToHalLinks();
 
-        private static string FormatLink(string baseAddress, string direction, int maxCount, long position, bool prefetch)
+        private static string FormatLink(
+            string baseAddress,
+            string direction,
+            int maxCount,
+            long position,
+            bool prefetch)
             => $"{baseAddress}?d={direction}&m={maxCount}&p={position}&e={(prefetch ? 1 : 0)}";
 
         public static string FormatForwardLink(string baseAddress, int maxCount, long position, bool prefetch)
