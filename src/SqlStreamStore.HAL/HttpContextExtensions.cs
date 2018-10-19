@@ -70,7 +70,7 @@ namespace SqlStreamStore.HAL
         {
             context.Response.StatusCode = response.StatusCode;
 
-            context.Response.ContentType = Constants.Headers.ContentTypes.HalJson;
+            context.Response.ContentType = Constants.MediaTypes.HalJson;
 
             foreach(var header in response.Headers)
             {

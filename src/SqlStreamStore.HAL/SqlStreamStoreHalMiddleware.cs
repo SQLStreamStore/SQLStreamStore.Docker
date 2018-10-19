@@ -41,14 +41,14 @@
         {
             var accept = context.Request.GetAcceptHeaders();
 
-            return accept.Any(header => header == Constants.Headers.ContentTypes.HalJson
-                                        || header == Constants.Headers.ContentTypes.Any)
+            return accept.Any(header => header == Constants.MediaTypes.HalJson
+                                        || header == Constants.MediaTypes.Any)
                 ? next()
                 : context.WriteResponse(new Response(new HALResponse(new
                     {
                         type = "Not Acceptable",
                         title = "Not Acceptable",
-                        detail = $"The server only understands {Constants.Headers.ContentTypes.HalJson}."
+                        detail = $"The server only understands {Constants.MediaTypes.HalJson}."
                     }),
                     406));
         };

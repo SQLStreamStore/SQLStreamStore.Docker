@@ -63,15 +63,21 @@ namespace SqlStreamStore.HAL
                 var (rel, href, title) = _links[i];
                 var resolvedHref = $"{_relativePathToRoot}{href}";
 
-                links[i] = new Link(rel, resolvedHref, title, replaceParameters: false);
+                links[i] = new Link(rel, resolvedHref, title, replaceParameters: false)
+                {
+                    Type = Constants.MediaTypes.HalJson
+                };
             }
 
             links[_links.Count] = new Link(
                 Constants.Relations.Curies,
                 $"{_relativePathToRoot}docs/{{rel}}",
+                "Documentation",
                 replaceParameters: false)
             {
-                Name = Constants.Relations.StreamStorePrefix
+                Name = Constants.Relations.StreamStorePrefix,
+                HrefLang = "en",
+                Type = Constants.MediaTypes.TextMarkdown
             };
 
             return links;

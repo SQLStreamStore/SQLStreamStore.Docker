@@ -2,6 +2,13 @@ namespace SqlStreamStore.HAL
 {
     internal static class Constants
     {
+        public static class MediaTypes
+        {
+            public const string TextMarkdown = "text/markdown; charset=UTF-8";
+            public const string HalJson = "application/hal+json";
+            public const string Any = "*/*";
+        }
+
         public static class Headers
         {
             public const string ExpectedVersion = "SSS-ExpectedVersion";
@@ -11,13 +18,6 @@ namespace SqlStreamStore.HAL
             public const string ETag = "ETag";
             public const string IfNoneMatch = "If-None-Match";
             public const string CacheControl = "Cache-Control";
-
-            public static class ContentTypes
-            {
-                public const string Json = "application/json";
-                public const string HalJson = "application/hal+json";
-                public const string Any = "*/*";
-            }
         }
 
         public static class Relations
