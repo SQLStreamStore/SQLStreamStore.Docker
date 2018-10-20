@@ -32,7 +32,7 @@ static class Program
         
         Target(
             GenerateDocumentation,
-            () => Run("dotnet", "build docs/docs.csproj"));
+            () => Run("dotnet", "build docs/docs.csproj --verbosity normal"));
 
         Target(
             Build, 
@@ -46,7 +46,7 @@ static class Program
             DependsOn(Build),
             () => Run(
                 "dotnet",
-                $"test src/SqlStreamStore.HAL.Tests -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml"));
+                $"test src/SqlStreamStore.HAL.Tests -c Release -r ../../{ArtifactsDir} --verbosity normal --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml"));
 
         Target(
             Pack,
