@@ -10,7 +10,7 @@ namespace SqlStreamStore.HAL.AllStreamMessage
     {
         public ReadAllStreamMessageOperation(HttpRequest request)
         {
-            Position = long.Parse(request.Path.Value.Remove(0, 1));
+            Position = long.Parse(request.Path.Value.Remove(0, 2 + Constants.Streams.All.Length));
         }
 
         public long Position { get; }

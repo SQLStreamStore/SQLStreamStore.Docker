@@ -1,25 +1,15 @@
 namespace SqlStreamStore.HAL
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Serialization;
     using SqlStreamStore.Streams;
 
     internal static class HttpContextExtensions
     {
-        private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            TypeNameHandling = TypeNameHandling.None,
-            NullValueHandling = NullValueHandling.Ignore
-        });
-
         private static readonly string[] s_NotModifiedRequiredHeaders =
         {
             "cache-control",
@@ -33,7 +23,7 @@ namespace SqlStreamStore.HAL
         public static Task WriteResponse(this HttpContext context, Response response)
             => context.Request.IfNoneMatch(response)
                 ? WriteNotModifiedResponse(context, response)
-                : WriteHalResponse(context, response);
+                : WriteResponseInternal(context, response);
 
         private static bool IfNoneMatch(this HttpRequest request, Response response)
         {
@@ -66,26 +56,16 @@ namespace SqlStreamStore.HAL
             return Task.CompletedTask;
         }
 
-        private static async Task WriteHalResponse(HttpContext context, Response response)
+        private static Task WriteResponseInternal(HttpContext context, Response response)
         {
             context.Response.StatusCode = response.StatusCode;
-
-            context.Response.ContentType = Constants.Headers.ContentTypes.HalJson;
 
             foreach(var header in response.Headers)
             {
                 context.Response.Headers.Append(header.Key, header.Value);
             }
 
-            using(var writer = new JsonTextWriter(new StreamWriter(context.Response.Body))
-            {
-                CloseOutput = false
-            })
-            {
-                await response.Hal.ToJObject(s_serializer).WriteToAsync(writer, context.RequestAborted);
-
-                await writer.FlushAsync(context.RequestAborted);
-            }
+            return response.WriteBody(context.Response, context.RequestAborted);
         }
 
         public static void SetStandardCorsHeaders(this HttpContext context, params HttpMethod[] allowedMethods)
@@ -108,18 +88,6 @@ namespace SqlStreamStore.HAL
 
             context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         }
-
-        public static bool IsGetOrHead(this HttpContext context)
-            => context.Request.Method == "GET" || context.Request.Method == "HEAD";
-
-        public static bool IsPost(this HttpContext context)
-            => context.Request.Method == "POST";
-
-        public static bool IsDelete(this HttpContext context)
-            => context.Request.Method == "DELETE";
-
-        public static bool IsOptions(this HttpContext context)
-            => context.Request.Method == "OPTIONS";
 
         public static int GetExpectedVersion(this HttpRequest request)
             => int.TryParse(

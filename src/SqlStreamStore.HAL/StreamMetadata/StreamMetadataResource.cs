@@ -8,17 +8,17 @@ namespace SqlStreamStore.HAL.StreamMetadata
     internal class StreamMetadataResource : IResource
     {
         private readonly IStreamStore _streamStore;
-        private readonly SchemaSet<StreamMetadataResource> _schema;
+        public SchemaSet Schema { get; }
 
         public StreamMetadataResource(IStreamStore streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
-            _schema = new SchemaSet<StreamMetadataResource>();
+            Schema = new SchemaSet<StreamMetadataResource>();
         }
 
-        private HALResponse SetStreamMetadata => _schema.GetSchema(nameof(SetStreamMetadata));
+        private HALResponse metadata => Schema.GetSchema(nameof(metadata));
 
         public async Task<Response> Get(
             GetStreamMetadataOperation operation,
@@ -26,7 +26,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
         {
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
-            var response = new Response(new HALResponse(new
+            var response = new HalJsonResponse(new HALResponse(new
                     {
                         result.StreamId,
                         result.MetadataStreamVersion,
@@ -42,7 +42,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
                             .StreamMetadataNavigation(operation))
                     .AddEmbeddedResource(
                         Constants.Relations.Metadata,
-                        SetStreamMetadata),
+                        metadata),
                 result.MetadataStreamVersion >= 0 ? 200 : 404)
             {
                 Headers =
@@ -60,7 +60,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
         {
             await operation.Invoke(_streamStore, cancellationToken);
 
-            var response = new Response(new HALResponse(new
+            var response = new HalJsonResponse(new HALResponse(new
                 {
                     operation.StreamId,
                     operation.MaxAge,

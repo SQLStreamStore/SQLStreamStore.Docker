@@ -9,16 +9,17 @@ namespace SqlStreamStore.HAL.StreamMessage
     internal class StreamMessageResource : IResource
     {
         private readonly IStreamStore _streamStore;
-        private readonly SchemaSet<StreamMessageResource> _schema = new SchemaSet<StreamMessageResource>();
+        public SchemaSet Schema { get; }
 
         public StreamMessageResource(IStreamStore streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
+            Schema = new SchemaSet<StreamMessageResource>();
         }
 
-        private HALResponse DeleteStreamMessage => _schema.GetSchema(nameof(DeleteStreamMessage));
+        private HALResponse DeleteStreamMessage => Schema.GetSchema("delete-message");
 
         public async Task<Response> Get(
             ReadStreamMessageByStreamVersionOperation operation,
@@ -34,7 +35,7 @@ namespace SqlStreamStore.HAL.StreamMessage
             
             if(message.MessageId == Guid.Empty)
             {
-                return new Response(
+                return new HalJsonResponse(
                     new HALResponse(new
                         {
                             operation.StreamId,
@@ -46,7 +47,7 @@ namespace SqlStreamStore.HAL.StreamMessage
 
             if(operation.StreamVersion == StreamVersion.End)
             {
-                return new Response(new HALResponse(new object()), 307)
+                return new HalJsonResponse(new HALResponse(new object()), 307)
                 {
                     Headers =
                     {
@@ -59,7 +60,7 @@ namespace SqlStreamStore.HAL.StreamMessage
 
             var eTag = ETag.FromStreamVersion(message.StreamVersion);
 
-            return new Response(
+            return new HalJsonResponse(
                 new HALResponse(new
                     {
                         message.MessageId,
@@ -72,7 +73,7 @@ namespace SqlStreamStore.HAL.StreamMessage
                         metadata = message.JsonMetadata
                     })
                     .AddEmbeddedResource(
-                        Constants.Relations.Delete,
+                        Constants.Relations.DeleteMessage,
                         DeleteStreamMessage)
                     .AddLinks(links))
             {
@@ -90,7 +91,7 @@ namespace SqlStreamStore.HAL.StreamMessage
         {
             await operation.Invoke(_streamStore, cancellationToken);
 
-            return new Response(
+            return new HalJsonResponse(
                 new HALResponse(new HALModelConfig()));
         }
     }

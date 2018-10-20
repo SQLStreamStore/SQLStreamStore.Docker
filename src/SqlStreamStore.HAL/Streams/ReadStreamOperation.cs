@@ -12,7 +12,7 @@ namespace SqlStreamStore.HAL.Streams
 
         public ReadStreamOperation(HttpRequest request)
         {
-            StreamId = request.Path.Value.Remove(0, 1);
+            StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
 
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
                            && embedPayload == "1";

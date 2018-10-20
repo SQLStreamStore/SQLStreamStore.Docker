@@ -1,6 +1,7 @@
 namespace SqlStreamStore.HAL.Index
 {
     using System;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
@@ -12,26 +13,23 @@ namespace SqlStreamStore.HAL.Index
 
     internal static class IndexMiddleware
     {
-        public static IApplicationBuilder UseIndex(this IApplicationBuilder builder)
+        public static IApplicationBuilder UseIndex(this IApplicationBuilder builder, IndexResource index)
+            => builder.MapWhen(
+                IsMatch,
+                Configure(index));
+
+        private static bool IsMatch(HttpContext context)
+            => context.Request.Path == Constants.Streams.IndexPath;
+
+        private static Action<IApplicationBuilder> Configure(IndexResource index)
+            => builder => builder
+                .UseMiddlewareLogging(typeof(IndexMiddleware))
+                .MapWhen(HttpMethod.Get, inner => inner.Use(Index(index)))
+                .UseAllowedMethods(index);
+
+        private static MidFunc Index(IndexResource index)
         {
-            var index = new IndexResource();
-
-            return builder
-                .MapWhen(IsGetIndex, inner => inner.Use(Index()))
-                .MapWhen(IsIndex, inner => inner.UseAllowedMethods(index));
-        }
-
-        private static bool IsGetIndex(HttpContext context)
-            => context.IsGetOrHead() && context.Request.Path.IsIndex();
-
-        private static bool IsIndex(HttpContext context)
-            => context.Request.Path.IsIndex();
-
-        private static MidFunc Index()
-        {
-            var resource = new IndexResource();
-            
-            var response = resource.Get();
+            var response = index.Get();
 
             Task Index(HttpContext context, Func<Task> next) => context.WriteResponse(response);
 

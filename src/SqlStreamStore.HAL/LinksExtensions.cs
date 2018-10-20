@@ -1,6 +1,6 @@
 namespace SqlStreamStore.HAL
 {
-    internal static class LinkExtensions
+    internal static class LinksExtensions
     {
         public static Links Index(this Links links) =>
             links.Add(Constants.Relations.Index, string.Empty, "Index");

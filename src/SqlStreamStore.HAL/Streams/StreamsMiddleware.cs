@@ -1,25 +1,34 @@
 namespace SqlStreamStore.HAL.Streams
 {
+    using System;
     using System.Net.Http;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Http;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
         System.Threading.Tasks.Task
     >;
-    
+
     internal static class StreamsMiddleware
     {
-        public static IApplicationBuilder UseStreams(this IApplicationBuilder builder, IStreamStore streamStore)
-        {
-            var streams = new StreamResource(streamStore);
+        public static IApplicationBuilder UseStreams(this IApplicationBuilder builder, StreamResource streams)
+            => builder.MapWhen(IsMatch, Configure(streams));
 
-            return builder
+        private static bool IsMatch(HttpContext context)
+            => context.Request.Path.IsStreams();
+
+        private static bool IsStreams(this PathString requestPath)
+            => requestPath.StartsWithSegments(Constants.Streams.StreamsPath)
+               && requestPath.Value?.Split('/').Length == 3;
+
+        private static Action<IApplicationBuilder> Configure(StreamResource streams)
+            => builder => builder
+                .UseMiddlewareLogging(typeof(StreamsMiddleware))
                 .MapWhen(HttpMethod.Get, inner => inner.Use(GetStream(streams)))
                 .MapWhen(HttpMethod.Delete, inner => inner.Use(DeleteStream(streams)))
                 .MapWhen(HttpMethod.Post, inner => inner.Use(AppendStream(streams)))
                 .UseAllowedMethods(streams);
-        }
 
         private static MidFunc GetStream(StreamResource streams) => async (context, next) =>
         {
