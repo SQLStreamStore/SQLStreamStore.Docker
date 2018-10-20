@@ -5,6 +5,9 @@ ARG TRAVIS_COMMIT
 ARG TRAVIS_PULL_REQUEST
 ARG TRAVIS_BRANCH
 ARG MYGET_API_KEY
+
+RUN apk add nodejs --no-cache git
+
 WORKDIR /src
 
 COPY ./src/*.sln ./
