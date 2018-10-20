@@ -11,7 +11,7 @@ namespace SqlStreamStore.HAL.Streams
     {
         private readonly IStreamStore _streamStore;
         private readonly string _relativePathToRoot;
-        private readonly SchemaSet<StreamResource> _schema;
+        public SchemaSet Schema { get; }
 
         public StreamResource(IStreamStore streamStore)
         {
@@ -19,11 +19,11 @@ namespace SqlStreamStore.HAL.Streams
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
             _relativePathToRoot = "../";
-            _schema = new SchemaSet<StreamResource>();
+            Schema = new SchemaSet<StreamResource>();
         }
 
-        private HALResponse AppendToStream => _schema.GetSchema(nameof(AppendToStream));
-        private HALResponse DeleteStream => _schema.GetSchema(nameof(DeleteStream));
+        private HALResponse append => Schema.GetSchema(nameof(append));
+        private HALResponse delete => Schema.GetSchema("delete-stream");
 
         public async Task<Response> Post(
             AppendStreamOperation operation,
@@ -36,7 +36,7 @@ namespace SqlStreamStore.HAL.Streams
                 .Find()
                 .Add(Constants.Relations.Feed, $"streams/{operation.StreamId}").Self();
 
-            var response = new Response(
+            var response = new HalJsonResponse(
                 new HALResponse(result)
                     .AddLinks(links),
                 result.CurrentVersion == 0
@@ -55,7 +55,7 @@ namespace SqlStreamStore.HAL.Streams
         {
             if(!operation.IsUriCanonical)
             {
-                return new Response(new HALResponse(null), 308)
+                return new HalJsonResponse(new HALResponse(null), 308)
                 {
                     Headers = { [Constants.Headers.Location] = new[] { $"../{operation.Self}" } }
                 };
@@ -72,7 +72,7 @@ namespace SqlStreamStore.HAL.Streams
                         ? message.GetJsonData(cancellationToken)
                         : SkippedPayload.Instance));
 
-            var response = new Response(
+            var response = new HalJsonResponse(
                 new HALResponse(new
                     {
                         page.LastStreamVersion,
@@ -88,10 +88,10 @@ namespace SqlStreamStore.HAL.Streams
                         .StreamsNavigation(page, operation))
                     .AddEmbeddedResource(
                         Constants.Relations.AppendToStream,
-                        AppendToStream)
+                        append)
                     .AddEmbeddedResource(
-                        Constants.Relations.Delete,
-                        DeleteStream)
+                        Constants.Relations.DeleteStream,
+                        delete)
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
                         streamMessages.Zip(
@@ -111,7 +111,7 @@ namespace SqlStreamStore.HAL.Streams
                                     Links.RootedAt(_relativePathToRoot)
                                         .Add(
                                             Constants.Relations.Message, 
-                                            $"{message.StreamId}/{message.StreamVersion}")
+                                            $"{Constants.Streams.Stream}/{message.StreamId}/{message.StreamVersion}")
                                         .Self()
                                         .Add(Constants.Relations.Feed, message.StreamId)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
@@ -128,7 +128,7 @@ namespace SqlStreamStore.HAL.Streams
         {
             await operation.Invoke(_streamStore, cancellationToken);
 
-            return new Response(new HALResponse(new object()));
+            return new HalJsonResponse(new HALResponse(new object()));
         }
     }
 }

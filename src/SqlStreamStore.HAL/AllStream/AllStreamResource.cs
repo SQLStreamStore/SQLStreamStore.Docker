@@ -12,6 +12,8 @@
         private readonly IStreamStore _streamStore;
         private readonly bool _useCanonicalUrls;
 
+        public SchemaSet Schema { get; }
+
         public AllStreamResource(IStreamStore streamStore, bool useCanonicalUrls)
         {
             if(streamStore == null)
@@ -26,7 +28,7 @@
         {
             if(_useCanonicalUrls && !operation.IsUriCanonical)
             {
-                return new Response(new HALResponse(null), 308)
+                return new HalJsonResponse(new HALResponse(null), 308)
                 {
                     Headers = { [Constants.Headers.Location] = new[] { operation.Self } }
                 };
@@ -43,7 +45,7 @@
                         ? message.GetJsonData(cancellationToken)
                         : SkippedPayload.Instance));
 
-            var response = new Response(
+            var response = new HalJsonResponse(
                 new HALResponse(new
                     {
                         page.FromPosition,

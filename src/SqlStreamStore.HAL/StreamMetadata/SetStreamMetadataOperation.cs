@@ -24,7 +24,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
 
         private SetStreamMetadataOperation(HttpRequest request, JObject body)
         {
-            StreamId = request.Path.Value.Split('/')[1];
+            StreamId = request.Path.Value.Split('/')[2];
             ExpectedVersion = request.GetExpectedVersion();
             MaxAge = body.Value<int?>("maxAge");
             MaxCount = body.Value<int?>("maxCount");

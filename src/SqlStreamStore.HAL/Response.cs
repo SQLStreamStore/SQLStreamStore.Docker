@@ -2,19 +2,24 @@
 {
     using System;
     using System.Collections.Generic;
-    using Halcyon.HAL;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
 
-    public class Response
+    internal abstract class Response
     {
-        public HALResponse Hal { get; }
         public int StatusCode { get; }
         public IDictionary<string, string[]> Headers { get; }
 
-        public Response(HALResponse hal, int statusCode = 200)
+        protected Response(int statusCode, string mediaType)
         {
-            Hal = hal;
             StatusCode = statusCode;
-            Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+            Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                [Constants.Headers.ContentType] = new[] { mediaType }
+            };
         }
+
+        public abstract Task WriteBody(HttpResponse response, CancellationToken cancellationToken);
     }
 }

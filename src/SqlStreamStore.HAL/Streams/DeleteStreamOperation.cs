@@ -8,7 +8,7 @@ namespace SqlStreamStore.HAL.Streams
     {
         public DeleteStreamOperation(HttpRequest request)
         {
-            StreamId = request.Path.Value.Remove(0, 1);
+            StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
 
             ExpectedVersion = request.GetExpectedVersion();
         }

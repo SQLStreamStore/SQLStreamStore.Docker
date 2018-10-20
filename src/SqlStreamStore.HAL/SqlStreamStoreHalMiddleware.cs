@@ -10,6 +10,7 @@
     using Microsoft.AspNetCore.Http;
     using SqlStreamStore.HAL.AllStream;
     using SqlStreamStore.HAL.AllStreamMessage;
+    using SqlStreamStore.HAL.Docs;
     using SqlStreamStore.HAL.Index;
     using SqlStreamStore.HAL.StreamMessage;
     using SqlStreamStore.HAL.StreamMetadata;
@@ -44,7 +45,7 @@
             return accept.Any(header => header == Constants.MediaTypes.HalJson
                                         || header == Constants.MediaTypes.Any)
                 ? next()
-                : context.WriteResponse(new Response(new HALResponse(new
+                : context.WriteResponse(new HalJsonResponse(new HALResponse(new
                     {
                         type = "Not Acceptable",
                         title = "Not Acceptable",
@@ -73,38 +74,26 @@
 
             options = options ?? new SqlStreamStoreMiddlewareOptions();
 
+            var index = new IndexResource();
+            var allStream = new AllStreamResource(streamStore, options.UseCanonicalUrls);
+            var allStreamMessages = new AllStreamMessageResource(streamStore);
+            var streams = new StreamResource(streamStore);
+            var streamMetadata = new StreamMetadataResource(streamStore);
+            var streamMessages = new StreamMessageResource(streamStore);
+
             return builder
                 .UseExceptionHandling()
                 .Use(CaseSensitiveQueryStrings)
-                .Use(AcceptHalJson)
                 .Use(HeadRequests)
-                .UseIndex()
-                .Map("/stream", UseAllStream(streamStore, options))
-                .Map("/streams", UseStream(streamStore));
+                .UseDocs(index, allStream, allStreamMessages, streams, streamMessages, streamMetadata)
+                .Use(AcceptHalJson)
+                .UseIndex(index)
+                .UseAllStream(allStream)
+                .UseAllStreamMessage(allStreamMessages)
+                .UseStreams(streams)
+                .UseStreamMetadata(streamMetadata)
+                .UseStreamMessages(streamMessages);
         }
-
-        private static Action<IApplicationBuilder> UseStream(
-            IStreamStore streamStore)
-            => builder => builder
-                .MapWhen(IsStream, inner => inner.UseStreams(streamStore))
-                .MapWhen(IsStreamMessage, inner => inner.UseStreamMessages(streamStore))
-                .MapWhen(IsStreamMetadata, inner => inner.UseStreamMetadata(streamStore));
-
-        private static Action<IApplicationBuilder> UseAllStream(
-            IStreamStore streamStore,
-            SqlStreamStoreMiddlewareOptions options)
-            => builder => builder
-                .MapWhen(IsAllStream, inner => inner.UseAllStream(streamStore, options))
-                .MapWhen(IsAllStreamMessage, inner => inner.UseAllStreamMessage(streamStore));
-
-        private static bool IsStreamMessage(HttpContext context) => context.Request.Path.IsStreamMessage();
-
-        private static bool IsStream(HttpContext context) => context.Request.Path.IsStream();
-
-        private static bool IsStreamMetadata(HttpContext context) => context.Request.Path.IsStreamMetadata();
-
-        private static bool IsAllStreamMessage(HttpContext context) => context.Request.Path.IsAllStreamMessage();
-        private static bool IsAllStream(HttpContext context) => context.Request.Path.IsAllStream();
 
         private class OptionalHeadRequestWrapper : IDisposable
         {

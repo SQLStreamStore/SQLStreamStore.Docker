@@ -10,6 +10,8 @@
     {
         private readonly IStreamStore _streamStore;
 
+        public SchemaSet Schema { get; }
+
         public AllStreamMessageResource(IStreamStore streamStore)
         {
             if(streamStore == null)
@@ -37,7 +39,7 @@
 
             if(message.MessageId == Guid.Empty)
             {
-                return new Response(
+                return new HalJsonResponse(
                     new HALResponse(null)
                         .AddLinks(links),
                     404);
@@ -45,7 +47,7 @@
 
             var payload = await message.GetJsonData(cancellationToken);
 
-            return new Response(
+            return new HalJsonResponse(
                 new HALResponse(new
                 {
                     message.MessageId,

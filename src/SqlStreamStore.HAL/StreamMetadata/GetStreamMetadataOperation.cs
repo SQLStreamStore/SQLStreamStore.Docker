@@ -9,7 +9,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
     {
         public GetStreamMetadataOperation(HttpRequest request)
         {
-            StreamId = request.Path.Value.Split('/')[1];
+            StreamId = request.Path.Value.Split('/')[2];
         }
 
         public string StreamId { get; }
