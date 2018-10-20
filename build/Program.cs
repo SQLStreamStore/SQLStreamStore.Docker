@@ -8,6 +8,7 @@ static class Program
     private const string ArtifactsDir = "artifacts";
 
     private const string Clean = nameof(Clean);
+    private const string GenerateDocumentation = nameof(GenerateDocumentation);
     private const string Build = nameof(Build);
     private const string RunTests = nameof(RunTests);
     private const string Pack = nameof(Pack);
@@ -28,9 +29,14 @@ static class Program
                 Directory.Delete(ArtifactsDir, true);
             }
         });
+        
+        Target(
+            GenerateDocumentation,
+            () => Run("dotnet", "build docs/docs.csproj"));
 
         Target(
             Build, 
+            DependsOn(GenerateDocumentation),
             () => Run(
                 "dotnet", 
                 $"build src/SqlStreamStore.HAL.sln -c Release /p:BuildMetadata={buildMetadata}"));
