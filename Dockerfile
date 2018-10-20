@@ -17,6 +17,10 @@ RUN dotnet restore --runtime=alpine.3.7-x64
 
 COPY ./src .
 
+WORKDIR /docs
+
+COPY ./docs/* ./
+
 WORKDIR /build
 
 COPY ./build/build.csproj .
