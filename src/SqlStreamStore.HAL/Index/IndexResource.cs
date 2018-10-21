@@ -3,6 +3,7 @@ namespace SqlStreamStore.HAL.Index
     using System;
     using System.Reflection;
     using Halcyon.HAL;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     internal class IndexResource : IResource
@@ -29,8 +30,8 @@ namespace SqlStreamStore.HAL.Index
         private static string GetVersion(Type type)
             => type.Assembly
                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                   ?.InformationalVersion ??
-               type.Assembly
+                   ?.InformationalVersion
+               ?? type.Assembly
                    .GetCustomAttribute<AssemblyVersionAttribute>()
                    ?.Version
                ?? "unknown";
@@ -42,5 +43,7 @@ namespace SqlStreamStore.HAL.Index
                     .Index().Self()
                     .Find()
                     .Add(Constants.Relations.Feed, Constants.Streams.All)));
+
+        public override string ToString() => _data.ToString(Formatting.None);
     }
 }
