@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <VersionPrefix>1.0.0-rc2</VersionPrefix>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix>rc2</VersionSuffix>
     <Authors>João P. Bragança</Authors>
     <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore.HAL</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore.HAL/blob/master/LICENSE</PackageLicenseUrl>
