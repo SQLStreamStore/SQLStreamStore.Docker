@@ -6,7 +6,7 @@ ARG TRAVIS_PULL_REQUEST
 ARG TRAVIS_BRANCH
 ARG MYGET_API_KEY
 
-RUN apk add nodejs --no-cache git
+RUN apk add nodejs yarn --no-cache
 
 WORKDIR /src
 
@@ -20,6 +20,10 @@ RUN dotnet restore --runtime=alpine.3.7-x64
 
 COPY ./src .
 
+WORKDIR /docs
+
+COPY ./docs/package.json ./docs/yarn.lock ./
+
 WORKDIR /build
 
 COPY ./build/build.csproj .
@@ -27,12 +31,6 @@ COPY ./build/build.csproj .
 RUN dotnet restore
 
 COPY ./build .
-
-WORKDIR /docs
-
-COPY ./docs/* ./
-
-RUN dotnet restore
 
 WORKDIR /
 
