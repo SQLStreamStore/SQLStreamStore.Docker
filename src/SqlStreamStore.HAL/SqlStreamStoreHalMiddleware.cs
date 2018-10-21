@@ -12,6 +12,7 @@
     using SqlStreamStore.HAL.AllStreamMessage;
     using SqlStreamStore.HAL.Docs;
     using SqlStreamStore.HAL.Index;
+    using SqlStreamStore.HAL.Logging;
     using SqlStreamStore.HAL.StreamMessage;
     using SqlStreamStore.HAL.StreamMetadata;
     using SqlStreamStore.HAL.Streams;
@@ -23,6 +24,8 @@
 
     public static class SqlStreamStoreHalMiddleware
     {
+        private static ILog s_Log = LogProvider.GetLogger(typeof(SqlStreamStoreHalMiddleware));
+
         private static MidFunc CaseSensitiveQueryStrings => (context, next) =>
         {
             if(context.Request.QueryString != QueryString.Empty)
@@ -74,12 +77,14 @@
 
             options = options ?? new SqlStreamStoreMiddlewareOptions();
 
-            var index = new IndexResource();
+            var index = new IndexResource(streamStore);
             var allStream = new AllStreamResource(streamStore, options.UseCanonicalUrls);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
             var streams = new StreamResource(streamStore);
             var streamMetadata = new StreamMetadataResource(streamStore);
             var streamMessages = new StreamMessageResource(streamStore);
+
+            s_Log.Info(index.ToString);
 
             return builder
                 .UseExceptionHandling()

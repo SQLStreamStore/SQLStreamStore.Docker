@@ -15,8 +15,10 @@ static class Program
 
     public static void Main(string[] args)
     {
-        var buildNumber = Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0";
-        var versionSuffix = "build" + buildNumber.PadLeft(5, '0');
+        var buildNumber = GetBuildNumber();
+        var branch = GetBranch();
+        var commitHash = GetCommitHash();
+        var buildMetadata = $"build.{buildNumber}.{branch}.{commitHash}";
         var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
 
         Target(Clean, () =>
@@ -27,7 +29,11 @@ static class Program
             }
         });
 
-        Target(Build, () => Run("dotnet", "build src/SqlStreamStore.HAL.sln -c Release"));
+        Target(
+            Build, 
+            () => Run(
+                "dotnet", 
+                $"build src/SqlStreamStore.HAL.sln -c Release /p:BuildMetadata={buildMetadata}"));
 
         Target(
             RunTests,
@@ -38,30 +44,49 @@ static class Program
 
         Target(
             Pack,
-            DependsOn(Build),
-            () => Run("dotnet",
-                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
+            DependsOn(Build), 
+            () => Run(
+                "dotnet",
+                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} --no-build"));
 
-        Target(Publish, DependsOn(Pack), () =>
-        {
-            var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
-            Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
-
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
-                return;
-            }
-
-            foreach (var packageToPush in packagesToPush)
-            {
-                Run("dotnet",
-                    $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
-            }
-        });
+        Target(
+            Publish, 
+            DependsOn(Pack), 
+            () => {
+                var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
+                Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
+    
+                if (string.IsNullOrWhiteSpace(apiKey))
+                {
+                    Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
+                    return;
+                }
+    
+                foreach (var packageToPush in packagesToPush)
+                {
+                    Run(
+                        "dotnet",
+                        $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
+                }
+            });
 
         Target("default", DependsOn(Clean, RunTests, Publish));
 
         RunTargets(args);
     }
+
+    private static string GetBranch()
+        => (Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")?.ToLower() == "false"
+                ? null
+                : $"pr-{Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")}")
+            ?? Environment.GetEnvironmentVariable("TRAVIS_BRANCH") 
+            ?? "none";
+
+    private static string GetCommitHash() 
+        => Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST_SHA")
+            ?? Environment.GetEnvironmentVariable("TRAVIS_COMMIT")
+            ?? "none";
+
+    private static string GetBuildNumber()
+        => (Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0").PadLeft(5, '0');
 }
