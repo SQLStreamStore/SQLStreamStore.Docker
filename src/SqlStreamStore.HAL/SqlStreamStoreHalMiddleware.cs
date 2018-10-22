@@ -104,25 +104,30 @@
         {
             private readonly HttpContext _context;
             private readonly Stream _originalBody;
+            private readonly bool _isHeadRequest;
 
             public OptionalHeadRequestWrapper(HttpContext context)
             {
                 _context = context;
-                _originalBody = _context.Response.Body;
-                if(_context.Request.Method == "HEAD")
+                if(_context.Request.Method != "HEAD")
                 {
-                    _context.Request.Method = "GET";
-                    _context.Response.Body = new HeadRequestStream();
+                    return;
                 }
+                
+                _isHeadRequest = true;
+                _originalBody = _context.Response.Body;
+                _context.Request.Method = "GET";
+                _context.Response.Body = new HeadRequestStream();
             }
 
             public void Dispose()
             {
-                _context.Response.Body = _originalBody;
-                if(_context.Request.Method == "GET")
+                if(!_isHeadRequest)
                 {
-                    _context.Request.Method = "HEAD";
+                    return;
                 }
+                _context.Response.Body = _originalBody;
+                _context.Request.Method = "HEAD";
             }
 
             private class HeadRequestStream : Stream
