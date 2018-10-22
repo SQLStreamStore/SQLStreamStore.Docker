@@ -7,7 +7,6 @@
     {
         public static IWebHostBuilder UseStartup(this IWebHostBuilder builder, IStartup startup)
             => builder
-                .ConfigureServices(services => services.AddSingleton(startup))
-                .UseSetting(WebHostDefaults.ApplicationKey, startup.GetType().AssemblyQualifiedName);
+                .ConfigureServices(services => services.AddSingleton(startup));
     }
 }
