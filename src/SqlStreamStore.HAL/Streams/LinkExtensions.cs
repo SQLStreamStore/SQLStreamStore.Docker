@@ -48,7 +48,6 @@ namespace SqlStreamStore.HAL.Streams
             }
 
             links.Add(Constants.Relations.Last, last)
-                .Add(Constants.Relations.Feed, operation.Self).Self()
                 .Add(Constants.Relations.Metadata,
                     $"{baseAddress}/metadata");
 

@@ -31,7 +31,8 @@ namespace SqlStreamStore.HAL.Streams
         {
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
-            var links = Links.RootedAt(_relativePathToRoot)
+            var links = Links
+                .FromOperation(operation)
                 .Index()
                 .Find()
                 .Add(Constants.Relations.Feed, $"streams/{operation.StreamId}").Self();
@@ -82,7 +83,7 @@ namespace SqlStreamStore.HAL.Streams
                         page.IsEnd
                     })
                     .AddLinks(Links
-                        .RootedAt(_relativePathToRoot)
+                        .FromOperation(operation)
                         .Index()
                         .Find()
                         .StreamsNavigation(page, operation))
@@ -108,9 +109,10 @@ namespace SqlStreamStore.HAL.Streams
                                     metadata = message.JsonMetadata
                                 })
                                 .AddLinks(
-                                    Links.RootedAt(_relativePathToRoot)
+                                    Links
+                                        .FromOperation(operation)
                                         .Add(
-                                            Constants.Relations.Message, 
+                                            Constants.Relations.Message,
                                             $"{Constants.Streams.Stream}/{message.StreamId}/{message.StreamVersion}")
                                         .Self()
                                         .Add(Constants.Relations.Feed, message.StreamId)))),

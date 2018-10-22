@@ -10,6 +10,7 @@ namespace SqlStreamStore.HAL.StreamMessage
     {
         public DeleteStreamMessageOperation(HttpRequest request)
         {
+            Path = request.Path;
             var pieces = request.Path.Value.Split('/').Reverse().Take(2).ToArray();
 
             StreamId = pieces.LastOrDefault();
@@ -27,9 +28,7 @@ namespace SqlStreamStore.HAL.StreamMessage
         public string StreamId { get; }
         public int? StreamVersion { get; }
         public Guid? MessageId { get; }
-
-        public Func<IStreamStore, CancellationToken, Task> GetDeleteOperation()
-            => async (streamStore, ct) => { await Invoke(streamStore, ct); };
+        public PathString Path { get; }
 
         public async Task<Unit> Invoke(IStreamStore streamStore, CancellationToken ct)
         {
@@ -44,7 +43,7 @@ namespace SqlStreamStore.HAL.StreamMessage
                                            || message.StreamVersion == StreamVersion)
                             .MessageId;
             await streamStore.DeleteMessage(StreamId, messageId, ct);
-            
+
             return Unit.Instance;
         }
     }

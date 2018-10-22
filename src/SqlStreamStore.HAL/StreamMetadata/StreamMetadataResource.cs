@@ -36,7 +36,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
                     })
                     .AddLinks(
                         Links
-                            .RootedAt("../../../")
+                            .FromOperation(operation)
                             .Index()
                             .Find()
                             .StreamMetadataNavigation(operation))
@@ -69,7 +69,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
                 })
                 .AddLinks(
                     Links
-                        .RootedAt("../../../")
+                        .FromOperation(operation)
                         .Index()
                         .Find()
                         .StreamMetadataNavigation(operation)));

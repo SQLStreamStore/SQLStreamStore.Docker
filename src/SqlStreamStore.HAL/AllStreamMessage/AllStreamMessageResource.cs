@@ -25,7 +25,8 @@
         {
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
-            var links = Links.RootedAt("../")
+            var links = Links
+                .FromOperation(operation)
                 .Index()
                 .Find()
                 .Add(Constants.Relations.Message, $"stream/{message.Position}").Self()

@@ -46,7 +46,7 @@
                 var resource = await response.AsHal();
 
                 var links = Links
-                    .RootedAt(root)
+                    .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
                     .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}")
@@ -85,7 +85,7 @@
                 var resource = await response.AsHal();
 
                 var links = Links
-                    .RootedAt(root)
+                    .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
                     .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}")
@@ -118,7 +118,8 @@
 
                 var resource = await response.AsHal();
 
-                var links = Links.RootedAt(root)
+                var links = Links
+                    .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
                     .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}")
@@ -146,7 +147,8 @@
 
                 var resource = await response.AsHal();
 
-                var links = Links.RootedAt(root)
+                var links = Links
+                    .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
                     .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}")

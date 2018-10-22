@@ -10,10 +10,12 @@ namespace SqlStreamStore.HAL.AllStreamMessage
     {
         public ReadAllStreamMessageOperation(HttpRequest request)
         {
+            Path = request.Path;
             Position = long.Parse(request.Path.Value.Remove(0, 2 + Constants.Streams.All.Length));
         }
 
         public long Position { get; }
+        public PathString Path { get; }
 
         public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
         {
