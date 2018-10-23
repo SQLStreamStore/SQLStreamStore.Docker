@@ -54,7 +54,7 @@
                     })
                     .AddLinks(
                         Links
-                            .RootedAt(string.Empty)
+                            .FromOperation(operation)
                             .Index()
                             .Find()
                             .AllStreamNavigation(page, operation))
@@ -74,7 +74,8 @@
                                     metadata = message.JsonMetadata
                                 })
                                 .AddLinks(
-                                    Links.RootedAt(string.Empty)
+                                    Links
+                                        .FromOperation(operation)
                                         .Add(
                                             Constants.Relations.Message,
                                             $"streams/{message.StreamId}/{message.StreamVersion}")

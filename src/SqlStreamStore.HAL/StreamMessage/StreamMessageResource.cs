@@ -28,7 +28,7 @@ namespace SqlStreamStore.HAL.StreamMessage
             var message = await operation.Invoke(_streamStore, cancellationToken);
 
             var links = Links
-                .RootedAt("../../")
+                .FromPath(operation.Path)
                 .Index()
                 .Find()
                 .StreamMessageNavigation(message, operation);

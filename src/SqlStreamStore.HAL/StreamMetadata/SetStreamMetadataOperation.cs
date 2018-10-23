@@ -24,13 +24,15 @@ namespace SqlStreamStore.HAL.StreamMetadata
 
         private SetStreamMetadataOperation(HttpRequest request, JObject body)
         {
+            Path = request.Path;
             StreamId = request.Path.Value.Split('/')[2];
             ExpectedVersion = request.GetExpectedVersion();
             MaxAge = body.Value<int?>("maxAge");
             MaxCount = body.Value<int?>("maxCount");
             MetadataJson = Normalize(body["metadataJson"]?.ToString(Formatting.Indented));
         }
-
+        
+        public PathString Path { get; }
         public string StreamId { get; }
         public int ExpectedVersion { get; }
         public string MetadataJson { get; }

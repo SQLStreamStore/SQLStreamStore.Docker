@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -8,6 +11,7 @@ static class Program
     private const string ArtifactsDir = "artifacts";
 
     private const string Clean = nameof(Clean);
+    private const string GenerateDocumentation = nameof(GenerateDocumentation);
     private const string Build = nameof(Build);
     private const string RunTests = nameof(RunTests);
     private const string Pack = nameof(Pack);
@@ -30,9 +34,43 @@ static class Program
         });
 
         Target(
-            Build, 
+            GenerateDocumentation,
+            () =>
+            {
+                var srcDirectory = new DirectoryInfo("./src");
+
+                var schemaFiles = srcDirectory.GetFiles("*.schema.json", SearchOption.AllDirectories);
+
+                var schemaDirectories = schemaFiles
+                    .Select(schemaFile => schemaFile.DirectoryName)
+                    .Distinct()
+                    .Select(schemaDirectory =>
+                        schemaDirectory.Replace(Path.DirectorySeparatorChar,
+                            '/')); // normalize paths; yarn/node can handle forward slashes
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Run("cmd", "/c yarn", "docs");
+                }
+                else
+                {
+                    Run("yarn", string.Empty, "docs");
+                }
+
+                foreach (var schemaDirectory in schemaDirectories)
+                {
+                    Run(
+                        "node",
+                        $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
+                        "docs");
+                }
+            });
+
+        Target(
+            Build,
+            DependsOn(GenerateDocumentation),
             () => Run(
-                "dotnet", 
+                "dotnet",
                 $"build src/SqlStreamStore.HAL.sln -c Release /p:BuildMetadata={buildMetadata}"));
 
         Target(
@@ -40,28 +78,29 @@ static class Program
             DependsOn(Build),
             () => Run(
                 "dotnet",
-                $"test src/SqlStreamStore.HAL.Tests -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml"));
+                $"test src/SqlStreamStore.HAL.Tests -c Release -r ../../{ArtifactsDir} --verbosity normal --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml"));
 
         Target(
             Pack,
-            DependsOn(Build), 
+            DependsOn(Build),
             () => Run(
                 "dotnet",
                 $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} --no-build"));
 
         Target(
-            Publish, 
-            DependsOn(Pack), 
-            () => {
+            Publish,
+            DependsOn(Pack),
+            () =>
+            {
                 var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
-    
+
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
                     return;
                 }
-    
+
                 foreach (var packageToPush in packagesToPush)
                 {
                     Run(
@@ -77,15 +116,15 @@ static class Program
 
     private static string GetBranch()
         => (Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")?.ToLower() == "false"
-                ? null
-                : $"pr-{Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")}")
-            ?? Environment.GetEnvironmentVariable("TRAVIS_BRANCH") 
-            ?? "none";
+               ? null
+               : $"pr-{Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST")}")
+           ?? Environment.GetEnvironmentVariable("TRAVIS_BRANCH")
+           ?? "none";
 
-    private static string GetCommitHash() 
+    private static string GetCommitHash()
         => Environment.GetEnvironmentVariable("TRAVIS_PULL_REQUEST_SHA")
-            ?? Environment.GetEnvironmentVariable("TRAVIS_COMMIT")
-            ?? "none";
+           ?? Environment.GetEnvironmentVariable("TRAVIS_COMMIT")
+           ?? "none";
 
     private static string GetBuildNumber()
         => (Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0").PadLeft(5, '0');

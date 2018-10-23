@@ -3,6 +3,7 @@ namespace SqlStreamStore.HAL.Tests
     using System;
     using System.Net;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
     using Shouldly;
     using Xunit;
 
@@ -31,7 +32,7 @@ namespace SqlStreamStore.HAL.Tests
 
                 resource.ShouldLink(
                     Links
-                        .RootedAt("../")
+                        .FromRequestMessage(response.RequestMessage)
                         .Find()
                         .Index()
                         .AddSelf(Constants.Relations.Message, "stream/0")
@@ -49,7 +50,7 @@ namespace SqlStreamStore.HAL.Tests
                 var resource = await response.AsHal();
 
                 resource.ShouldLink(Links
-                    .RootedAt("../")
+                    .FromPath(new PathString("/stream/0"))
                     .AddSelf(Constants.Relations.Message, "stream/0")
                     .Add(Constants.Relations.Feed, HeadOfAll));
             }

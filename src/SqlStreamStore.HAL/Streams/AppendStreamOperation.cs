@@ -43,6 +43,7 @@ namespace SqlStreamStore.HAL.Streams
         private AppendStreamOperation(HttpRequest request, JArray body)
             : this(request)
         {
+            Path = request.Path;
             NewStreamMessages = body.Select(ParseNewStreamMessage).ToArray();
         }
 
@@ -82,6 +83,7 @@ namespace SqlStreamStore.HAL.Streams
         public string StreamId { get; }
         public int ExpectedVersion { get; }
         public NewStreamMessageDto[] NewStreamMessages { get; }
+        public PathString Path { get; }
 
         public Task<AppendResult> Invoke(IStreamStore streamStore, CancellationToken ct)
             => streamStore.AppendToStream(

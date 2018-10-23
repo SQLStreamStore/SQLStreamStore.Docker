@@ -3,6 +3,7 @@ namespace SqlStreamStore.HAL.Index
     using System;
     using System.Reflection;
     using Halcyon.HAL;
+    using Microsoft.AspNetCore.Http;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
@@ -39,7 +40,7 @@ namespace SqlStreamStore.HAL.Index
         public Response Get() => new HalJsonResponse(new HALResponse(_data)
             .AddLinks(
                 Links
-                    .RootedAt(string.Empty)
+                    .FromPath(PathString.Empty)
                     .Index().Self()
                     .Find()
                     .Add(Constants.Relations.Feed, Constants.Streams.All)));

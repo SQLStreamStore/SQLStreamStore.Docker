@@ -31,7 +31,7 @@
                 var resource = await response.AsHal();
 
                 resource.ShouldLink(Links
-                    .RootedAt("../../")
+                    .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
                     .Add(Constants.Relations.Self, "streams/a-stream/0")
@@ -54,7 +54,7 @@
                 var resource = await response.AsHal();
 
                 resource.ShouldLink(Links
-                    .RootedAt("../../")
+                    .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
                     .Add(Constants.Relations.Self, "streams/a-stream/0")

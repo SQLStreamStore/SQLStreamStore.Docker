@@ -12,6 +12,8 @@ namespace SqlStreamStore.HAL.AllStream
 
         public ReadAllStreamOperation(HttpRequest request)
         {
+            Path = request.Path;
+            
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
                            && embedPayload == "1";
 
@@ -62,6 +64,7 @@ namespace SqlStreamStore.HAL.AllStream
         public int ReadDirection { get; }
         public string Self { get; }
         public bool IsUriCanonical { get; }
+        public PathString Path { get; }
 
         public Task<ReadAllPage> Invoke(IStreamStore streamStore, CancellationToken ct)
             => ReadDirection == Constants.ReadDirection.Forwards

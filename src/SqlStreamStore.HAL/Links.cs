@@ -2,33 +2,36 @@ namespace SqlStreamStore.HAL
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
     using Halcyon.HAL;
+    using Microsoft.AspNetCore.Http;
+    using SqlStreamStore.HAL.Logging;
 
     internal class Links
     {
+        private static readonly ILog s_log = LogProvider.For<Links>();
+        
+        private readonly PathString _path;
         private readonly List<(string rel, string href, string title)> _links;
         private readonly string _relativePathToRoot;
 
-        public static Links RootedAt(string relativePathToRoot) => new Links(relativePathToRoot);
+        public static Links FromOperation<T>(IStreamStoreOperation<T> operation) => FromPath(operation.Path);
+        
+        public static Links FromPath(PathString path) => new Links(path);
 
-        private Links(string relativePathToRoot)
+        public static Links FromRequestMessage(HttpRequestMessage requestMessage)
+            => FromPath(new PathString(requestMessage.RequestUri.AbsolutePath));
+        
+        private Links(PathString path)
         {
-            if(!String.IsNullOrEmpty(relativePathToRoot))
-            {
-                if(!relativePathToRoot.StartsWith(".."))
-                {
-                    throw new ArgumentException("Non-empty relative path to root must start with '..'",
-                        nameof(relativePathToRoot));
-                }
+            _path = path;
+            var segmentCount = path.Value.Split('/').Length;
+            _relativePathToRoot = 
+                segmentCount < 2
+                    ? "./"
+                    : string.Join(string.Empty, Enumerable.Repeat("../", segmentCount - 2));
 
-                if(!relativePathToRoot.EndsWith("/"))
-                {
-                    throw new ArgumentException("Non-empty relative path to root must end with '/'",
-                        nameof(relativePathToRoot));
-                }
-            }
-
-            _relativePathToRoot = relativePathToRoot ?? String.Empty;
             _links = new List<(string rel, string href, string title)>();
         }
 
@@ -38,16 +41,18 @@ namespace SqlStreamStore.HAL
                 throw new ArgumentNullException(nameof(rel));
             if(href == null)
                 throw new ArgumentNullException(nameof(href));
-
+            
             _links.Add((rel, href, title));
+
+            s_log.Debug($"Added link {_links[_links.Count - 1]} to response for request {_path}");
             return this;
         }
 
         public Links Self()
         {
-            var link = _links[_links.Count - 1];
+            var (_, href, title) = _links[_links.Count - 1];
 
-            return Add(Constants.Relations.Self, link.href, link.title);
+            return Add(Constants.Relations.Self, href, title);
         }
 
         public Links AddSelf(string rel, string href, string title = null)
@@ -61,9 +66,8 @@ namespace SqlStreamStore.HAL
             for(var i = 0; i < _links.Count; i++)
             {
                 var (rel, href, title) = _links[i];
-                var resolvedHref = $"{_relativePathToRoot}{href}";
 
-                links[i] = new Link(rel, resolvedHref, title, replaceParameters: false)
+                links[i] = new Link(rel, Resolve(href), title, replaceParameters: false)
                 {
                     Type = Constants.MediaTypes.HalJson
                 };
@@ -71,7 +75,7 @@ namespace SqlStreamStore.HAL
 
             links[_links.Count] = new Link(
                 Constants.Relations.Curies,
-                $"{_relativePathToRoot}docs/{{rel}}",
+                Resolve("docs/{rel}"),
                 "Documentation",
                 replaceParameters: false)
             {
@@ -82,6 +86,8 @@ namespace SqlStreamStore.HAL
 
             return links;
         }
+
+        private string Resolve(string relativeUrl) => $"{_relativePathToRoot}{relativeUrl}";
 
         public static implicit operator Link[](Links links) => links.ToHalLinks();
 

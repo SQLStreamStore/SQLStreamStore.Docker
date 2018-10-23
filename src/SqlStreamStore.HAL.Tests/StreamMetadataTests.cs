@@ -42,7 +42,7 @@
 
                 resource.ShouldLink(
                     Links
-                        .RootedAt("../../../")
+                        .FromRequestMessage(response.RequestMessage)
                         .Index()
                         .Find()
                         .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
@@ -93,7 +93,7 @@
 
                 resource.ShouldLink(
                     Links
-                        .RootedAt("../../../")
+                        .FromRequestMessage(response.RequestMessage)
                         .Index()
                         .Find()
                         .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
@@ -139,7 +139,7 @@
 
                 resource.ShouldLink(
                     Links
-                        .RootedAt("../../../")
+                        .FromRequestMessage(response.RequestMessage)
                         .Index()
                         .Find()
                         .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()

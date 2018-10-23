@@ -12,6 +12,8 @@ namespace SqlStreamStore.HAL.Streams
 
         public ReadStreamOperation(HttpRequest request)
         {
+            Path = request.Path;
+
             StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
 
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
@@ -56,6 +58,7 @@ namespace SqlStreamStore.HAL.Streams
                              == request.QueryString.ToUriComponent();
         }
 
+        public PathString Path { get; }
         public long FromVersionInclusive => _fromVersionInclusive;
         public int MaxCount => _maxCount;
         public bool EmbedPayload { get; }
