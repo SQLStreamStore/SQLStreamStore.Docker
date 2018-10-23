@@ -23,21 +23,22 @@ namespace SqlStreamStore.HAL.StreamBrowser
                 {
                     listStreamsPage.ContinuationToken
                 })
+                .AddLinks(
+                    Links
+                        .FromOperation(operation)
+                        .Index()
+                        .Find()
+                        .StreamBrowserNavigation(listStreamsPage, operation))
                 .AddEmbeddedCollection(
                     Constants.Relations.Feed,
                     Array.ConvertAll(
                         listStreamsPage.StreamIds,
-                        streamId =>
-                        {
-                            return new HALResponse(null)
-                                .AddLinks(
-                                    Links
-                                        .FromOperation(operation)
-                                        .Index()
-                                        .Find()
-                                        .StreamBrowserNavigation(listStreamsPage, operation));
-                        }
-                    )));
+                        streamId => new HALResponse(null)
+                            .AddLinks(
+                                Links
+                                    .FromOperation(operation)
+                                    .Add(Constants.Relations.Feed, $"{Constants.Streams.Stream}/{streamId}", streamId)
+                                    .Self()))));
         }
     }
 }
