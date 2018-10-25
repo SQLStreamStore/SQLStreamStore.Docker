@@ -9,6 +9,7 @@ using static SimpleExec.Command;
 static class Program
 {
     private const string ArtifactsDir = "artifacts";
+    private const string PublishDir = "publish";
 
     private const string Clean = nameof(Clean);
     private const string GenerateDocumentation = nameof(GenerateDocumentation);
@@ -16,13 +17,14 @@ static class Program
     private const string RunTests = nameof(RunTests);
     private const string Pack = nameof(Pack);
     private const string Publish = nameof(Publish);
+    private const string Push = nameof(Push);
 
     public static void Main(string[] args)
     {
         var buildNumber = GetBuildNumber();
         var branch = GetBranch();
         var commitHash = GetCommitHash();
-        var buildMetadata = $"build.{buildNumber}.{branch}.{commitHash}";
+        var buildMetadata = $"{branch}.{commitHash}";
         var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
 
         Target(Clean, () =>
@@ -31,6 +33,11 @@ static class Program
             {
                 Directory.Delete(ArtifactsDir, true);
             }
+            if (Directory.Exists(PublishDir))
+            {
+                Directory.Delete(PublishDir, true);
+            }
+
         });
 
         Target(
@@ -71,7 +78,7 @@ static class Program
             DependsOn(GenerateDocumentation),
             () => Run(
                 "dotnet",
-                $"build src/SqlStreamStore.HAL.sln -c Release /p:BuildMetadata={buildMetadata}"));
+                $"build src/SqlStreamStore.HAL.sln -c Release /p:BuildNumber={buildNumber} /p:BuildMetadata={buildMetadata}"));
 
         Target(
             RunTests,
@@ -81,14 +88,21 @@ static class Program
                 $"test src/SqlStreamStore.HAL.Tests -c Release -r ../../{ArtifactsDir} --verbosity normal --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml"));
 
         Target(
-            Pack,
+            Publish,
             DependsOn(Build),
             () => Run(
                 "dotnet",
-                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} --no-build"));
+                $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true /p:BuildNumber={buildNumber} /p:BuildMetadata={buildMetadata} src/SqlStreamStore.HAL.DevServer "));
+        
+        Target(
+            Pack,
+            DependsOn(Publish),
+            () => Run(
+                "dotnet",
+                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} /p:BuildNumber={buildNumber} /p:BuildMetadata={buildMetadata} --no-build"));
 
         Target(
-            Publish,
+            Push,
             DependsOn(Pack),
             () =>
             {
@@ -109,7 +123,7 @@ static class Program
                 }
             });
 
-        Target("default", DependsOn(Clean, RunTests, Publish));
+        Target("default", DependsOn(Clean, RunTests, Push));
 
         RunTargets(args);
     }
@@ -127,5 +141,5 @@ static class Program
            ?? "none";
 
     private static string GetBuildNumber()
-        => (Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0").PadLeft(5, '0');
+        => (Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER") ?? "0");
 }
