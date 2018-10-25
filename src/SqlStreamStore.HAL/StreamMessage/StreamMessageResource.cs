@@ -91,8 +91,7 @@ namespace SqlStreamStore.HAL.StreamMessage
         {
             await operation.Invoke(_streamStore, cancellationToken);
 
-            return new HalJsonResponse(
-                new HALResponse(new HALModelConfig()));
+            return NoContentResponse.Instance;
         }
     }
 }

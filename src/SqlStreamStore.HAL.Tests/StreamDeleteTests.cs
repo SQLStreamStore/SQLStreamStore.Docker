@@ -33,7 +33,7 @@
             
             using(var response = await _fixture.HttpClient.SendAsync(request))
             {
-                response.StatusCode.ShouldBe(HttpStatusCode.OK);                
+                response.StatusCode.ShouldBe(HttpStatusCode.NoContent);                
             }
 
             var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, 1);

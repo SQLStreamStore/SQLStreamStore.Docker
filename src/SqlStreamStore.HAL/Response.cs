@@ -11,6 +11,10 @@
         public int StatusCode { get; }
         public IDictionary<string, string[]> Headers { get; }
 
+        protected Response(int statusCode)
+            : this(statusCode, null)
+        { }
+
         protected Response(int statusCode, string mediaType)
         {
             StatusCode = statusCode;
