@@ -72,7 +72,7 @@
 
             using(var response = await _fixture.HttpClient.DeleteAsync("/streams/a-stream/0"))
             {
-                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+                response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
             }
 
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))

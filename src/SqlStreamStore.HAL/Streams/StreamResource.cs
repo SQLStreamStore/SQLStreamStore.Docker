@@ -130,7 +130,7 @@ namespace SqlStreamStore.HAL.Streams
         {
             await operation.Invoke(_streamStore, cancellationToken);
 
-            return new HalJsonResponse(new HALResponse(new object()));
+            return NoContentResponse.Instance;
         }
     }
 }
