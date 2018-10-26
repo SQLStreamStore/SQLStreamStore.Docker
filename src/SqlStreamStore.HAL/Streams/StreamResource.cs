@@ -29,7 +29,7 @@ namespace SqlStreamStore.HAL.Streams
             AppendStreamOperation operation,
             CancellationToken cancellationToken)
         {
-            if(operation.ExpectedVersion < ExpectedVersion.NoStream)
+            if(operation.ExpectedVersion < Constants.Headers.MinimumExpectedVersion)
             {
                 return new HalJsonResponse(new HALResponse(new
                 {

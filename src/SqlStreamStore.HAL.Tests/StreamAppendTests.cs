@@ -6,7 +6,6 @@
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
     using Shouldly;
@@ -285,17 +284,12 @@
         {
             var random = new Random();
 
-            var minimum = (from fieldInfo in typeof(ExpectedVersion)
-                                  .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-                              where fieldInfo.IsLiteral
-                                    && !fieldInfo.IsInitOnly
-                                    && fieldInfo.FieldType == typeof(int)
-                              select (int) fieldInfo.GetRawConstantValue()).Min() - 1;
+            var maximumBadExpectedVersion = Constants.Headers.MinimumExpectedVersion - 1;
 
-            yield return new object[] { minimum };
+            yield return new object[] { maximumBadExpectedVersion };
             for(var i = 0; i < 5; i++)
             {
-                yield return new object[] { random.Next(int.MinValue, minimum) };
+                yield return new object[] { random.Next(int.MinValue, maximumBadExpectedVersion) };
             }
         }
 

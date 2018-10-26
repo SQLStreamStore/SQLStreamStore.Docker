@@ -1,6 +1,9 @@
 namespace SqlStreamStore.HAL
 {
+    using System.Linq;
+    using System.Reflection;
     using Microsoft.AspNetCore.Http;
+    using SqlStreamStore.Streams;
 
     internal static class Constants
     {
@@ -13,6 +16,13 @@ namespace SqlStreamStore.HAL
 
         public static class Headers
         {
+            public static int MinimumExpectedVersion = (from fieldInfo in typeof(ExpectedVersion)
+                    .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                where fieldInfo.IsLiteral
+                      && !fieldInfo.IsInitOnly
+                      && fieldInfo.FieldType == typeof(int)
+                select (int) fieldInfo.GetRawConstantValue()).Min();
+
             public const string ExpectedVersion = "SSS-ExpectedVersion";
             public const string HeadPosition = "SSS-HeadPosition";
             public const string Location = "Location";
