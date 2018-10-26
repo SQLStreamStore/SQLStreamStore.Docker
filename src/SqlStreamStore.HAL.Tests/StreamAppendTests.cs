@@ -6,6 +6,7 @@
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
     using Shouldly;
@@ -273,6 +274,52 @@
                     Content = new StringContent(malformedRequest)
                     {
                         Headers = { ContentType = new MediaTypeHeaderValue(Constants.MediaTypes.HalJson) }
+                    }
+                }))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+            }
+        }
+
+        public static IEnumerable<object[]> BadExpectedVersionCases()
+        {
+            var random = new Random();
+
+            var minimum = (from fieldInfo in typeof(ExpectedVersion)
+                                  .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                              where fieldInfo.IsLiteral
+                                    && !fieldInfo.IsInitOnly
+                                    && fieldInfo.FieldType == typeof(int)
+                              select (int) fieldInfo.GetRawConstantValue()).Min() - 1;
+
+            yield return new object[] { minimum };
+            for(var i = 0; i < 5; i++)
+            {
+                yield return new object[] { random.Next(int.MinValue, minimum) };
+            }
+        }
+
+        [Theory, MemberData(nameof(BadExpectedVersionCases))]
+        public async Task bad_expected_version(int badExpectedVersion)
+        {
+            using(var response = await _fixture.HttpClient.SendAsync(
+                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                {
+                    Headers =
+                    {
+                        {Constants.Headers.ExpectedVersion, $"{badExpectedVersion}"}
+                    },
+                    Content = new StringContent(JObject.FromObject(new
+                    {
+                        messageId = Guid.NewGuid(),
+                        jsonData = new { },
+                        type = "type"
+                    }).ToString())
+                    {
+                        Headers =
+                        {
+                            ContentType = new MediaTypeHeaderValue(Constants.MediaTypes.HalJson)
+                        }
                     }
                 }))
             {

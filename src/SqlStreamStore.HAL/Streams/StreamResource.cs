@@ -29,6 +29,16 @@ namespace SqlStreamStore.HAL.Streams
             AppendStreamOperation operation,
             CancellationToken cancellationToken)
         {
+            if(operation.ExpectedVersion < ExpectedVersion.NoStream)
+            {
+                return new HalJsonResponse(new HALResponse(new
+                {
+                    type = typeof(WrongExpectedVersionException).Name,
+                    title = "Wrong expected version.",
+                    detail = $"Expected header '{Constants.Headers.ExpectedVersion}' to have an expected version => {ExpectedVersion.NoStream}."
+                }), 400);
+            }
+            
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
             var links = Links
