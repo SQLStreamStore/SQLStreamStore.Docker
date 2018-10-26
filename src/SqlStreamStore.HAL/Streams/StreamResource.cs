@@ -40,10 +40,10 @@ namespace SqlStreamStore.HAL.Streams
             var response = new HalJsonResponse(
                 new HALResponse(result)
                     .AddLinks(links),
-                result.CurrentVersion == 0
+                operation.ExpectedVersion == ExpectedVersion.NoStream
                     ? 201
                     : 200);
-            if(operation.ExpectedVersion == ExpectedVersion.NoStream)
+            if(response.StatusCode == 201)
             {
                 response.Headers[Constants.Headers.Location] =
                     new[] { $"{_relativePathToRoot}streams/{operation.StreamId}" };
