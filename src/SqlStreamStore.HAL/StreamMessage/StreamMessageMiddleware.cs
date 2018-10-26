@@ -12,7 +12,9 @@ namespace SqlStreamStore.HAL.StreamMessage
 
     internal static class StreamMessageMiddleware
     {
-        public static IApplicationBuilder UseStreamMessages(this IApplicationBuilder builder, StreamMessageResource streamMessages)
+        public static IApplicationBuilder UseStreamMessages(
+            this IApplicationBuilder builder,
+            StreamMessageResource streamMessages)
             => builder.MapWhen(IsMatch, Configure(streamMessages));
 
         private static bool IsMatch(HttpContext context)
@@ -27,7 +29,9 @@ namespace SqlStreamStore.HAL.StreamMessage
 
             var segments = requestPath.Value?.Split('/');
 
-            return segments?.Length == 4 && int.TryParse(segments[3], out _);
+            return segments?.Length == 4
+                   && (int.TryParse(segments[3], out _)
+                       || Guid.TryParse(segments[3], out _));
         }
 
         private static Action<IApplicationBuilder> Configure(StreamMessageResource streamMessages)
