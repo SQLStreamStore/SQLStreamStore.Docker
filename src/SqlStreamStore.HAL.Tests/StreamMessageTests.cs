@@ -5,6 +5,7 @@
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Shouldly;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class StreamMessageTests : IDisposable
@@ -73,6 +74,8 @@
             using(var response = await _fixture.HttpClient.DeleteAsync("/streams/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+                response.Content.Headers.ContentLength.HasValue.ShouldBeTrue();
+                response.Content.Headers.ContentLength.Value.ShouldBe(0);
             }
 
             using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
@@ -81,5 +84,29 @@
                 response.Headers.ETag.ShouldBeNull();
             }
         }
+        
+        [Fact]
+        public async Task delete_single_message_by_message_id()
+        {
+            var writeResult = await _fixture.WriteNMessages("a-stream", 1);
+
+            var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", StreamVersion.Start, 1);
+
+            var messageId = page.Messages[0].MessageId;
+
+            using(var response = await _fixture.HttpClient.DeleteAsync($"/streams/a-stream/{messageId}"))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+                response.Content.Headers.ContentLength.HasValue.ShouldBeTrue();
+                response.Content.Headers.ContentLength.Value.ShouldBe(0);
+            }
+
+            using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream/0"))
+            {
+                response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+                response.Headers.ETag.ShouldBeNull();
+            }
+        }
+
     }
 }
