@@ -2,7 +2,6 @@ namespace SqlStreamStore.HAL
 {
     using System;
     using System.Linq;
-    using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
@@ -66,27 +65,6 @@ namespace SqlStreamStore.HAL
             }
 
             return response.WriteBody(context.Response, context.RequestAborted);
-        }
-
-        public static void SetStandardCorsHeaders(this HttpContext context, params HttpMethod[] allowedMethods)
-        {
-            if(allowedMethods?.Length > 0)
-            {
-                context.Response.Headers.Append(
-                    "Access-Control-Allow-Methods",
-                    Array.ConvertAll(allowedMethods, _ => _.Method));
-            }
-
-            context.Response.Headers.Append(
-                "Access-Control-Allow-Headers",
-                new[]
-                {
-                    "Content-Type",
-                    "X-Requested-With",
-                    "Authorization"
-                });
-
-            context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         }
 
         public static int GetExpectedVersion(this HttpRequest request)

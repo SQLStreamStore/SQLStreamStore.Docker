@@ -83,6 +83,13 @@
             var streams = new StreamResource(streamStore);
             var streamMetadata = new StreamMetadataResource(streamStore);
             var streamMessages = new StreamMessageResource(streamStore);
+            var documentation = new DocsResource(
+                index,
+                allStream,
+                allStreamMessages,
+                streams,
+                streamMessages,
+                streamMetadata);
 
             s_Log.Info(index.ToString);
 
@@ -90,8 +97,8 @@
                 .UseExceptionHandling()
                 .Use(CaseSensitiveQueryStrings)
                 .Use(HeadRequests)
-                .UseDocs(index, allStream, allStreamMessages, streams, streamMessages, streamMetadata)
                 .Use(AcceptHalJson)
+                .UseDocs(documentation)
                 .UseIndex(index)
                 .UseAllStream(allStream)
                 .UseAllStreamMessage(allStreamMessages)

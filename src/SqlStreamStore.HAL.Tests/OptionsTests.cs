@@ -45,6 +45,24 @@ namespace SqlStreamStore.HAL.Tests
                 "/streams/a-stream/0",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
+            
+            yield return new object[]
+            {
+                $"/streams/a-stream/{Guid.Empty}",
+                new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
+            };
+
+            yield return new object[]
+            {
+                "/streams/a-stream/metadata",
+                new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Post, HttpMethod.Options }
+            };
+
+            yield return new object[]
+            {
+                "/docs/doc",
+                new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options }
+            };
         }
 
         [Theory, MemberData(nameof(OptionsAllowedMethodCases))]
@@ -54,11 +72,11 @@ namespace SqlStreamStore.HAL.Tests
                 new HttpRequestMessage(HttpMethod.Options, requestUri)))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
-                response.Headers.GetValues("Access-Control-Allow-Headers")
-                    .ShouldBe(new[] { "Content-Type", "X-Requested-With", "Authorization" }, true);
-                response.Headers.GetValues("Access-Control-Allow-Origin")
+                response.Headers.GetValues(Constants.Headers.AccessControl.AllowHeaders)
+                    .ShouldBe(new[] { Constants.Headers.ContentType, Constants.Headers.XRequestedWith, Constants.Headers.Authorization }, true);
+                response.Headers.GetValues(Constants.Headers.AccessControl.AllowOrigin)
                     .ShouldBe(new[] { "*" }, true);
-                response.Headers.GetValues("Access-Control-Allow-Methods")
+                response.Headers.GetValues(Constants.Headers.AccessControl.AllowMethods)
                     .ShouldBe(allowedMethods.Select(_ => _.Method), true);
             }
         }
