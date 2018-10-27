@@ -27,7 +27,9 @@ namespace SqlStreamStore.HAL.AllStream
         private static Action<IApplicationBuilder> Configure(AllStreamResource allStream)
             => builder => builder
                 .UseMiddlewareLogging(typeof(AllStreamMiddleware))
-                .MapWhen(HttpMethod.Get, inner => inner.Use(GetStream(allStream)))
+                .MapWhen(
+                    HttpMethod.Get,
+                    inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(GetStream(allStream)))
                 .UseAllowedMethods(allStream);
 
         private static MidFunc GetStream(AllStreamResource allStream) => async (context, next) =>

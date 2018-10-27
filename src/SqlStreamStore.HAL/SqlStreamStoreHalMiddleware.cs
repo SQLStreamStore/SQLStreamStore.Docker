@@ -2,10 +2,8 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Halcyon.HAL;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
     using SqlStreamStore.HAL.AllStream;
@@ -41,22 +39,6 @@
             return next();
         };
 
-        private static MidFunc AcceptHalJson => (context, next) =>
-        {
-            var accept = context.Request.GetAcceptHeaders();
-
-            return accept.Any(header => header == Constants.MediaTypes.HalJson
-                                        || header == Constants.MediaTypes.Any)
-                ? next()
-                : context.WriteResponse(new HalJsonResponse(new HALResponse(new
-                    {
-                        type = "Not Acceptable",
-                        title = "Not Acceptable",
-                        detail = $"The server only understands {Constants.MediaTypes.HalJson}."
-                    }),
-                    406));
-        };
-
         private static MidFunc HeadRequests => async (context, next) =>
         {
             using(new OptionalHeadRequestWrapper(context))
@@ -83,6 +65,13 @@
             var streams = new StreamResource(streamStore);
             var streamMetadata = new StreamMetadataResource(streamStore);
             var streamMessages = new StreamMessageResource(streamStore);
+            var documentation = new DocsResource(
+                index,
+                allStream,
+                allStreamMessages,
+                streams,
+                streamMessages,
+                streamMetadata);
 
             s_Log.Info(index.ToString);
 
@@ -90,8 +79,7 @@
                 .UseExceptionHandling()
                 .Use(CaseSensitiveQueryStrings)
                 .Use(HeadRequests)
-                .UseDocs(index, allStream, allStreamMessages, streams, streamMessages, streamMetadata)
-                .Use(AcceptHalJson)
+                .UseDocs(documentation)
                 .UseIndex(index)
                 .UseAllStream(allStream)
                 .UseAllStreamMessage(allStreamMessages)
@@ -113,7 +101,7 @@
                 {
                     return;
                 }
-                
+
                 _isHeadRequest = true;
                 _originalBody = _context.Response.Body;
                 _context.Request.Method = "GET";
@@ -126,6 +114,7 @@
                 {
                     return;
                 }
+
                 _context.Response.Body = _originalBody;
                 _context.Request.Method = "HEAD";
             }

@@ -8,7 +8,7 @@ namespace SqlStreamStore.HAL.Docs
         private readonly IResource[] _resources;
         public SchemaSet Schema { get; }
 
-        public DocsResource(IResource[] resources)
+        public DocsResource(params IResource[] resources)
         {
             if(resources == null)
             {

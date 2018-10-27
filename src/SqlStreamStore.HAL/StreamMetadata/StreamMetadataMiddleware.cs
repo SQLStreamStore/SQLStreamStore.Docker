@@ -35,8 +35,8 @@
         private static Action<IApplicationBuilder> Configure(StreamMetadataResource streamsMetadata)
             => builder => builder
                 .UseMiddlewareLogging(typeof(StreamMetadataMiddleware))
-                .MapWhen(HttpMethod.Post, inner => inner.Use(SetStreamMetadata(streamsMetadata)))
-                .MapWhen(HttpMethod.Get, inner => inner.Use(GetStreamMetadata(streamsMetadata)))
+                .MapWhen(HttpMethod.Post, inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(SetStreamMetadata(streamsMetadata)))
+                .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(GetStreamMetadata(streamsMetadata)))
                 .UseAllowedMethods(streamsMetadata);
 
         private static MidFunc SetStreamMetadata(StreamMetadataResource streamsMetadata)

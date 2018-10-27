@@ -7,10 +7,9 @@
 
     internal static class ResourceMethods
     {
-        public static HttpMethod[] Discover<TResource>()
-            where TResource : IResource
+        public static HttpMethod[] Discover(IResource resource)
         {
-            var httpMethods = typeof(TResource)
+            var httpMethods = resource.GetType()
                 .GetMethods(
                     BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(method => method.ReturnType == typeof(Response) || method.ReturnType == typeof(Task<Response>))

@@ -25,9 +25,11 @@ namespace SqlStreamStore.HAL.Streams
         private static Action<IApplicationBuilder> Configure(StreamResource streams)
             => builder => builder
                 .UseMiddlewareLogging(typeof(StreamsMiddleware))
-                .MapWhen(HttpMethod.Get, inner => inner.Use(GetStream(streams)))
+                .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(GetStream(streams)))
                 .MapWhen(HttpMethod.Delete, inner => inner.Use(DeleteStream(streams)))
-                .MapWhen(HttpMethod.Post, inner => inner.Use(AppendStream(streams)))
+                .MapWhen(
+                    HttpMethod.Post,
+                    inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(AppendStream(streams)))
                 .UseAllowedMethods(streams);
 
         private static MidFunc GetStream(StreamResource streams) => async (context, next) =>

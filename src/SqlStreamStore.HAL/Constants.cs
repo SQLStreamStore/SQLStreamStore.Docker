@@ -9,7 +9,7 @@ namespace SqlStreamStore.HAL
     {
         public static class MediaTypes
         {
-            public const string TextMarkdown = "text/markdown; charset=UTF-8";
+            public const string TextMarkdown = "text/markdown";
             public const string HalJson = "application/hal+json";
             public const string Any = "*/*";
         }
@@ -23,6 +23,8 @@ namespace SqlStreamStore.HAL
                       && fieldInfo.FieldType == typeof(int)
                 select (int) fieldInfo.GetRawConstantValue()).Min();
 
+            public const string Authorization = "Authorization";
+            public const string Allowed = "Allowed";
             public const string ExpectedVersion = "SSS-ExpectedVersion";
             public const string HeadPosition = "SSS-HeadPosition";
             public const string Location = "Location";
@@ -31,6 +33,14 @@ namespace SqlStreamStore.HAL
             public const string CacheControl = "Cache-Control";
             public const string ContentType = "Content-Type";
             public const string Accept = "Accept";
+            public const string XRequestedWith = "X-Requested-With";
+
+            public static class AccessControl
+            {
+                public const string AllowOrigin = "Access-Control-Allow-Origin";
+                public const string AllowHeaders = "Access-Control-Allow-Headers";
+                public const string AllowMethods = "Access-Control-Allow-Methods";
+            }
         }
 
         public static class Relations

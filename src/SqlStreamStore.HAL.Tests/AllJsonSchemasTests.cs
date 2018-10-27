@@ -41,7 +41,7 @@ namespace SqlStreamStore.HAL.Tests
         public async Task byte_order_mark_not_present(string manifestName)
         {
             byte[] firstThreeBytes = new byte[3];
-            
+
             using(var stream = GetStream(manifestName))
             {
                 await stream.ReadAsync(firstThreeBytes);
