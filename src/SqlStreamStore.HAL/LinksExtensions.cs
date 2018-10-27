@@ -9,6 +9,6 @@ namespace SqlStreamStore.HAL
             => links.Add(Constants.Relations.Find, "streams/{streamId}", "Find a Stream");
 
         public static Links Browse(this Links links)
-            => links.Add(Constants.Relations.Browse, "stream/browser{?p,t,m}", "Browse Streams");
+            => links.Add(Constants.Relations.Browse, "streams{?p,t,m}", "Browse Streams");
     }
 }

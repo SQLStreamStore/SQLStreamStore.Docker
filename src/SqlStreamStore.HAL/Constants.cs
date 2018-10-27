@@ -72,7 +72,7 @@ namespace SqlStreamStore.HAL
             public static PathString AllStreamPath = new PathString($"/{All}");
             public static PathString StreamsPath = new PathString($"/{Stream}");
             public static PathString IndexPath = new PathString("/");
-            public static PathString StreamBrowserPath = AllStreamPath.Add("/browser");
+            public static PathString StreamBrowserPath = StreamsPath;
         }
 
         public static class ReadDirection

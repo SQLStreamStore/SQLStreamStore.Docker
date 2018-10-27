@@ -32,6 +32,6 @@ namespace SqlStreamStore.HAL.StreamBrowser
         }
 
         private static string FormatLink(ListStreamsOperation operation, string continuationToken) =>
-            $"stream/browser?p={operation.Pattern.Value}&t={operation.PatternType}&c={continuationToken}&m={operation.MaxCount}";
+            $"streams?p={operation.Pattern.Value}&t={operation.PatternType}&c={continuationToken}&m={operation.MaxCount}";
     }
 }
