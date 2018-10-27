@@ -38,8 +38,8 @@ namespace SqlStreamStore.HAL.Docs
 
             return builder => builder
                 .UseMiddlewareLogging(typeof(DocsMiddleware))
-                .UseAllowedMethods(documentation)
-                .MapWhen(HttpMethod.Get, inner => inner.Use(Docs));
+                .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.TextMarkdown).Use(Docs))
+                .UseAllowedMethods(documentation);
         }
     }
 }

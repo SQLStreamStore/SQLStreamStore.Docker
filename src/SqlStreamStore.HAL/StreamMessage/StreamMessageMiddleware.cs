@@ -37,7 +37,7 @@ namespace SqlStreamStore.HAL.StreamMessage
         private static Action<IApplicationBuilder> Configure(StreamMessageResource streamMessages)
             => builder => builder
                 .UseMiddlewareLogging(typeof(StreamMessageMiddleware))
-                .MapWhen(HttpMethod.Get, inner => inner.Use(GetStreamMessage(streamMessages)))
+                .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(GetStreamMessage(streamMessages)))
                 .MapWhen(HttpMethod.Delete, inner => inner.Use(DeleteStreamMessage(streamMessages)))
                 .UseAllowedMethods(streamMessages);
 

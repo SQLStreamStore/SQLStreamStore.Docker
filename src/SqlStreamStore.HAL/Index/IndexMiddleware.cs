@@ -24,7 +24,7 @@ namespace SqlStreamStore.HAL.Index
         private static Action<IApplicationBuilder> Configure(IndexResource index)
             => builder => builder
                 .UseMiddlewareLogging(typeof(IndexMiddleware))
-                .MapWhen(HttpMethod.Get, inner => inner.Use(Index(index)))
+                .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(Index(index)))
                 .UseAllowedMethods(index);
 
         private static MidFunc Index(IndexResource index)
