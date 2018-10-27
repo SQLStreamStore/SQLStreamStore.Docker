@@ -42,13 +42,13 @@ namespace SqlStreamStore.HAL
             
             Task Options(HttpContext context, Func<Task> next)
             {
-                context.Response.Headers.Append(
+                context.Response.Headers.AppendCommaSeparatedValues(
                     Constants.Headers.AccessControl.AllowMethods,
                     allowedMethodsHeaderValue);
-                context.Response.Headers.Append(
+                context.Response.Headers.AppendCommaSeparatedValues(
                     Constants.Headers.AccessControl.AllowHeaders,
                     allowedHeadersHeaderValue);
-                context.Response.Headers.Append(
+                context.Response.Headers.AppendCommaSeparatedValues(
                     Constants.Headers.AccessControl.AllowOrigin,
                     "*");
                 

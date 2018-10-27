@@ -49,7 +49,7 @@ namespace SqlStreamStore.HAL
             context.Response.StatusCode = 304;
             foreach(var header in s_NotModifiedRequiredHeaders.Where(response.Headers.Keys.Contains))
             {
-                context.Response.Headers.Append(header, response.Headers[header]);
+                context.Response.Headers.AppendCommaSeparatedValues(header, response.Headers[header]);
             }
 
             return Task.CompletedTask;
@@ -61,7 +61,7 @@ namespace SqlStreamStore.HAL
 
             foreach(var header in response.Headers)
             {
-                context.Response.Headers.Append(header.Key, header.Value);
+                context.Response.Headers.AppendCommaSeparatedValues(header.Key, header.Value);
             }
 
             return response.WriteBody(context.Response, context.RequestAborted);

@@ -27,7 +27,7 @@ namespace SqlStreamStore.HAL.Tests
                 "/stream",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options }
             };
-            
+
             yield return new object[]
             {
                 "/stream/123",
@@ -45,7 +45,7 @@ namespace SqlStreamStore.HAL.Tests
                 "/streams/a-stream/0",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
-            
+
             yield return new object[]
             {
                 $"/streams/a-stream/{Guid.Empty}",
@@ -73,10 +73,19 @@ namespace SqlStreamStore.HAL.Tests
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
                 response.Headers.GetValues(Constants.Headers.AccessControl.AllowHeaders)
-                    .ShouldBe(new[] { Constants.Headers.ContentType, Constants.Headers.XRequestedWith, Constants.Headers.Authorization }, true);
+                    .SelectMany(x => x.Split(','))
+                    .ShouldBe(new[]
+                        {
+                            Constants.Headers.ContentType,
+                            Constants.Headers.XRequestedWith,
+                            Constants.Headers.Authorization
+                        },
+                        true);
                 response.Headers.GetValues(Constants.Headers.AccessControl.AllowOrigin)
+                    .SelectMany(x => x.Split(','))
                     .ShouldBe(new[] { "*" }, true);
                 response.Headers.GetValues(Constants.Headers.AccessControl.AllowMethods)
+                    .SelectMany(x => x.Split(','))
                     .ShouldBe(allowedMethods.Select(_ => _.Method), true);
             }
         }
