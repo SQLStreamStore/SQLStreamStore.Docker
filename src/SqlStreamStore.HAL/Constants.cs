@@ -9,7 +9,7 @@ namespace SqlStreamStore.HAL
     {
         public static class MediaTypes
         {
-            public const string TextMarkdown = "text/markdown; charset=UTF-8";
+            public const string TextMarkdown = "text/markdown";
             public const string HalJson = "application/hal+json";
             public const string Any = "*/*";
         }

@@ -4,6 +4,14 @@ Fully RESTful HTTP Server for [SQL Stream Store](https://github.com/SQLStreamSto
 
 The solution includes example of use  LittleHalHost.Example project. The url structure and parameters are described in LittleHalHost.Example/readme.md
 
+# Development
+
+- `./build.sh` or `./build.cmd` to run the complete dockerized build.
+- `dotnet run --project build/build.csproj` to build without using docker.
+To see a list of build targets, `dotnet run --project build/build.csproj -- --list-targets`.
+For general help with the build, `dotnet run --project build/build.csproj -- --help`.
+- If you are running test from your IDE, you _must_ build with the `GenerateDocumentation` target at least once, otherwise the tests around documentation will fail.
+
 # Clients
 
 - [Official dotnet client](https://github.com/SQLStreamStore/SQLStreamStore)
