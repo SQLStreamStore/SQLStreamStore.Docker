@@ -36,25 +36,25 @@ namespace SqlStreamStore.HAL.Tests
 
             yield return new object[]
             {
-                "/streams/a-stream",
+                $"/{Constants.Streams.Stream}/a-stream",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Delete, HttpMethod.Post }
             };
 
             yield return new object[]
             {
-                "/streams/a-stream/0",
+                $"/{Constants.Streams.Stream}/a-stream/0",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
 
             yield return new object[]
             {
-                $"/streams/a-stream/{Guid.Empty}",
+                $"/{Constants.Streams.Stream}/a-stream/{Guid.Empty}",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
 
             yield return new object[]
             {
-                "/streams/a-stream/metadata",
+                $"/{Constants.Streams.Stream}/a-stream/metadata",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Post, HttpMethod.Options }
             };
 

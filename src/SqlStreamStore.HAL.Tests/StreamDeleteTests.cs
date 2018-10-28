@@ -24,7 +24,7 @@
         {
             await _fixture.WriteNMessages(StreamId, 1);
 
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"/streams/{StreamId}");
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/{Constants.Streams.Stream}/{StreamId}");
             
             if(expectedVersion.HasValue)
             {
@@ -47,7 +47,7 @@
         public async Task wrong_expected_version(int expectedVersion)
         {
             await _fixture.WriteNMessages(StreamId, 1);
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"/streams/{StreamId}")
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/{Constants.Streams.Stream}/{StreamId}")
             {
                 Headers =
                 {

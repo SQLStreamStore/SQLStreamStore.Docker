@@ -27,7 +27,7 @@
         {
             using(var response =
                 await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Get, $"/streams/{StreamId}/metadata")))
+                    new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Streams.Stream}/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
                 response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(@"""-1"""));
@@ -54,7 +54,7 @@
         public async Task get_metadata_when_metadata_stream_does_exist()
         {
             using(await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}/metadata")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
                 {
                     Content = new StringContent(JObject.FromObject(new
                     {
@@ -74,7 +74,7 @@
                 }))
             using(var response =
                 await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Get, $"/streams/{StreamId}/metadata")))
+                    new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Streams.Stream}/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
                 response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(@"""0"""));
@@ -105,7 +105,7 @@
         public async Task set_metadata()
         {
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}/metadata")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
                 {
                     Content = new StringContent(JObject.FromObject(new
                     {
@@ -163,7 +163,7 @@
             for(var i = 0; i < expectedVersions.Length - 1; i++)
             {
                 using(await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}/metadata")
+                    new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
                     {
                         Headers =
                         {
@@ -189,7 +189,7 @@
             }
 
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}/metadata")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
                 {
                     Headers =
                     {
