@@ -32,13 +32,15 @@ namespace SqlStreamStore.HAL.Streams
             if(operation.ExpectedVersion < Constants.Headers.MinimumExpectedVersion)
             {
                 return new HalJsonResponse(new HALResponse(new
-                {
-                    type = typeof(WrongExpectedVersionException).Name,
-                    title = "Wrong expected version.",
-                    detail = $"Expected header '{Constants.Headers.ExpectedVersion}' to have an expected version => {ExpectedVersion.NoStream}."
-                }), 400);
+                    {
+                        type = typeof(WrongExpectedVersionException).Name,
+                        title = "Wrong expected version.",
+                        detail =
+                            $"Expected header '{Constants.Headers.ExpectedVersion}' to have an expected version => {ExpectedVersion.NoStream}."
+                    }),
+                    400);
             }
-            
+
             var result = await operation.Invoke(_streamStore, cancellationToken);
 
             var links = Links
@@ -123,9 +125,13 @@ namespace SqlStreamStore.HAL.Streams
                                         .FromOperation(operation)
                                         .Add(
                                             Constants.Relations.Message,
-                                            $"{Constants.Streams.Stream}/{message.StreamId}/{message.StreamVersion}")
+                                            $"{Constants.Streams.Stream}/{message.StreamId}/{message.StreamVersion}",
+                                            $"{message.StreamId}@{message.StreamVersion}")
                                         .Self()
-                                        .Add(Constants.Relations.Feed, $"streams/{message.StreamId}")))),
+                                        .Add(
+                                            Constants.Relations.Feed,
+                                            $"streams/{message.StreamId}",
+                                            message.StreamId)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
 
             if(page.TryGetETag(out var eTag))

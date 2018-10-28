@@ -29,7 +29,10 @@
                 .FromOperation(operation)
                 .Index()
                 .Find()
-                .Add(Constants.Relations.Message, $"stream/{message.Position}").Self()
+                .Add(
+                    Constants.Relations.Message,
+                    $"stream/{message.Position}",
+                    $"{message.StreamId}@{message.StreamVersion}").Self()
                 .Add(
                     Constants.Relations.Feed,
                     Links.FormatBackwardLink(

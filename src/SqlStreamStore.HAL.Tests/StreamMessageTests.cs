@@ -35,12 +35,12 @@
                     .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
-                    .Add(Constants.Relations.Self, "streams/a-stream/0")
+                    .Add(Constants.Relations.Self, "streams/a-stream/0", "a-stream@0")
                     .Add(Constants.Relations.First, "streams/a-stream/0")
                     .Add(Constants.Relations.Next, "streams/a-stream/1")
                     .Add(Constants.Relations.Last, "streams/a-stream/-1")
-                    .Add(Constants.Relations.Feed, HeadOfStream)
-                    .Add(Constants.Relations.Message, "streams/a-stream/0"));
+                    .Add(Constants.Relations.Feed, HeadOfStream, "a-stream")
+                    .Add(Constants.Relations.Message, "streams/a-stream/0", "a-stream@0"));
             }
         }
 
@@ -58,11 +58,11 @@
                     .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
-                    .Add(Constants.Relations.Self, "streams/a-stream/0")
+                    .Add(Constants.Relations.Self, "streams/a-stream/0", "a-stream@0")
                     .Add(Constants.Relations.First, "streams/a-stream/0")
                     .Add(Constants.Relations.Last, "streams/a-stream/-1")
-                    .Add(Constants.Relations.Feed, HeadOfStream)
-                    .Add(Constants.Relations.Message, "streams/a-stream/0"));
+                    .Add(Constants.Relations.Feed, HeadOfStream, "a-stream")
+                    .Add(Constants.Relations.Message, "streams/a-stream/0", "a-stream@0"));
             }
         }
 

@@ -46,7 +46,7 @@
                         .Index()
                         .Find()
                         .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
-                        .Add(Constants.Relations.Feed, $"streams/{StreamId}"));
+                        .Add(Constants.Relations.Feed, $"streams/{StreamId}", StreamId));
             }
         }
 
@@ -97,7 +97,7 @@
                         .Index()
                         .Find()
                         .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
-                        .Add(Constants.Relations.Feed, $"streams/{StreamId}"));
+                        .Add(Constants.Relations.Feed, $"streams/{StreamId}", StreamId));
             }
         }
 
@@ -143,7 +143,7 @@
                         .Index()
                         .Find()
                         .Add(Constants.Relations.Metadata, $"streams/{StreamId}/metadata").Self()
-                        .Add(Constants.Relations.Feed, $"streams/{StreamId}"));
+                        .Add(Constants.Relations.Feed, $"streams/{StreamId}", StreamId));
             }
         }
 

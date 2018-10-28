@@ -34,7 +34,7 @@ namespace SqlStreamStore.HAL.Streams
                         operation.EmbedPayload));
             }
 
-            links.Add(Constants.Relations.Feed, operation.Self).Self();
+            links.Add(Constants.Relations.Feed, operation.Self, operation.StreamId).Self();
 
             if(operation.Self != last && !page.IsEnd)
             {
