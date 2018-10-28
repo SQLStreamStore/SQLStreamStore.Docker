@@ -125,7 +125,7 @@ namespace SqlStreamStore.HAL.Streams
                                             Constants.Relations.Message,
                                             $"{Constants.Streams.Stream}/{message.StreamId}/{message.StreamVersion}")
                                         .Self()
-                                        .Add(Constants.Relations.Feed, message.StreamId)))),
+                                        .Add(Constants.Relations.Feed, $"streams/{message.StreamId}")))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
 
             if(page.TryGetETag(out var eTag))
