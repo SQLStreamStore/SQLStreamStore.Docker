@@ -49,10 +49,10 @@
                     .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
-                    .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}")
+                    .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}", !IsAllStream(path) ? StreamId : null)
                     .Add(Constants.Relations.Last, $"{path}?{LastLinkQuery}")
                     .Add(Constants.Relations.First, $"{path}?{FirstLinkQuery}")
-                    .Add(Constants.Relations.Feed, $"{path}?{LastLinkQuery}");
+                    .Add(Constants.Relations.Feed, $"{path}?{LastLinkQuery}", !IsAllStream(path) ? StreamId : null);
 
                 if(!IsAllStream(path))
                 {
@@ -88,11 +88,11 @@
                     .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
-                    .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}")
+                    .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}", !IsAllStream(path) ? StreamId : null)
                     .Add(Constants.Relations.Last, $"{path}?{LastLinkQuery}")
                     .Add(Constants.Relations.Previous, $"{path}?d=b&m=20&p=9&e=0")
                     .Add(Constants.Relations.First, $"{path}?{FirstLinkQuery}")
-                    .Add(Constants.Relations.Feed, $"{path}?{LastLinkQuery}");
+                    .Add(Constants.Relations.Feed, $"{path}?{LastLinkQuery}", !IsAllStream(path) ? StreamId : null);
 
                 if(!IsAllStream($"{path}"))
                 {
@@ -122,10 +122,10 @@
                     .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
-                    .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}", !IsAllStream(path) ? StreamId : null)
                     .Add(Constants.Relations.Last, $"{path}?{LastLinkQuery}")
                     .Add(Constants.Relations.First, $"{path}?{FirstLinkQuery}")
-                    .Add(Constants.Relations.Feed, $"{path}?{FirstLinkQuery}");
+                    .Add(Constants.Relations.Feed, $"{path}?{FirstLinkQuery}", !IsAllStream(path) ? StreamId : null);
 
                 if(!IsAllStream(path))
                 {
@@ -151,11 +151,11 @@
                     .FromRequestMessage(response.RequestMessage)
                     .Index()
                     .Find()
-                    .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}")
+                    .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}", !IsAllStream(path) ? StreamId : null)
                     .Add(Constants.Relations.Last, $"{path}?{LastLinkQuery}")
                     .Add(Constants.Relations.Next, $"{path}?d=f&m=20&p=20&e=0")
                     .Add(Constants.Relations.First, $"{path}?{FirstLinkQuery}")
-                    .Add(Constants.Relations.Feed, $"{path}?{FirstLinkQuery}");
+                    .Add(Constants.Relations.Feed, $"{path}?{FirstLinkQuery}", !IsAllStream(path) ? StreamId : null);
 
                 if(!IsAllStream($"{path}"))
                 {
@@ -173,7 +173,7 @@
 
             var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, StreamVersion.Start, 10, false);
 
-            using(var response = await _fixture.HttpClient.GetAsync("/streams/a-stream"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
 

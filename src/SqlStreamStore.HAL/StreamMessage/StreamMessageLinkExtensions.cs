@@ -28,8 +28,12 @@ namespace SqlStreamStore.HAL.StreamMessage
                         StreamId(operation),
                         Constants.MaxCount,
                         StreamVersion.End,
-                        false))
-                .Add(Constants.Relations.Message, $"{StreamId(operation)}/{operation.StreamVersion}").Self();
+                        false),
+                    operation.StreamId)
+                .Add(
+                    Constants.Relations.Message,
+                    $"{StreamId(operation)}/{operation.StreamVersion}",
+                    $"{operation.StreamId}@{operation.StreamVersion}").Self();
         }
 
         private static string StreamId(ReadStreamMessageByStreamVersionOperation operation)

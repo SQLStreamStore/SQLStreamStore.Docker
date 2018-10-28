@@ -30,13 +30,13 @@ namespace SqlStreamStore.HAL.Tests
             };
             yield return new object[]
             {
-                $"/streams/{streamId}",
+                $"/{Constants.Streams.Stream}/{streamId}",
                 new Func<IStreamStore, Task>(
                     streamStore => streamStore.AppendToStream(streamId, ExpectedVersion.NoStream, message))
             };
             yield return new object[]
             {
-                $"/streams/{streamId}/metadata",
+                $"/{Constants.Streams.Stream}/{streamId}/metadata",
                 new Func<IStreamStore, Task>(
                     streamStore => streamStore.SetStreamMetadata(streamId, ExpectedVersion.NoStream, 1))
             };

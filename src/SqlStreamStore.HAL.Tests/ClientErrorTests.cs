@@ -43,27 +43,27 @@ namespace SqlStreamStore.HAL.Tests
                     HttpMethod.Get,
                     HttpMethod.Head
                 }),
-                ("/streams/a-stream", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Streams.Stream}/a-stream", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,
                     HttpMethod.Post,
                     HttpMethod.Delete
                 }),
-                ("/streams/a-stream/0", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Streams.Stream}/a-stream/0", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,
                     HttpMethod.Delete
                 }),
-                ($"/streams/a-stream/{Guid.Empty}", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Streams.Stream}/a-stream/{Guid.Empty}", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,
                     HttpMethod.Delete
                 }),
 
-                ("/streams/a-stream/metadata", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Streams.Stream}/a-stream/metadata", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,

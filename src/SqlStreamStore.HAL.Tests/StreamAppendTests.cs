@@ -160,7 +160,7 @@
             for(var i = 0; i < expectedVersions.Length - 1; i++)
             {
                 using(await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                    new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
                     {
                         Headers =
                         {
@@ -184,7 +184,7 @@
             }
 
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
                 {
                     Headers =
                     {
@@ -268,7 +268,7 @@
         public async Task malformed_request_body(string malformedRequest)
         {
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
                 {
                     Content = new StringContent(malformedRequest)
                     {
@@ -297,7 +297,7 @@
         public async Task bad_expected_version(int badExpectedVersion)
         {
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/streams/{StreamId}")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
                 {
                     Headers =
                     {

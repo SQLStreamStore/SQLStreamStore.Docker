@@ -35,7 +35,7 @@ namespace SqlStreamStore.HAL.Tests
                         .FromRequestMessage(response.RequestMessage)
                         .Find()
                         .Index()
-                        .AddSelf(Constants.Relations.Message, "stream/0")
+                        .AddSelf(Constants.Relations.Message, "stream/0", "a-stream@0")
                         .Add(Constants.Relations.Feed, HeadOfAll));
             }
         }
@@ -51,7 +51,7 @@ namespace SqlStreamStore.HAL.Tests
 
                 resource.ShouldLink(Links
                     .FromPath(new PathString("/stream/0"))
-                    .AddSelf(Constants.Relations.Message, "stream/0")
+                    .AddSelf(Constants.Relations.Message, "stream/0", "@0")
                     .Add(Constants.Relations.Feed, HeadOfAll));
             }
         }
