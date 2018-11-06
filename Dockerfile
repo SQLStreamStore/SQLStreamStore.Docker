@@ -1,6 +1,6 @@
 FROM microsoft/dotnet:2.1.403-sdk-alpine3.7 AS build
-ARG TRAVIS_OS_NAME
 ARG MYGET_API_KEY
+ARG MINVER_BUILD_METADATA
 
 RUN apk add --no-cache \
   nodejs \
@@ -23,6 +23,10 @@ WORKDIR /docs
 
 COPY ./docs/package.json ./docs/yarn.lock ./
 
+WORKDIR /.git
+
+COPY ./.git .
+
 WORKDIR /build
 
 COPY ./build/build.csproj .
@@ -33,7 +37,7 @@ COPY ./build .
 
 WORKDIR /
 
-RUN TRAVIS_OS_NAME=$TRAVIS_OS_NAME \
+RUN MINVER_BUILD_METADATA=$MINVER_BUILD_METADATA \
   MYGET_API_KEY=$MYGET_API_KEY \
   dotnet run --project build/build.csproj
 
