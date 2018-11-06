@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -12,6 +11,7 @@ static class Program
     private const string PublishDir = "publish";
 
     private const string Clean = nameof(Clean);
+    private const string Init = nameof(Init);
     private const string GenerateDocumentation = nameof(GenerateDocumentation);
     private const string Build = nameof(Build);
     private const string RunTests = nameof(RunTests);
@@ -22,6 +22,7 @@ static class Program
     public static void Main(string[] args)
     {
         var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
+        var srcDirectory = new DirectoryInfo("./src");
 
         Target(Clean, () =>
         {
@@ -29,28 +30,17 @@ static class Program
             {
                 Directory.Delete(ArtifactsDir, true);
             }
+
             if (Directory.Exists(PublishDir))
             {
                 Directory.Delete(PublishDir, true);
             }
-
         });
 
         Target(
-            GenerateDocumentation,
+            Init,
             () =>
             {
-                var srcDirectory = new DirectoryInfo("./src");
-
-                var schemaFiles = srcDirectory.GetFiles("*.schema.json", SearchOption.AllDirectories);
-
-                var schemaDirectories = schemaFiles
-                    .Select(schemaFile => schemaFile.DirectoryName)
-                    .Distinct()
-                    .Select(schemaDirectory =>
-                        schemaDirectory.Replace(Path.DirectorySeparatorChar,
-                            '/')); // normalize paths; yarn/node can handle forward slashes
-
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     Run("cmd", "/c yarn", "docs");
@@ -59,22 +49,24 @@ static class Program
                 {
                     Run("yarn", string.Empty, "docs");
                 }
-
-                foreach (var schemaDirectory in schemaDirectories)
-                {
-                    Run(
-                        "node",
-                        $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
-                        "docs");
-                }
             });
+
+        Target(
+            GenerateDocumentation,
+            DependsOn(Init),
+            ForEach(SchemaDirectories(srcDirectory)),
+            schemaDirectory =>
+                RunAsync(
+                    "node",
+                    $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
+                    "docs"));
 
         Target(
             Build,
             DependsOn(GenerateDocumentation),
             () => Run(
                 "dotnet",
-                $"build src/SqlStreamStore.HAL.sln -c Release"));
+                "build src/SqlStreamStore.HAL.sln -c Release"));
 
         Target(
             RunTests,
@@ -89,7 +81,7 @@ static class Program
             () => Run(
                 "dotnet",
                 $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.HAL.DevServer"));
-        
+
         Target(
             Pack,
             DependsOn(Publish),
@@ -121,6 +113,13 @@ static class Program
 
         Target("default", DependsOn(Clean, RunTests, Push));
 
-        RunTargets(args);
+        RunTargets(args.Concat(new[] {"--parallel"}));
     }
+
+    private static string[] SchemaDirectories(DirectoryInfo srcDirectory)
+        => srcDirectory.GetFiles("*.schema.json", SearchOption.AllDirectories)
+            .Select(schemaFile => schemaFile.DirectoryName)
+            .Distinct()
+            .Select(schemaDirectory => schemaDirectory.Replace(Path.DirectorySeparatorChar, '/'))
+            .ToArray();
 }
