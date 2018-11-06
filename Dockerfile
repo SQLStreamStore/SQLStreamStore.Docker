@@ -2,7 +2,10 @@ FROM microsoft/dotnet:2.1.403-sdk-alpine3.7 AS build
 ARG TRAVIS_OS_NAME
 ARG MYGET_API_KEY
 
-RUN apk add nodejs yarn --no-cache
+RUN apk add --no-cache \
+  nodejs \
+  yarn \
+  libcurl
 
 WORKDIR /src
 
