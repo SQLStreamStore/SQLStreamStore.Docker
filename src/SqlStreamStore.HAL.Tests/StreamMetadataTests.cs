@@ -30,12 +30,12 @@
                     new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Streams.Stream}/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(@"""-1"""));
+                response.Headers.ETag.ShouldBe(new EntityTagHeaderValue($@"""{ExpectedVersion.EmptyStream}"""));
 
                 var resource = await response.AsHal();
 
                 ((string) resource.State.streamId).ShouldBe(StreamId);
-                ((int) resource.State.metadataStreamVersion).ShouldBe(ExpectedVersion.NoStream);
+                ((int) resource.State.metadataStreamVersion).ShouldBe(ExpectedVersion.EmptyStream);
                 ((int?) resource.State.maxAge).ShouldBe(default);
                 ((int?) resource.State.maxCount).ShouldBe(default);
                 ((string) resource.State.metadataJson).ShouldBeNull();
