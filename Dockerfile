@@ -1,12 +1,11 @@
 FROM microsoft/dotnet:2.1.403-sdk-alpine3.7 AS build
-ARG TRAVIS_BUILD_NUMBER
-ARG TRAVIS_PULL_REQUEST_SHA
-ARG TRAVIS_COMMIT
-ARG TRAVIS_PULL_REQUEST
-ARG TRAVIS_BRANCH
 ARG MYGET_API_KEY
+ARG MINVER_BUILD_METADATA
 
-RUN apk add nodejs yarn --no-cache
+RUN apk add --no-cache \
+  nodejs \
+  yarn \
+  libcurl
 
 WORKDIR /src
 
@@ -24,6 +23,10 @@ WORKDIR /docs
 
 COPY ./docs/package.json ./docs/yarn.lock ./
 
+WORKDIR /.git
+
+COPY ./.git .
+
 WORKDIR /build
 
 COPY ./build/build.csproj .
@@ -34,12 +37,8 @@ COPY ./build .
 
 WORKDIR /
 
-RUN TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER \
+RUN MINVER_BUILD_METADATA=$MINVER_BUILD_METADATA \
   MYGET_API_KEY=$MYGET_API_KEY \
-  TRAVIS_PULL_REQUEST_SHA=$TRAVIS_PULL_REQUEST_SHA \
-  TRAVIS_COMMIT=$TRAVIS_COMMIT \
-  TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
-  TRAVIS_BRANCH=$TRAVIS_BRANCH \
   dotnet run --project build/build.csproj
 
 FROM microsoft/dotnet:2.1.5-runtime-deps-alpine3.7 AS runtime
