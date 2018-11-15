@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1.403-sdk-alpine3.7 AS build
+FROM microsoft/dotnet:2.1.500-sdk-alpine3.7 AS build
 ARG MYGET_API_KEY
 ARG MINVER_BUILD_METADATA
 
@@ -41,7 +41,7 @@ RUN MINVER_BUILD_METADATA=$MINVER_BUILD_METADATA \
   MYGET_API_KEY=$MYGET_API_KEY \
   dotnet run --project build/build.csproj
 
-FROM microsoft/dotnet:2.1.5-runtime-deps-alpine3.7 AS runtime
+FROM microsoft/dotnet:2.1.6-runtime-deps-alpine3.7 AS runtime
 
 WORKDIR /app
 COPY --from=build /publish ./
