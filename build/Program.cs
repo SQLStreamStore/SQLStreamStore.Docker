@@ -70,17 +70,7 @@ static class Program
         RunTargets(args.Concat(new[] {"--parallel"}));
     }
 
-    private static readonly Action Init = () =>
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            Run("cmd", "/c yarn", "docs");
-        }
-        else
-        {
-            Run("yarn", string.Empty, "docs");
-        }
-    };
+    private static readonly Action Init = () => Yarn("./docs");
 
     private static readonly Action Clean = () =>
     {
@@ -111,7 +101,7 @@ static class Program
 
     private static readonly Action Publish = () => Run(
         "dotnet",
-        $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.HAL.DevServer");
+        $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.HAL.ApplicationServer");
 
     private static readonly Action Pack = () => Run(
         "dotnet",
@@ -135,6 +125,14 @@ static class Program
                 $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {MYGET_API_KEY}");
         }
     };
+
+    private static void Yarn(string workingDirectory, string args = default)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            Run("cmd", "/c yarn", workingDirectory);
+        else
+            Run("yarn", args, workingDirectory);
+    }
 
     private static string[] SchemaDirectories(DirectoryInfo srcDirectory)
         => srcDirectory.GetFiles("*.schema.json", SearchOption.AllDirectories)
