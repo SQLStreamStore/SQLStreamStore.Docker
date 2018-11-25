@@ -1,10 +1,16 @@
 FROM microsoft/dotnet:2.1.500-sdk-alpine3.7 AS build
 ARG MYGET_API_KEY
 
+WORKDIR /app
+
+COPY .git ./
+
 RUN apk add --no-cache \
   nodejs \
   yarn \
-  libcurl
+  libcurl && \
+  dotnet tool install -g minver-cli --version 1.0.0-alpha.15 && \
+  /root/.dotnet/tools/minver > .version
 
 WORKDIR /app/src
 
@@ -21,10 +27,6 @@ COPY ./src .
 WORKDIR /app/docs
 
 COPY ./docs/package.json ./docs/yarn.lock ./
-
-WORKDIR /app/.git
-
-COPY ./.git .
 
 WORKDIR /app/build
 
