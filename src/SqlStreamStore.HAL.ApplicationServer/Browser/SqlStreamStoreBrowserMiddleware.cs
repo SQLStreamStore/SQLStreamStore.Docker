@@ -24,12 +24,10 @@ namespace SqlStreamStore.HAL.ApplicationServer.Browser
                 typeof(SqlStreamStoreBrowserMiddleware).Namespace);
 
             var staticFiles = typeof(SqlStreamStoreBrowserMiddleware).Assembly.GetManifestResourceNames()
-                .Where(name => name.StartsWith(typeof(SqlStreamStoreBrowserMiddleware).Namespace))
-                .Select(name => name.Remove(0, typeof(SqlStreamStoreBrowserMiddleware).Namespace.Length + 1)
-                    .Replace('.', '/'));
+                .Where(name => name.StartsWith(typeof(SqlStreamStoreBrowserMiddleware).Namespace));
 
-            Log.Information(
-                $"The following files will be served as static content: {string.Join(", ", staticFiles)}");
+            Log.Debug(
+                $"The following embedded resources were found and will be served as  static content: {string.Join(", ", staticFiles)}");
 
             return builder.Use(IndexPage).UseStaticFiles(new StaticFileOptions
             {
