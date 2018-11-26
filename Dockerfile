@@ -1,6 +1,6 @@
 FROM microsoft/dotnet:2.1.500-sdk-alpine3.7 AS build
 ARG MYGET_API_KEY
-ARG MINVER_BUILD_METADATA
+ARG MINVERBUILDMETADATA
 
 RUN apk add --no-cache \
   nodejs \
@@ -37,7 +37,7 @@ COPY ./build .
 
 WORKDIR /
 
-RUN MINVER_BUILD_METADATA=$MINVER_BUILD_METADATA \
+RUN MINVERBUILDMETADATA=$MINVERBUILDMETADATA \
   MYGET_API_KEY=$MYGET_API_KEY \
   dotnet run --project build/build.csproj
 
