@@ -18,7 +18,6 @@ SEMVER_REGEX="^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z
 
 [[ $VERSION =~ $SEMVER_REGEX ]]
 
-LATEST="${REMOTE_IMAGE}:latest"
 MAJOR="${REMOTE_IMAGE}:${BASH_REMATCH[1]}"
 MAJOR_MINOR="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
 MAJOR_MINOR_PATCH="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
@@ -26,7 +25,6 @@ MAJOR_MINOR_PATCH_PRE="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${B
 
 if [[ -n $TRAVIS_TAG && -z ${BASH_REMATCH[4]} ]]; then
     echo "Detected a tag with no prerelease."
-    docker tag $LOCAL $LATEST
     docker tag $LOCAL $MAJOR_MINOR_PATCH
     docker tag $LOCAL $MAJOR_MINOR
     if [[ ${BASH_REMATCH[1]} != "0" ]]; then
