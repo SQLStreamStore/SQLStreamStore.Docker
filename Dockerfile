@@ -46,6 +46,7 @@ RUN MYGET_API_KEY=$MYGET_API_KEY \
 FROM microsoft/dotnet:2.1.6-runtime-deps-alpine3.7 AS runtime
 
 WORKDIR /app
+COPY --from=build /app/.version ./
 COPY --from=build /app/publish ./
 
 ENTRYPOINT ["/app/SqlStreamStore.HAL.ApplicationServer"]
