@@ -60,6 +60,7 @@ namespace SqlStreamStore.HAL
             public const string DeleteStream = StreamStorePrefix + ":delete-stream";
             public const string DeleteMessage = StreamStorePrefix + ":delete-message";
             public const string Find = StreamStorePrefix + ":find";
+            public const string Browse = StreamStorePrefix + ":feed-browser";
         }
 
         public static class Streams
@@ -71,6 +72,7 @@ namespace SqlStreamStore.HAL
             public static PathString AllStreamPath = new PathString($"/{All}");
             public static PathString StreamsPath = new PathString($"/{Stream}");
             public static PathString IndexPath = new PathString("/");
+            public static PathString StreamBrowserPath = StreamsPath;
         }
 
         public static class ReadDirection

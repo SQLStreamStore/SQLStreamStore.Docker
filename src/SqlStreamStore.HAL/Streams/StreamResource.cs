@@ -47,6 +47,7 @@ namespace SqlStreamStore.HAL.Streams
                 .FromOperation(operation)
                 .Index()
                 .Find()
+                .Browse()
                 .Add(Constants.Relations.Feed, $"streams/{operation.StreamId}").Self();
 
             var response = new HalJsonResponse(
@@ -98,6 +99,7 @@ namespace SqlStreamStore.HAL.Streams
                         .FromOperation(operation)
                         .Index()
                         .Find()
+                        .Browse()
                         .StreamsNavigation(page, operation))
                     .AddEmbeddedResource(
                         Constants.Relations.AppendToStream,

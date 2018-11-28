@@ -57,6 +57,7 @@
                             .FromOperation(operation)
                             .Index()
                             .Find()
+                            .Browse()
                             .AllStreamNavigation(page, operation))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,

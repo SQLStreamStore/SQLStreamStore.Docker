@@ -29,6 +29,7 @@
                 .FromOperation(operation)
                 .Index()
                 .Find()
+                .Browse()
                 .Add(
                     Constants.Relations.Message,
                     $"stream/{message.Position}",
@@ -62,7 +63,7 @@
                     message.Type,
                     payload,
                     metadata = message.JsonMetadata
-                }).AddLinks(links));
+             }).AddLinks(links));
         }
     }
 }

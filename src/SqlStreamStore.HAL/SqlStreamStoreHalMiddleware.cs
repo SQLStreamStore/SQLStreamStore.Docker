@@ -11,6 +11,7 @@
     using SqlStreamStore.HAL.Docs;
     using SqlStreamStore.HAL.Index;
     using SqlStreamStore.HAL.Logging;
+    using SqlStreamStore.HAL.StreamBrowser;
     using SqlStreamStore.HAL.StreamMessage;
     using SqlStreamStore.HAL.StreamMetadata;
     using SqlStreamStore.HAL.Streams;
@@ -62,6 +63,7 @@
             var index = new IndexResource(streamStore);
             var allStream = new AllStreamResource(streamStore, options.UseCanonicalUrls);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
+            var streamBrowser = new StreamBrowserResource(streamStore);
             var streams = new StreamResource(streamStore);
             var streamMetadata = new StreamMetadataResource(streamStore);
             var streamMessages = new StreamMessageResource(streamStore);
@@ -83,6 +85,7 @@
                 .UseIndex(index)
                 .UseAllStream(allStream)
                 .UseAllStreamMessage(allStreamMessages)
+                .UseStreamBrowser(streamBrowser)
                 .UseStreams(streams)
                 .UseStreamMetadata(streamMetadata)
                 .UseStreamMessages(streamMessages);

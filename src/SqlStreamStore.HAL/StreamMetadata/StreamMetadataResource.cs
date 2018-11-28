@@ -39,6 +39,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
                             .FromOperation(operation)
                             .Index()
                             .Find()
+                            .Browse()
                             .StreamMetadataNavigation(operation))
                     .AddEmbeddedResource(
                         Constants.Relations.Metadata,
