@@ -5,7 +5,7 @@ set -e
 LOCAL_IMAGE="sql-stream-store-server"
 LOCAL="${LOCAL_IMAGE}:latest"
 
-REMOTE_IMAGE="sql-stream-store/server"
+REMOTE_IMAGE="sqlstreamstore/hal"
 
 docker build \
     --build-arg MYGET_API_KEY=$MYGET_API_KEY \
