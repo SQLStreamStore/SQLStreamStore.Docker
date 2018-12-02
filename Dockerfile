@@ -36,7 +36,7 @@ RUN dotnet restore
 
 COPY ./build .
 
-COPY --from=sql-stream-store/browser:latest /var/www /app/src/SqlStreamStore.HAL.ApplicationServer/Browser/build
+COPY --from=sqlstreamstore/browser:0.9 /var/www /app/src/SqlStreamStore.HAL.ApplicationServer/Browser/build
 
 WORKDIR /app
 
