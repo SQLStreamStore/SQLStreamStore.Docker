@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -10,110 +11,127 @@ static class Program
     private const string ArtifactsDir = "artifacts";
     private const string PublishDir = "publish";
 
-    private const string Clean = nameof(Clean);
-    private const string Init = nameof(Init);
-    private const string GenerateDocumentation = nameof(GenerateDocumentation);
-    private const string Build = nameof(Build);
-    private const string RunTests = nameof(RunTests);
-    private const string Pack = nameof(Pack);
-    private const string Publish = nameof(Publish);
-    private const string Push = nameof(Push);
+    private static readonly string MYGET_API_KEY = Environment.GetEnvironmentVariable(nameof(MYGET_API_KEY));
 
     public static void Main(string[] args)
     {
-        var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
+        const string clean = nameof(Clean);
+        const string init = nameof(Init);
+        const string generateDocumentation = nameof(GenerateDocumentation);
+        const string build = nameof(Build);
+        const string runTests = nameof(RunTests);
+        const string pack = nameof(Pack);
+        const string publish = nameof(Publish);
+        const string push = nameof(Push);
+
         var srcDirectory = new DirectoryInfo("./src");
 
-        Target(Clean, () =>
-        {
-            if (Directory.Exists(ArtifactsDir))
-            {
-                Directory.Delete(ArtifactsDir, true);
-            }
-
-            if (Directory.Exists(PublishDir))
-            {
-                Directory.Delete(PublishDir, true);
-            }
-        });
+        Target(
+            clean,
+            Clean);
 
         Target(
-            Init,
-            () =>
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Run("cmd", "/c yarn", "docs");
-                }
-                else
-                {
-                    Run("yarn", string.Empty, "docs");
-                }
-            });
+            init,
+            Init);
 
         Target(
-            GenerateDocumentation,
-            DependsOn(Init),
+            generateDocumentation,
+            DependsOn(init),
             ForEach(SchemaDirectories(srcDirectory)),
-            schemaDirectory =>
-                RunAsync(
-                    "node",
-                    $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
-                    "docs"));
+            GenerateDocumentation);
 
         Target(
-            Build,
-            DependsOn(GenerateDocumentation),
-            () => Run(
-                "dotnet",
-                "build src/SqlStreamStore.HAL.sln -c Release"));
+            build,
+            DependsOn(generateDocumentation),
+            Build);
 
         Target(
-            RunTests,
-            DependsOn(Build),
-            () => Run(
-                "dotnet",
-                $"test src/SqlStreamStore.HAL.Tests -c Release -r ../../{ArtifactsDir} --verbosity normal --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml"));
+            runTests,
+            DependsOn(build),
+            RunTests);
 
         Target(
-            Publish,
-            DependsOn(Build),
-            () => Run(
-                "dotnet",
-                $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.HAL.DevServer"));
+            publish,
+            DependsOn(build),
+            Publish);
 
         Target(
-            Pack,
-            DependsOn(Publish),
-            () => Run(
-                "dotnet",
-                $"pack src/SqlStreamStore.HAL -c Release -o ../../{ArtifactsDir} --no-build"));
+            pack,
+            DependsOn(publish),
+            Pack);
 
         Target(
-            Push,
-            DependsOn(Pack),
-            () =>
-            {
-                var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
-                Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
+            push,
+            DependsOn(pack),
+            Push);
 
-                if (string.IsNullOrWhiteSpace(apiKey))
-                {
-                    Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
-                    return;
-                }
-
-                foreach (var packageToPush in packagesToPush)
-                {
-                    Run(
-                        "dotnet",
-                        $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
-                }
-            });
-
-        Target("default", DependsOn(Clean, RunTests, Push));
+        Target("default", DependsOn(clean, runTests, push));
 
         RunTargets(args.Concat(new[] {"--parallel"}));
+    }
+
+    private static readonly Action Init = () => Yarn("./docs");
+
+    private static readonly Action Clean = () =>
+    {
+        if (Directory.Exists(ArtifactsDir))
+        {
+            Directory.Delete(ArtifactsDir, true);
+        }
+
+        if (Directory.Exists(PublishDir))
+        {
+            Directory.Delete(PublishDir, true);
+        }
+    };
+
+    private static readonly Func<string, Task> GenerateDocumentation = schemaDirectory =>
+        RunAsync(
+            "node",
+            $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
+            "docs");
+
+    private static readonly Action Build = () => Run(
+        "dotnet",
+        "build src/SqlStreamStore.HAL.sln --configuration Release");
+
+    private static readonly Action RunTests = () => Run(
+        "dotnet",
+        $"test src/SqlStreamStore.HAL.Tests --configuration Release --results-directory ../../{ArtifactsDir} --verbosity normal --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml");
+
+    private static readonly Action Publish = () => Run(
+        "dotnet",
+        $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.HAL.ApplicationServer");
+
+    private static readonly Action Pack = () => Run(
+        "dotnet",
+        $"pack src/SqlStreamStore.HAL --configuration Release --output ../../{ArtifactsDir} --no-build");
+
+    private static readonly Action Push = () =>
+    {
+        var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
+        Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
+
+        if (string.IsNullOrWhiteSpace(MYGET_API_KEY))
+        {
+            Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
+            return;
+        }
+
+        foreach (var packageToPush in packagesToPush)
+        {
+            Run(
+                "dotnet",
+                $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {MYGET_API_KEY}");
+        }
+    };
+
+    private static void Yarn(string workingDirectory, string args = default)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            Run("cmd", "/c yarn", workingDirectory);
+        else
+            Run("yarn", args, workingDirectory);
     }
 
     private static string[] SchemaDirectories(DirectoryInfo srcDirectory)
