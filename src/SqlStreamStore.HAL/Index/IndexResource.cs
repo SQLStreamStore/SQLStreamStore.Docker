@@ -4,6 +4,7 @@ namespace SqlStreamStore.HAL.Index
     using System.Reflection;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     internal class IndexResource : IResource
@@ -44,5 +45,7 @@ namespace SqlStreamStore.HAL.Index
                     .Find()
                     .Browse()
                     .Add(Constants.Relations.Feed, Constants.Streams.All)));
+
+        public override string ToString() => _data.ToString(Formatting.None);
     }
 }
