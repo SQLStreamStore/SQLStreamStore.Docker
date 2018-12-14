@@ -67,7 +67,7 @@ static class Program
 
         Target("default", DependsOn(clean, runTests, push));
 
-        RunTargets(args.Concat(new[] {"--parallel"}));
+        RunTargetsAndExit(args.Concat(new[] {"--parallel"}));
     }
 
     private static readonly Action Init = () => Yarn("./docs");
