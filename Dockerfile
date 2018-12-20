@@ -9,7 +9,7 @@ RUN apk add --no-cache \
   nodejs \
   yarn \
   libcurl && \
-  dotnet tool install -g minver-cli --version 1.0.0-alpha.15 && \
+  dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
   /root/.dotnet/tools/minver > .version
 
 WORKDIR /app/src
