@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1.500-sdk-alpine3.7 AS build
+FROM microsoft/dotnet:2.2.100-sdk-alpine3.8 AS build
 ARG MYGET_API_KEY
 
 WORKDIR /app
@@ -20,7 +20,7 @@ RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.
 
 COPY ./NuGet.Config ./
 
-RUN dotnet restore --runtime=alpine.3.7-x64
+RUN dotnet restore --runtime=alpine.3.8-x64
 
 COPY ./src .
 
@@ -43,7 +43,7 @@ WORKDIR /app
 RUN MYGET_API_KEY=$MYGET_API_KEY \
   dotnet run --project build/build.csproj
 
-FROM microsoft/dotnet:2.1.6-runtime-deps-alpine3.7 AS runtime
+FROM microsoft/dotnet:2.2.0-runtime-deps-alpine3.8 AS runtime
 
 WORKDIR /app
 COPY --from=build /app/.version ./
