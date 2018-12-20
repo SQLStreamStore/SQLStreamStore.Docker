@@ -253,3 +253,6 @@ paket-files/
 
 # Generated Schema Documentation
 **/Schema/*.schema.md
+
+# sdk tools
+.tools/

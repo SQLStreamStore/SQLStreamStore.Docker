@@ -10,6 +10,7 @@ static class Program
 {
     private const string ArtifactsDir = "artifacts";
     private const string PublishDir = "publish";
+    private const string ToolsDir = ".tools";
 
     private static readonly string MYGET_API_KEY = Environment.GetEnvironmentVariable(nameof(MYGET_API_KEY));
 
@@ -23,6 +24,7 @@ static class Program
         const string pack = nameof(Pack);
         const string publish = nameof(Publish);
         const string push = nameof(Push);
+        const string checkVulerabilities = nameof(CheckVulnerabilities);
 
         var srcDirectory = new DirectoryInfo("./src");
 
@@ -32,6 +34,7 @@ static class Program
 
         Target(
             init,
+            DependsOn(clean),
             Init);
 
         Target(
@@ -44,6 +47,12 @@ static class Program
             build,
             DependsOn(generateDocumentation),
             Build);
+
+        Target(
+            checkVulerabilities,
+            DependsOn(build),
+            ForEach(ProjectDirectories(srcDirectory)),
+            CheckVulnerabilities);
 
         Target(
             runTests,
@@ -62,7 +71,7 @@ static class Program
 
         Target(
             push,
-            DependsOn(pack),
+            DependsOn(pack, checkVulerabilities),
             Push);
 
         Target("default", DependsOn(clean, runTests, push));
@@ -70,7 +79,11 @@ static class Program
         RunTargetsAndExit(args.Concat(new[] {"--parallel"}));
     }
 
-    private static readonly Action Init = () => Yarn("./docs");
+    private static readonly Action Init = () =>
+    {
+        Yarn("./docs");
+        Run("dotnet", "tool install --tool-path=.tools --version=2.3.2 dotnet-retire");
+    };
 
     private static readonly Action Clean = () =>
     {
@@ -82,6 +95,11 @@ static class Program
         if (Directory.Exists(PublishDir))
         {
             Directory.Delete(PublishDir, true);
+        }
+
+        if(Directory.Exists(ToolsDir))
+        {
+            Directory.Delete(ToolsDir, true);
         }
     };
 
@@ -98,6 +116,12 @@ static class Program
     private static readonly Action RunTests = () => Run(
         "dotnet",
         $"test src/SqlStreamStore.HAL.Tests --configuration Release --results-directory ../../{ArtifactsDir} --verbosity normal --no-build -l trx;LogFileName=SqlStreamStore.HAL.Tests.xml");
+
+    private static readonly Action<string> CheckVulnerabilities = (string projectDirectory) =>
+    {
+        Console.WriteLine(projectDirectory);
+        Run(".tools/dotnet-retire", default, projectDirectory);
+    };
 
     private static readonly Action Publish = () => Run(
         "dotnet",
@@ -133,6 +157,11 @@ static class Program
         else
             Run("yarn", args, workingDirectory);
     }
+
+    private static string[] ProjectDirectories(DirectoryInfo srcDirectory)
+        => srcDirectory.GetFiles("*.csproj", SearchOption.AllDirectories)
+            .Select(projectFile => projectFile.DirectoryName)
+            .ToArray();
 
     private static string[] SchemaDirectories(DirectoryInfo srcDirectory)
         => srcDirectory.GetFiles("*.schema.json", SearchOption.AllDirectories)
