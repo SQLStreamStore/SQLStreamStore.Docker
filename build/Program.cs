@@ -55,5 +55,5 @@ static class Program
 
     private static readonly Action Publish = () => Run(
         "dotnet",
-        $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine.3.7-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.Server");
+        $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.Server");
 }

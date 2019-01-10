@@ -1,15 +1,10 @@
-FROM microsoft/dotnet:2.1.500-sdk-alpine3.7 AS build
-ARG MYGET_API_KEY
+FROM microsoft/dotnet:2.2.102-sdk-stretch AS build
 
 WORKDIR /app
 
 COPY .git ./
 
-RUN apk add --no-cache \
-  nodejs \
-  yarn \
-  libcurl && \
-  dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
+RUN dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
   /root/.dotnet/tools/minver > .version
 
 WORKDIR /app
@@ -26,7 +21,7 @@ WORKDIR /app
 
 COPY ./NuGet.Config ./
 
-RUN dotnet restore --runtime=alpine.3.7-x64
+RUN dotnet restore --runtime=alpine-x64
 
 WORKDIR /app/src
 
@@ -47,7 +42,7 @@ WORKDIR /app
 RUN MYGET_API_KEY=$MYGET_API_KEY \
   dotnet run --project build/build.csproj
 
-FROM microsoft/dotnet:2.1.6-runtime-deps-alpine3.7 AS runtime
+FROM microsoft/dotnet:2.2.1-runtime-deps-alpine3.8 AS runtime
 
 WORKDIR /app
 COPY --from=build /app/.version ./
