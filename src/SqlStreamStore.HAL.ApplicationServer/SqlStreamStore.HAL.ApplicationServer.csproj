@@ -19,10 +19,8 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="SqlStreamStore.MsSql" Version="1.2.0-beta.*" />
     <PackageReference Include="SqlStreamStore.Postgres" Version="1.2.0-beta.*" />
+    <PackageReference Include="SqlStreamStore.HAL" Version="1.2.0-beta.*" />
     <PackageReference Include="System.IO.Pipelines" Version="4.5.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Browser\build\**">
