@@ -1,19 +1,14 @@
-namespace SqlStreamStore.HAL.ApplicationServer.Browser
-{
-    using System;
-    using System.Linq;
-    using System.Net.Http.Headers;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.Extensions.FileProviders;
-    using Serilog;
-    using MidFunc = System.Func<
-        Microsoft.AspNetCore.Http.HttpContext,
-        System.Func<System.Threading.Tasks.Task>,
-        System.Threading.Tasks.Task
-    >;
+using System;
+using System.Linq;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
+using Serilog;
 
+namespace SqlStreamStore.Server.Browser
+{
     internal static class SqlStreamStoreBrowserMiddleware
     {
         public static IApplicationBuilder UseSqlStreamStoreBrowser(

@@ -1,17 +1,17 @@
-namespace SqlStreamStore.HAL.ApplicationServer
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Data.SqlClient;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Npgsql;
-    using Serilog;
-    using SqlStreamStore.Infrastructure;
+using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Threading;
+using System.Threading.Tasks;
+using Npgsql;
+using Serilog;
+using SqlStreamStore.Infrastructure;
 
+namespace SqlStreamStore.Server
+{
     internal class SqlStreamStoreFactory
     {
-        private readonly SqlStreamStoreHalConfiguration _configuration;
+        private readonly SqlStreamStoreServerConfiguration _configuration;
 
         private delegate Task<IStreamStore> CreateStreamStore(
             string connectionString,
@@ -30,7 +30,7 @@ namespace SqlStreamStore.HAL.ApplicationServer
                 [mssql] = CreateMssqlStreamStore
             };
 
-        public SqlStreamStoreFactory(SqlStreamStoreHalConfiguration configuration)
+        public SqlStreamStoreFactory(SqlStreamStoreServerConfiguration configuration)
         {
             if(configuration == null)
             {

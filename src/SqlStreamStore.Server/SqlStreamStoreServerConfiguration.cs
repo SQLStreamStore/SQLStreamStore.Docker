@@ -1,12 +1,12 @@
-namespace SqlStreamStore.HAL.ApplicationServer
-{
-    using System;
-    using System.Collections;
-    using System.Linq;
-    using Microsoft.Extensions.Configuration;
-    using Serilog.Events;
+using System;
+using System.Collections;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Serilog.Events;
 
-    internal class SqlStreamStoreHalConfiguration
+namespace SqlStreamStore.Server
+{
+    internal class SqlStreamStoreServerConfiguration
     {
         private readonly IConfigurationRoot _configuration;
 
@@ -16,7 +16,7 @@ namespace SqlStreamStore.HAL.ApplicationServer
         public string Schema => _configuration.GetValue<string>("schema");
         public string Provider => _configuration.GetValue<string>("provider");
 
-        public SqlStreamStoreHalConfiguration(IDictionary environment, string[] args)
+        public SqlStreamStoreServerConfiguration(IDictionary environment, string[] args)
         {
             if(environment == null)
                 throw new ArgumentNullException(nameof(environment));

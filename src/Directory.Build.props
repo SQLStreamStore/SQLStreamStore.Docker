@@ -2,8 +2,8 @@
 <Project>
   <PropertyGroup>
     <Authors>João P. Bragança</Authors>
-    <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore.HAL</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore.HAL/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore.Server</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore.Server/blob/master/LICENSE</PackageLicenseUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
   </PropertyGroup>

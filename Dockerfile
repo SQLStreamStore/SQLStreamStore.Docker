@@ -12,21 +12,25 @@ RUN apk add --no-cache \
   dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
   /root/.dotnet/tools/minver > .version
 
+WORKDIR /app
+
+COPY ./*.sln ./
+
 WORKDIR /app/src
 
-COPY ./src/*.sln ./
 COPY ./src/*/*.csproj ./
+
 RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
+
+WORKDIR /app
 
 COPY ./NuGet.Config ./
 
 RUN dotnet restore --runtime=alpine.3.7-x64
 
+WORKDIR /app/src
+
 COPY ./src .
-
-WORKDIR /app/docs
-
-COPY ./docs/package.json ./docs/yarn.lock ./
 
 WORKDIR /app/build
 
@@ -36,7 +40,7 @@ RUN dotnet restore
 
 COPY ./build .
 
-COPY --from=sqlstreamstore/browser:0.9 /var/www /app/src/SqlStreamStore.HAL.ApplicationServer/Browser/build
+COPY --from=sqlstreamstore/browser:0.9 /var/www /app/src/SqlStreamStore.Server/Browser/build
 
 WORKDIR /app
 
@@ -49,4 +53,4 @@ WORKDIR /app
 COPY --from=build /app/.version ./
 COPY --from=build /app/publish ./
 
-ENTRYPOINT ["/app/SqlStreamStore.HAL.ApplicationServer"]
+ENTRYPOINT ["/app/SqlStreamStore.Server"]
