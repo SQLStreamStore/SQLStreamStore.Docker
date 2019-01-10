@@ -1,8 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using Fclp;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -17,6 +16,23 @@ static class Program
         const string build = nameof(Build);
         const string publish = nameof(Publish);
 
+        var runtime = "alpine-x64";
+        var libraryVersion = "1.2.0-beta.*";
+
+        var parser = new FluentCommandLineParser();
+        parser.Setup<string>("runtime")
+            .Callback(r => runtime = r);
+        parser.Setup<string>("library-version")
+            .Callback(v => libraryVersion = v);
+
+        var result = parser.Parse(args);
+
+        args = result
+            .AdditionalOptions
+            .SelectMany(option => new[] {option.Key.Length == 1 ? $"-{option.Key}" : $"--{option.Key}", option.Value})
+            .Where(arg => arg != null)
+            .ToArray();
+
         Target(
             clean,
             Clean);
@@ -24,12 +40,12 @@ static class Program
         Target(
             build,
             DependsOn(clean),
-            Build);
+            Build(libraryVersion));
 
         Target(
             publish,
             DependsOn(build),
-            Publish);
+            Publish(runtime, libraryVersion));
 
         Target("default", DependsOn(publish));
 
@@ -49,11 +65,11 @@ static class Program
         }
     };
 
-    private static readonly Action Build = () => Run(
+    private static Action Build(string libraryVersion) => () => Run(
         "dotnet",
-        "build SqlStreamStore.Server.sln --configuration Release");
+        $"build SqlStreamStore.Server.sln --configuration=Release /p:LibraryVersion={libraryVersion}");
 
-    private static readonly Action Publish = () => Run(
+    private static Action Publish(string runtime, string libraryVersion) => () => Run(
         "dotnet",
-        $"publish --configuration=Release --output=../../{PublishDir} --runtime=alpine-x64 /p:ShowLinkerSizeComparison=true src/SqlStreamStore.Server");
+        $"publish --configuration=Release --output=../../{PublishDir} --runtime={runtime} /p:ShowLinkerSizeComparison=true /p:LibraryVersion={libraryVersion} src/SqlStreamStore.Server");
 }

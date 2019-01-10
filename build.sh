@@ -9,6 +9,9 @@ REMOTE_IMAGE="sqlstreamstore/hal"
 
 docker build \
     --build-arg MYGET_API_KEY=$MYGET_API_KEY \
+    --build-arg RUNTIME_CONTAINER=${RUNTIME_CONTAINER:-2.2.1-runtime-deps-alpine3.8} \
+    --build-arg RUNTIME=${RUNTIME:-alpine-x64} \
+    --build-arg LIBRARY_VERSION=${LIBRARY_VERSION:-1.2.0-beta.*} \
     --tag ${LOCAL} \
     .
 

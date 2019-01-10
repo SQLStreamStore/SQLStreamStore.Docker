@@ -5,6 +5,7 @@
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <LangVersion>latest</LangVersion>
     <CrossGenDuringPublish>false</CrossGenDuringPublish>
+    <LibraryVersion Condition="$(LibraryVersion) == ''">1.2.0-beta.*</LibraryVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ILLink.Tasks" Version="0.1.5-preview-1841731" />
@@ -16,9 +17,9 @@
     <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.2.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-    <PackageReference Include="SqlStreamStore.MsSql" Version="1.2.0-beta.*" />
-    <PackageReference Include="SqlStreamStore.Postgres" Version="1.2.0-beta.*" />
-    <PackageReference Include="SqlStreamStore.HAL" Version="1.2.0-beta.*" />
+    <PackageReference Include="SqlStreamStore.MsSql" Version="$(LibraryVersion)" />
+    <PackageReference Include="SqlStreamStore.Postgres" Version="$(LibraryVersion)" />
+    <PackageReference Include="SqlStreamStore.HAL" Version="$(LibraryVersion)" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Browser\build\**">

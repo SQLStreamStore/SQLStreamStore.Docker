@@ -1,3 +1,5 @@
+ARG CONTAINER_RUNTIME=2.2.1-runtime-deps-alpine3.8
+
 FROM node:10.12.0-alpine AS build-javascript
 ARG CLIENT_VERSION=0.9.2
 ARG NPM_REGISTRY=https://registry.npmjs.org
@@ -16,6 +18,8 @@ RUN yarn && \
 
 FROM microsoft/dotnet:2.2.102-sdk-stretch AS build-dotnet
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
+ARG RUNTIME=alpine-x64
+ARG LIBRARY_VERSION=1.2.0
 
 WORKDIR /app
 
@@ -23,8 +27,6 @@ COPY .git ./
 
 RUN dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
   /root/.dotnet/tools/minver > .version
-
-WORKDIR /app
 
 COPY ./*.sln ./
 
@@ -38,7 +40,7 @@ WORKDIR /app
 
 COPY ./NuGet.Config ./
 
-RUN dotnet restore --runtime=alpine-x64
+RUN dotnet restore --runtime=${RUNTIME}
 
 WORKDIR /app/src
 
@@ -56,9 +58,9 @@ COPY ./build .
 
 WORKDIR /app
 
-RUN dotnet run --project build/build.csproj
+RUN dotnet run --project build/build.csproj -- --runtime=${RUNTIME} --library-version=${LIBRARY_VERSION}
 
-FROM microsoft/dotnet:2.2.1-runtime-deps-alpine3.8 AS runtime
+FROM microsoft/dotnet:${CONTAINER_RUNTIME} AS runtime
 
 WORKDIR /app
 COPY --from=build-dotnet /app/.version ./
