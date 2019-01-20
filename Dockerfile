@@ -1,32 +1,54 @@
-FROM microsoft/dotnet:2.1.500-sdk-alpine3.7 AS build
-ARG MYGET_API_KEY
+ARG CONTAINER_RUNTIME_VERSION=2.2.1
+ARG CONTAINER_RUNTIME=alpine3.8
+
+FROM node:10.12.0-alpine AS build-javascript
+ARG CLIENT_PACKAGE=@sqlstreamstore/browser
+ARG CLIENT_VERSION=0.9.1-alpha.0.6
+ARG NPM_REGISTRY=https://www.myget.org/F/sqlstreamstore/npm/
+
+ENV REACT_APP_CLIENT_VERSION=${CLIENT_VERSION}
 
 WORKDIR /app
 
-COPY .git ./
+RUN echo "@sqlstreamstore:registry=${NPM_REGISTRY}" > .npmrc && \
+    yarn init --yes && \
+    yarn add ${CLIENT_PACKAGE}@${CLIENT_VERSION}
 
-RUN apk add --no-cache \
-  nodejs \
-  yarn \
-  libcurl && \
-  dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
-  /root/.dotnet/tools/minver > .version
+WORKDIR /app/node_modules/${CLIENT_PACKAGE}
+
+RUN yarn && \
+    yarn react-scripts-ts build && \
+    echo ${CLIENT_VERSION} > /app/.clientversion
+
+FROM microsoft/dotnet:2.2.103-sdk-stretch AS build-dotnet
+ARG CLIENT_PACKAGE=@sqlstreamstore/browser
+ARG RUNTIME=alpine-x64
+ARG LIBRARY_VERSION=1.2.0
+
+WORKDIR /app
+
+COPY ./*.sln .git ./
+
+RUN dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
+    /root/.dotnet/tools/minver > .version
 
 WORKDIR /app/src
 
-COPY ./src/*.sln ./
-COPY ./src/*/*.csproj ./
+COPY ./src/*/*.csproj ./src/Directory.Build.props ./
+
 RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
+
+WORKDIR /app
 
 COPY ./NuGet.Config ./
 
-RUN dotnet restore --runtime=alpine.3.7-x64
+RUN dotnet restore --runtime=${RUNTIME}
+
+WORKDIR /app/src
 
 COPY ./src .
 
-WORKDIR /app/docs
-
-COPY ./docs/package.json ./docs/yarn.lock ./
+COPY --from=build-javascript /app/node_modules/${CLIENT_PACKAGE}/build /app/src/SqlStreamStore.Server/Browser/build
 
 WORKDIR /app/build
 
@@ -36,17 +58,14 @@ RUN dotnet restore
 
 COPY ./build .
 
-COPY --from=sqlstreamstore/browser:0.9 /var/www /app/src/SqlStreamStore.HAL.ApplicationServer/Browser/build
+WORKDIR /app
+
+RUN dotnet run --project build/build.csproj -- --runtime=${RUNTIME} --library-version=${LIBRARY_VERSION}
+
+FROM microsoft/dotnet:${CONTAINER_RUNTIME_VERSION}-runtime-deps-${CONTAINER_RUNTIME} AS runtime
 
 WORKDIR /app
 
-RUN MYGET_API_KEY=$MYGET_API_KEY \
-  dotnet run --project build/build.csproj
+COPY --from=build-dotnet /app/publish /app/.version ./
 
-FROM microsoft/dotnet:2.1.6-runtime-deps-alpine3.7 AS runtime
-
-WORKDIR /app
-COPY --from=build /app/.version ./
-COPY --from=build /app/publish ./
-
-ENTRYPOINT ["/app/SqlStreamStore.HAL.ApplicationServer"]
+ENTRYPOINT ["/app/SqlStreamStore.Server"]
