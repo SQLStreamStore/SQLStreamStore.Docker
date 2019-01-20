@@ -2,39 +2,36 @@
 
 set -e
 
+CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-alpine-3.8}
+LIBRARY_VERSION=${LIBRARY_VERSION:-1.2.0-beta.2}
+
 LOCAL_IMAGE="sql-stream-store-server"
 LOCAL="${LOCAL_IMAGE}:latest"
 
-REMOTE_IMAGE="sqlstreamstore/hal"
+REMOTE_IMAGE="sqlstreamstore/server"
 
 docker build \
     --build-arg MYGET_API_KEY=$MYGET_API_KEY \
-    --build-arg RUNTIME_CONTAINER=${RUNTIME_CONTAINER:-2.2.1-runtime-deps-alpine3.8} \
+    --build-arg CONTAINER_RUNTIME_VERSION=${CONTAINER_RUNTIME_VERSION:-2.2.1} \
+    --build-arg CONTAINER_RUNTIME=${CONTAINER_RUNTIME} \
     --build-arg RUNTIME=${RUNTIME:-alpine-x64} \
-    --build-arg LIBRARY_VERSION=${LIBRARY_VERSION:-1.2.0-beta.*} \
+    --build-arg LIBRARY_VERSION=${LIBRARY_VERSION} \
     --tag ${LOCAL} \
     .
 
-VERSION=$(docker run --entrypoint=cat ${LOCAL} /app/.version)
 
 SEMVER_REGEX="^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
 
-[[ $VERSION =~ $SEMVER_REGEX ]]
+[[ $LIBRARY_VERSION =~ $SEMVER_REGEX ]]
 
-MAJOR="${REMOTE_IMAGE}:${BASH_REMATCH[1]}"
-MAJOR_MINOR="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
-MAJOR_MINOR_PATCH="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
-MAJOR_MINOR_PATCH_PRE="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}${BASH_REMATCH[4]}"
+MAJOR_MINOR="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}-${CONTAINER_RUNTIME}"
+MAJOR_MINOR_PATCH="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}-${CONTAINER_RUNTIME}"
+MAJOR_MINOR_PATCH_PRE="${REMOTE_IMAGE}:${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}${BASH_REMATCH[4]}-${CONTAINER_RUNTIME}"
 
-if [[ -n $TRAVIS_TAG && -z ${BASH_REMATCH[4]} ]]; then
+if [[ -z ${BASH_REMATCH[4]} ]]; then
     echo "Detected a tag with no prerelease."
     docker tag $LOCAL $MAJOR_MINOR_PATCH
     docker tag $LOCAL $MAJOR_MINOR
-    if [[ ${BASH_REMATCH[1]} != "0" ]]; then
-        docker tag $LOCAL $MAJOR
-    else
-        echo "Detected unstable version."
-    fi
 else
     echo "Detected a prerelease."
     docker tag $LOCAL $MAJOR_MINOR_PATCH_PRE

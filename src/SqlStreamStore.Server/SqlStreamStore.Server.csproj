@@ -5,7 +5,7 @@
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <LangVersion>latest</LangVersion>
     <CrossGenDuringPublish>false</CrossGenDuringPublish>
-    <LibraryVersion Condition="$(LibraryVersion) == ''">1.2.0-beta.*</LibraryVersion>
+    <LibraryVersion Condition="$(LibraryVersion) == ''">1.2.0-beta.2</LibraryVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ILLink.Tasks" Version="0.1.5-preview-1841731" />

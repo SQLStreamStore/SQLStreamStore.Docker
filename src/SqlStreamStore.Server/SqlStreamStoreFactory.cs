@@ -98,7 +98,7 @@ END;
 
             var streamStore = new MsSqlStreamStoreV3(settings);
 
-            await streamStore.CreateSchemaIfNotExists(cancellationToken);
+            await streamStore.CreateSchema(cancellationToken);
 
             return streamStore;
         }
@@ -145,7 +145,7 @@ END;
 
                 var streamStore = new PostgresStreamStore(settings);
 
-                await streamStore.CreateSchemaIfNotExists(cancellationToken);
+                await streamStore.CreateSchema(cancellationToken);
 
                 return streamStore;
             }

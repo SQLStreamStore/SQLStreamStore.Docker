@@ -1,9 +1,12 @@
-ARG CONTAINER_RUNTIME=2.2.1-runtime-deps-alpine3.8
+ARG CONTAINER_RUNTIME_VERSION=2.2.1
+ARG CONTAINER_RUNTIME=alpine3.8
 
 FROM node:10.12.0-alpine AS build-javascript
-ARG CLIENT_VERSION=0.9.2
-ARG NPM_REGISTRY=https://registry.npmjs.org
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
+ARG CLIENT_VERSION=0.9.1-alpha.0.6
+ARG NPM_REGISTRY=https://www.myget.org/F/sqlstreamstore/npm/
+
+ENV REACT_APP_CLIENT_VERSION=${CLIENT_VERSION}
 
 WORKDIR /app
 
@@ -14,25 +17,24 @@ RUN echo "@sqlstreamstore:registry=${NPM_REGISTRY}" > .npmrc && \
 WORKDIR /app/node_modules/${CLIENT_PACKAGE}
 
 RUN yarn && \
-    yarn react-scripts-ts build
+    yarn react-scripts-ts build && \
+    echo ${CLIENT_VERSION} > /app/.clientversion
 
-FROM microsoft/dotnet:2.2.102-sdk-stretch AS build-dotnet
+FROM microsoft/dotnet:2.2.103-sdk-stretch AS build-dotnet
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
 ARG RUNTIME=alpine-x64
 ARG LIBRARY_VERSION=1.2.0
 
 WORKDIR /app
 
-COPY .git ./
+COPY ./*.sln .git ./
 
 RUN dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
-  /root/.dotnet/tools/minver > .version
-
-COPY ./*.sln ./
+    /root/.dotnet/tools/minver > .version
 
 WORKDIR /app/src
 
-COPY ./src/*/*.csproj ./
+COPY ./src/*/*.csproj ./src/Directory.Build.props ./
 
 RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 
@@ -60,10 +62,10 @@ WORKDIR /app
 
 RUN dotnet run --project build/build.csproj -- --runtime=${RUNTIME} --library-version=${LIBRARY_VERSION}
 
-FROM microsoft/dotnet:${CONTAINER_RUNTIME} AS runtime
+FROM microsoft/dotnet:${CONTAINER_RUNTIME_VERSION}-runtime-deps-${CONTAINER_RUNTIME} AS runtime
 
 WORKDIR /app
-COPY --from=build-dotnet /app/.version ./
-COPY --from=build-dotnet /app/publish ./
+
+COPY --from=build-dotnet /app/publish /app/.version ./
 
 ENTRYPOINT ["/app/SqlStreamStore.Server"]
