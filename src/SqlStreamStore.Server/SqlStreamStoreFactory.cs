@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
@@ -32,10 +33,11 @@ namespace SqlStreamStore.Server
 
         public SqlStreamStoreFactory(SqlStreamStoreServerConfiguration configuration)
         {
-            if(configuration == null)
+            if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
+
             _configuration = configuration;
         }
 
@@ -46,7 +48,7 @@ namespace SqlStreamStore.Server
 
             Log.Information($"Creating stream store for provider '{provider}'");
 
-            if(!s_factories.TryGetValue(provider, out var factory))
+            if (!s_factories.TryGetValue(provider, out var factory))
             {
                 throw new InvalidOperationException($"No provider factory for provider '{provider}' found.");
             }
@@ -69,14 +71,14 @@ namespace SqlStreamStore.Server
             CancellationToken cancellationToken)
         {
             var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-            using(var connection = new SqlConnection(new SqlConnectionStringBuilder(connectionString)
+            using (var connection = new SqlConnection(new SqlConnectionStringBuilder(connectionString)
             {
                 InitialCatalog = "master"
             }.ConnectionString))
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(
+                using (var command = new SqlCommand(
                     $@"
 IF  NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{connectionStringBuilder.InitialCatalog}')
 BEGIN
@@ -91,14 +93,21 @@ END;
 
             var settings = new MsSqlStreamStoreV3Settings(connectionString);
 
-            if(schema != null)
+            if (schema != null)
             {
                 settings.Schema = schema;
             }
 
             var streamStore = new MsSqlStreamStoreV3(settings);
 
-            await streamStore.CreateSchemaIfNotExists(cancellationToken);
+            try
+            {
+                await streamStore.CreateSchemaIfNotExists(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+            }
 
             return streamStore;
         }
@@ -110,7 +119,7 @@ END;
         {
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
 
-            using(var connection = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(connectionString)
+            using (var connection = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(connectionString)
             {
                 Database = null
             }.ConnectionString))
@@ -118,7 +127,7 @@ END;
                 bool exists;
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new NpgsqlCommand(
+                using (var command = new NpgsqlCommand(
                     $"SELECT 1 FROM pg_database WHERE datname = '{connectionStringBuilder.Database}'",
                     connection))
                 {
@@ -126,9 +135,9 @@ END;
                              != null;
                 }
 
-                if(!exists)
+                if (!exists)
                 {
-                    using(var command = new NpgsqlCommand(
+                    using (var command = new NpgsqlCommand(
                         $"CREATE DATABASE {connectionStringBuilder.Database}",
                         connection))
                     {
@@ -138,17 +147,36 @@ END;
 
                 var settings = new PostgresStreamStoreSettings(connectionString);
 
-                if(schema != null)
+                if (schema != null)
                 {
                     settings.Schema = schema;
                 }
 
                 var streamStore = new PostgresStreamStore(settings);
 
-                await streamStore.CreateSchemaIfNotExists(cancellationToken);
+                try
+                {
+                    await streamStore.CreateSchemaIfNotExists(cancellationToken);
+                }
+                catch (NpgsqlException ex)
+                {
+                    SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                }
 
                 return streamStore;
             }
         }
+
+        private static void SchemaCreationFailed(Func<string> getSchemaCreationScript, Exception ex)
+            => Log.Warning(
+                new StringBuilder()
+                    .Append($"Could not create schema: {ex.Message}")
+                    .AppendLine()
+                    .Append(
+                        "Does your connection string have enough permissions? If not, run the following sql script as a privileged user:")
+                    .AppendLine()
+                    .Append(getSchemaCreationScript)
+                    .ToString(),
+                ex);
     }
 }
