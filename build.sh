@@ -2,8 +2,9 @@
 
 set -e
 
-CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-alpine-3.8}
-LIBRARY_VERSION=${LIBRARY_VERSION:-1.2.0-beta.2}
+CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-alpine3.8}
+LIBRARY_VERSION=${LIBRARY_VERSION:-1.2.0-beta.3.6}
+CLIENT_VERSION=${CLIENT_VERSION:-0.9.1}
 
 LOCAL_IMAGE="sql-stream-store-server"
 LOCAL="${LOCAL_IMAGE}:latest"
@@ -16,6 +17,7 @@ docker build \
     --build-arg CONTAINER_RUNTIME=${CONTAINER_RUNTIME} \
     --build-arg RUNTIME=${RUNTIME:-alpine-x64} \
     --build-arg LIBRARY_VERSION=${LIBRARY_VERSION} \
+    --build-arg CLIENT_VERSION=${CLIENT_VERSION} \
     --tag ${LOCAL} \
     .
 

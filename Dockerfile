@@ -3,7 +3,7 @@ ARG CONTAINER_RUNTIME=alpine3.8
 
 FROM node:10.12.0-alpine AS build-javascript
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
-ARG CLIENT_VERSION=0.9.1-alpha.0.6
+ARG CLIENT_VERSION=0.9.1
 ARG NPM_REGISTRY=https://www.myget.org/F/sqlstreamstore/npm/
 
 ENV REACT_APP_CLIENT_VERSION=${CLIENT_VERSION}
@@ -20,7 +20,7 @@ RUN yarn && \
     yarn react-scripts-ts build && \
     echo ${CLIENT_VERSION} > /app/.clientversion
 
-FROM microsoft/dotnet:2.2.103-sdk-stretch AS build-dotnet
+FROM microsoft/dotnet:2.2.104-sdk-stretch AS build-dotnet
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
 ARG RUNTIME=alpine-x64
 ARG LIBRARY_VERSION=1.2.0
