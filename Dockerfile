@@ -29,7 +29,7 @@ WORKDIR /app
 
 COPY ./*.sln .git ./
 
-RUN dotnet tool install -g minver-cli --version 1.0.0-beta.2 && \
+RUN dotnet tool install -g minver-cli --version 1.0.0-beta.4 && \
     /root/.dotnet/tools/minver > .version
 
 WORKDIR /app/src
