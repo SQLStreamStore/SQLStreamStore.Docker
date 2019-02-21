@@ -15,7 +15,7 @@ namespace SqlStreamStore.Server
 
         public static async Task<int> Main(string[] args)
         {
-            using(var program = new Program(args))
+            using (var program = new Program(args))
             {
                 return await program.Run();
             }
@@ -39,13 +39,14 @@ namespace SqlStreamStore.Server
         {
             try
             {
-                using(var streamStore = await _factory.Create(_cts.Token))
-                using(var host = new WebHostBuilder()
+                using (var streamStore = await _factory.Create(_cts.Token))
+                using (var host = new WebHostBuilder()
                     .UseKestrel()
                     .UseStartup(new SqlStreamStoreServerStartup(streamStore,
                         new SqlStreamStoreMiddlewareOptions
                         {
-                            UseCanonicalUrls = _configuration.UseCanonicalUris
+                            UseCanonicalUrls = _configuration.UseCanonicalUris,
+                            ServerAssembly = typeof(Program).Assembly
                         }))
                     .UseSerilog()
                     .Build())
@@ -57,7 +58,7 @@ namespace SqlStreamStore.Server
                     return 0;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Fatal(ex, "Host terminated unexpectedly.");
                 return 1;
