@@ -5,15 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
-using Microsoft.VisualBasic;
 using Serilog.Events;
 
 namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreServerConfiguration
     {
-        private readonly static string[] s_sensitiveKeys = typeof(ConfigurationData).GetProperties()
+        private static readonly string[] s_sensitiveKeys = typeof(ConfigurationData).GetProperties()
             .Where(property => property.GetCustomAttributes<SensitiveAttribute>().Any())
             .Select(property => property.Name)
             .ToArray();
@@ -52,9 +50,9 @@ namespace SqlStreamStore.Server
 
             _configuration = new ConfigurationData(
                 new ConfigurationBuilder()
-                    .Add(new DefaultConfigurationSource(Log))
-                    .Add(new CommandLineConfigurationSource(args, Log))
-                    .Add(new EnvironmentVariablesConfigurationSource(environment, Log))
+                    .Add(new Default(Log))
+                    .Add(new CommandLine(args, Log))
+                    .Add(new EnvironmentVariables(environment, Log))
                     .Build());
         }
 
@@ -84,9 +82,7 @@ namespace SqlStreamStore.Server
                     }
                 }
                 .Concat(
-                    _values.Keys
-                        .Where(s_allKeys.Contains)
-                        .OrderBy(key => key)
+                    s_allKeys
                         .Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
                 .Aggregate(
                     new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
@@ -124,11 +120,11 @@ namespace SqlStreamStore.Server
             }
         }
 
-        private class DefaultConfigurationSource : ConfigurationProvider, IConfigurationSource
+        private class Default : IConfigurationSource
         {
             private readonly Action<string, IDictionary<string, string>> _log;
 
-            public DefaultConfigurationSource(Action<string, IDictionary<string, string>> log)
+            public Default(Action<string, IDictionary<string, string>> log)
             {
                 if (log == null)
                 {
@@ -138,7 +134,19 @@ namespace SqlStreamStore.Server
                 _log = log;
             }
 
-            public IConfigurationProvider Build(IConfigurationBuilder builder) => this;
+            public IConfigurationProvider Build(IConfigurationBuilder builder) =>
+                new DefaultConfigurtationProvider(_log);
+        }
+
+        private class DefaultConfigurtationProvider : ConfigurationProvider
+        {
+            private readonly Action<string, IDictionary<string, string>> _log;
+
+            public DefaultConfigurtationProvider(Action<string, IDictionary<string, string>> log)
+            {
+                if (log == null) throw new ArgumentNullException(nameof(log));
+                _log = log;
+            }
 
             public override void Load()
             {
@@ -151,16 +159,16 @@ namespace SqlStreamStore.Server
                     [nameof(UseCanonicalUris)] = default
                 };
 
-                _log(nameof(DefaultConfigurationSource), Data);
+                _log(nameof(Default), Data);
             }
         }
 
-        private class CommandLineConfigurationSource : IConfigurationSource
+        private class CommandLine : IConfigurationSource
         {
             private readonly IEnumerable<string> _args;
             private readonly Action<string, IDictionary<string, string>> _log;
 
-            public CommandLineConfigurationSource(
+            public CommandLine(
                 IEnumerable<string> args,
                 Action<string, IDictionary<string, string>> log)
             {
@@ -205,17 +213,17 @@ namespace SqlStreamStore.Server
 
                 Data = Data.Keys.ToDictionary(Computerize, x => Data[x]);
 
-                _log(nameof(CommandLineConfigurationSource), Data);
+                _log(nameof(CommandLine), Data);
             }
         }
 
-        private class EnvironmentVariablesConfigurationSource : IConfigurationSource
+        private class EnvironmentVariables : IConfigurationSource
         {
             private readonly IDictionary _environment;
             private readonly Action<string, IDictionary<string, string>> _log;
             public string Prefix { get; set; } = "SQLSTREAMSTORE";
 
-            public EnvironmentVariablesConfigurationSource(
+            public EnvironmentVariables(
                 IDictionary environment,
                 Action<string, IDictionary<string, string>> log)
             {
@@ -275,7 +283,7 @@ namespace SqlStreamStore.Server
                         })
                     .ToDictionary(x => x.key, x => x.value);
 
-                _log(nameof(EnvironmentVariablesConfigurationSource), Data);
+                _log(nameof(EnvironmentVariables), Data);
             }
         }
 
