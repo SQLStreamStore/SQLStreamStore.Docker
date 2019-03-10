@@ -13,9 +13,17 @@ namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreServerConfiguration
     {
+        private readonly static string[] s_sensitiveKeys = typeof(ConfigurationData).GetProperties()
+            .Where(property => property.GetCustomAttributes<SensitiveAttribute>().Any())
+            .Select(property => property.Name)
+            .ToArray();
+
+        private static readonly string[] s_allKeys = typeof(ConfigurationData).GetProperties()
+            .Select(property => property.Name)
+            .ToArray();
+
         private readonly ConfigurationData _configuration;
         private readonly IDictionary<string, (string source, string value)> _values;
-        private readonly string[] _sensitiveKeys;
 
         public bool UseCanonicalUris => _configuration.UseCanonicalUris;
         public LogEventLevel LogLevel => _configuration.LogLevel;
@@ -33,10 +41,6 @@ namespace SqlStreamStore.Server
                 throw new ArgumentNullException(nameof(args));
 
             _values = new Dictionary<string, (string source, string value)>();
-            _sensitiveKeys = typeof(ConfigurationData).GetProperties()
-                .Where(property => property.GetCustomAttributes<SensitiveAttribute>().Any())
-                .Select(property => property.Name)
-                .ToArray();
 
             void Log(string logName, IDictionary<string, string> data)
             {
@@ -76,17 +80,20 @@ namespace SqlStreamStore.Server
                         "─┼─",
                         new string('─', column0Width),
                         new string('─', column1Width),
-                        new string('─', column2Width),
+                        new string('─', column2Width)
                     }
                 }
-                .Concat(_values.Keys.OrderBy(key => key)
-                    .Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
+                .Concat(
+                    _values.Keys
+                        .Where(s_allKeys.Contains)
+                        .OrderBy(key => key)
+                        .Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
                 .Aggregate(
                     new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
                     (builder, values) => builder
                         .Append((values[1] ?? string.Empty).PadRight(column0Width, ' '))
                         .Append(values[0])
-                        .Append((_sensitiveKeys.Contains(values[1])
+                        .Append((s_sensitiveKeys.Contains(values[1])
                             ? new string('*', Math.Min(column1Width, 8))
                             : values[2] ?? string.Empty).PadRight(column1Width, ' '))
                         .Append(values[0])
