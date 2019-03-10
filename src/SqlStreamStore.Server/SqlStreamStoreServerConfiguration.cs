@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.EnvironmentVariables;
@@ -13,7 +14,8 @@ namespace SqlStreamStore.Server
     internal class SqlStreamStoreServerConfiguration
     {
         private readonly ConfigurationData _configuration;
-        private Dictionary<string, (string source, string value)> _values;
+        private readonly IDictionary<string, (string source, string value)> _values;
+        private readonly string[] _sensitiveKeys;
 
         public bool UseCanonicalUris => _configuration.UseCanonicalUris;
         public LogEventLevel LogLevel => _configuration.LogLevel;
@@ -31,6 +33,10 @@ namespace SqlStreamStore.Server
                 throw new ArgumentNullException(nameof(args));
 
             _values = new Dictionary<string, (string source, string value)>();
+            _sensitiveKeys = typeof(ConfigurationData).GetProperties()
+                .Where(property => property.GetCustomAttributes<SensitiveAttribute>().Any())
+                .Select(property => property.Name)
+                .ToArray();
 
             void Log(string logName, IDictionary<string, string> data)
             {
@@ -50,28 +56,41 @@ namespace SqlStreamStore.Server
 
         public override string ToString()
         {
-            const string delimiter = " | ";
+            const string delimiter = " │ ";
 
             var column0Width = _values.Keys.Count > 0 ? _values.Keys.Max(x => x?.Length ?? 0) : 0;
             var column1Width = _values.Values.Count > 0 ? _values.Values.Max(_ => _.value?.Length ?? 0) : 0;
             var column2Width = _values.Values.Count > 0 ? _values.Values.Max(_ => _.source?.Length ?? 0) : 0;
 
-            StringBuilder Append(StringBuilder builder, string column0, string column1, string column2) =>
-                builder
-                    .Append((column0 ?? string.Empty).PadRight(column0Width, ' '))
-                    .Append(delimiter)
-                    .Append((column1 ?? string.Empty).PadRight(column1Width, ' '))
-                    .Append(delimiter)
-                    .AppendLine(column2);
-
-            return _values.Keys.OrderBy(x => x).Aggregate(
-                Append(new StringBuilder().AppendLine("SQL Stream Store Configuration:"), "Argument", "Value", "Source")
-                    .AppendLine(new string('-', column0Width + column1Width + column2Width)),
-                (builder, key) => Append(
-                    builder,
-                    key,
-                    _values[key].value,
-                    _values[key].source)).ToString();
+            return new[]
+                {
+                    new[]
+                    {
+                        delimiter,
+                        "Argument",
+                        "Value",
+                        "Source"
+                    },
+                    new[]
+                    {
+                        "─┼─",
+                        new string('─', column0Width),
+                        new string('─', column1Width),
+                        new string('─', column2Width),
+                    }
+                }
+                .Concat(_values.Keys.OrderBy(key => key)
+                    .Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
+                .Aggregate(
+                    new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
+                    (builder, values) => builder
+                        .Append((values[1] ?? string.Empty).PadRight(column0Width, ' '))
+                        .Append(values[0])
+                        .Append((_sensitiveKeys.Contains(values[1])
+                            ? new string('*', Math.Min(column1Width, 8))
+                            : values[2] ?? string.Empty).PadRight(column1Width, ' '))
+                        .Append(values[0])
+                        .AppendLine(values[3])).ToString();
         }
 
         private static string Computerize(string value) =>
@@ -87,7 +106,7 @@ namespace SqlStreamStore.Server
 
             public bool UseCanonicalUris => _configuration.GetValue<bool>(nameof(UseCanonicalUris));
             public LogEventLevel LogLevel => _configuration.GetValue(nameof(LogLevel), LogEventLevel.Information);
-            public string ConnectionString => _configuration.GetValue<string>(nameof(ConnectionString));
+            [Sensitive] public string ConnectionString => _configuration.GetValue<string>(nameof(ConnectionString));
             public string Schema => _configuration.GetValue<string>(nameof(Schema));
             public string Provider => _configuration.GetValue<string>(nameof(Provider));
 
@@ -251,6 +270,10 @@ namespace SqlStreamStore.Server
 
                 _log(nameof(EnvironmentVariablesConfigurationSource), Data);
             }
+        }
+
+        private class SensitiveAttribute : Attribute
+        {
         }
     }
 }
