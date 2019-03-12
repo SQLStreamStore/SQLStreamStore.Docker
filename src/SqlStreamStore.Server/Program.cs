@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -23,7 +25,11 @@ namespace SqlStreamStore.Server
 
         private Program(string[] args)
         {
-            _configuration = new SqlStreamStoreServerConfiguration(Environment.GetEnvironmentVariables(), args);
+            _configuration = new SqlStreamStoreServerConfiguration(
+                Environment.GetEnvironmentVariables(),
+                args);
+
+            Console.WriteLine(_configuration.ToString());
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(_configuration.LogLevel)
