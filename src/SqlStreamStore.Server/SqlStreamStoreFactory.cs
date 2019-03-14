@@ -175,7 +175,7 @@ END;
                     .Append(
                         "Does your connection string have enough permissions? If not, run the following sql script as a privileged user:")
                     .AppendLine()
-                    .Append(getSchemaCreationScript)
+                    .Append(getSchemaCreationScript())
                     .ToString(),
                 ex);
     }
