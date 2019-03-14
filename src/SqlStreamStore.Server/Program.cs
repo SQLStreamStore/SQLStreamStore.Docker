@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -17,28 +15,29 @@ namespace SqlStreamStore.Server
 
         public static async Task<int> Main(string[] args)
         {
-            using (var program = new Program(args))
+            var configuration = new SqlStreamStoreServerConfiguration(
+                Environment.GetEnvironmentVariables(),
+                args);
+
+            using (var program = new Program(configuration))
             {
                 return await program.Run();
             }
         }
 
-        private Program(string[] args)
+        private Program(SqlStreamStoreServerConfiguration configuration)
         {
-            _configuration = new SqlStreamStoreServerConfiguration(
-                Environment.GetEnvironmentVariables(),
-                args);
-
-            Console.WriteLine(_configuration.ToString());
-
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Is(_configuration.LogLevel)
+                .MinimumLevel.Is(configuration.LogLevel)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateLogger();
 
+            Log.Information(configuration.ToString());
+
+            _configuration = configuration;
             _cts = new CancellationTokenSource();
-            _factory = new SqlStreamStoreFactory(_configuration);
+            _factory = new SqlStreamStoreFactory(configuration);
         }
 
         private async Task<int> Run()
@@ -49,7 +48,8 @@ namespace SqlStreamStore.Server
                 using (var host = new WebHostBuilder()
                     .SuppressStatusMessages(true)
                     .UseKestrel()
-                    .UseStartup(new SqlStreamStoreServerStartup(streamStore,
+                    .UseStartup(new SqlStreamStoreServerStartup(
+                        streamStore,
                         new SqlStreamStoreMiddlewareOptions
                         {
                             UseCanonicalUrls = _configuration.UseCanonicalUris,
