@@ -47,6 +47,7 @@ namespace SqlStreamStore.Server
             {
                 using (var streamStore = await _factory.Create(_cts.Token))
                 using (var host = new WebHostBuilder()
+                    .SuppressStatusMessages(true)
                     .UseKestrel()
                     .UseStartup(new SqlStreamStoreServerStartup(streamStore,
                         new SqlStreamStoreMiddlewareOptions
