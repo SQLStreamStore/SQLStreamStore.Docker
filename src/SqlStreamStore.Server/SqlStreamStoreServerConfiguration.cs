@@ -44,7 +44,11 @@ namespace SqlStreamStore.Server
             {
                 foreach (var (key, value) in data)
                 {
-                    _values[key] = (logName, value);
+                    _values[key] = (
+                        logName,
+                        s_sensitiveKeys.Contains(key)
+                            ? new string('*', 8)
+                            : value);
                 }
             }
 
@@ -82,18 +86,16 @@ namespace SqlStreamStore.Server
                     }
                 }
                 .Concat(
-                    s_allKeys
-                        .Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
+                    s_allKeys.Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
                 .Aggregate(
                     new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
                     (builder, values) => builder
                         .Append((values[1] ?? string.Empty).PadRight(column0Width, ' '))
                         .Append(values[0])
-                        .Append((s_sensitiveKeys.Contains(values[1])
-                            ? new string('*', Math.Min(column1Width, 8))
-                            : values[2] ?? string.Empty).PadRight(column1Width, ' '))
+                        .Append((values[2] ?? string.Empty).PadRight(column1Width, ' '))
                         .Append(values[0])
-                        .AppendLine(values[3])).ToString();
+                        .AppendLine(values[3]))
+                .ToString();
         }
 
         private static string Computerize(string value) =>
@@ -115,7 +117,11 @@ namespace SqlStreamStore.Server
 
             public ConfigurationData(IConfigurationRoot configuration)
             {
-                if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+                if (configuration == null)
+                {
+                    throw new ArgumentNullException(nameof(configuration));
+                }
+
                 _configuration = configuration;
             }
         }
@@ -135,16 +141,20 @@ namespace SqlStreamStore.Server
             }
 
             public IConfigurationProvider Build(IConfigurationBuilder builder) =>
-                new DefaultConfigurtationProvider(_log);
+                new DefaultConfigurationProvider(_log);
         }
 
-        private class DefaultConfigurtationProvider : ConfigurationProvider
+        private class DefaultConfigurationProvider : ConfigurationProvider
         {
             private readonly Action<string, IDictionary<string, string>> _log;
 
-            public DefaultConfigurtationProvider(Action<string, IDictionary<string, string>> log)
+            public DefaultConfigurationProvider(Action<string, IDictionary<string, string>> log)
             {
-                if (log == null) throw new ArgumentNullException(nameof(log));
+                if (log == null)
+                {
+                    throw new ArgumentNullException(nameof(log));
+                }
+
                 _log = log;
             }
 

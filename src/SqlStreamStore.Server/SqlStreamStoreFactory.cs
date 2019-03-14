@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
@@ -32,10 +33,11 @@ namespace SqlStreamStore.Server
 
         public SqlStreamStoreFactory(SqlStreamStoreServerConfiguration configuration)
         {
-            if(configuration == null)
+            if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
+
             _configuration = configuration;
         }
 
@@ -46,15 +48,12 @@ namespace SqlStreamStore.Server
 
             Log.Information($"Creating stream store for provider '{provider}'");
 
-            if(!s_factories.TryGetValue(provider, out var factory))
+            if (!s_factories.TryGetValue(provider, out var factory))
             {
                 throw new InvalidOperationException($"No provider factory for provider '{provider}' found.");
             }
 
-            var connectionString = _configuration.ConnectionString;
-            var schema = _configuration.Schema;
-
-            return factory(connectionString, schema, cancellationToken);
+            return factory(_configuration.ConnectionString, _configuration.Schema, cancellationToken);
         }
 
         private static Task<IStreamStore> CreateInMemoryStreamStore(
@@ -69,36 +68,44 @@ namespace SqlStreamStore.Server
             CancellationToken cancellationToken)
         {
             var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-            using(var connection = new SqlConnection(new SqlConnectionStringBuilder(connectionString)
-            {
-                InitialCatalog = "master"
-            }.ConnectionString))
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var command = new SqlCommand(
-                    $@"
-IF  NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{connectionStringBuilder.InitialCatalog}')
-BEGIN
-    CREATE DATABASE [{connectionStringBuilder.InitialCatalog}]
-END;
-",
-                    connection))
-                {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                }
-            }
-
             var settings = new MsSqlStreamStoreV3Settings(connectionString);
 
-            if(schema != null)
+            if (schema != null)
             {
                 settings.Schema = schema;
             }
 
             var streamStore = new MsSqlStreamStoreV3(settings);
 
-            await streamStore.CreateSchemaIfNotExists(cancellationToken);
+            try
+            {
+                using (var connection = new SqlConnection(new SqlConnectionStringBuilder(connectionString)
+                {
+                    InitialCatalog = "master"
+                }.ConnectionString))
+                {
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                    using (var command = new SqlCommand(
+                        $@"
+IF  NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{connectionStringBuilder.InitialCatalog}')
+BEGIN
+    CREATE DATABASE [{connectionStringBuilder.InitialCatalog}]
+END;
+",
+                        connection))
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    }
+                }
+
+                await streamStore.CreateSchemaIfNotExists(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                throw;
+            }
 
             return streamStore;
         }
@@ -109,46 +116,67 @@ END;
             CancellationToken cancellationToken)
         {
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+            var settings = new PostgresStreamStoreSettings(connectionString);
 
-            using(var connection = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(connectionString)
+            if (schema != null)
             {
-                Database = null
-            }.ConnectionString))
-            {
-                bool exists;
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var command = new NpgsqlCommand(
-                    $"SELECT 1 FROM pg_database WHERE datname = '{connectionStringBuilder.Database}'",
-                    connection))
-                {
-                    exists = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext()
-                             != null;
-                }
-
-                if(!exists)
-                {
-                    using(var command = new NpgsqlCommand(
-                        $"CREATE DATABASE {connectionStringBuilder.Database}",
-                        connection))
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-                }
-
-                var settings = new PostgresStreamStoreSettings(connectionString);
-
-                if(schema != null)
-                {
-                    settings.Schema = schema;
-                }
-
-                var streamStore = new PostgresStreamStore(settings);
-
-                await streamStore.CreateSchemaIfNotExists(cancellationToken);
-
-                return streamStore;
+                settings.Schema = schema;
             }
+
+            var streamStore = new PostgresStreamStore(settings);
+
+            try
+            {
+                using (var connection = new NpgsqlConnection(new NpgsqlConnectionStringBuilder(connectionString)
+                {
+                    Database = null
+                }.ConnectionString))
+                {
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                    async Task<bool> DatabaseExists()
+                    {
+                        using (var command = new NpgsqlCommand(
+                            $"SELECT 1 FROM pg_database WHERE datname = '{connectionStringBuilder.Database}'",
+                            connection))
+                        {
+                            return await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext()
+                                   != null;
+                        }
+                    }
+
+                    if (!await DatabaseExists())
+                    {
+                        using (var command = new NpgsqlCommand(
+                            $"CREATE DATABASE {connectionStringBuilder.Database}",
+                            connection))
+                        {
+                            await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        }
+                    }
+
+                    await streamStore.CreateSchemaIfNotExists(cancellationToken);
+                }
+            }
+            catch (NpgsqlException ex)
+            {
+                SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                throw;
+            }
+
+            return streamStore;
         }
+
+        private static void SchemaCreationFailed(Func<string> getSchemaCreationScript, Exception ex)
+            => Log.Warning(
+                new StringBuilder()
+                    .Append($"Could not create schema: {ex.Message}")
+                    .AppendLine()
+                    .Append(
+                        "Does your connection string have enough permissions? If not, run the following sql script as a privileged user:")
+                    .AppendLine()
+                    .Append(getSchemaCreationScript())
+                    .ToString(),
+                ex);
     }
 }
