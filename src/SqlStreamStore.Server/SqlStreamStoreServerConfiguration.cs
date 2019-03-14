@@ -117,7 +117,11 @@ namespace SqlStreamStore.Server
 
             public ConfigurationData(IConfigurationRoot configuration)
             {
-                if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+                if (configuration == null)
+                {
+                    throw new ArgumentNullException(nameof(configuration));
+                }
+
                 _configuration = configuration;
             }
         }
@@ -137,16 +141,20 @@ namespace SqlStreamStore.Server
             }
 
             public IConfigurationProvider Build(IConfigurationBuilder builder) =>
-                new DefaultConfigurtationProvider(_log);
+                new DefaultConfigurationProvider(_log);
         }
 
-        private class DefaultConfigurtationProvider : ConfigurationProvider
+        private class DefaultConfigurationProvider : ConfigurationProvider
         {
             private readonly Action<string, IDictionary<string, string>> _log;
 
-            public DefaultConfigurtationProvider(Action<string, IDictionary<string, string>> log)
+            public DefaultConfigurationProvider(Action<string, IDictionary<string, string>> log)
             {
-                if (log == null) throw new ArgumentNullException(nameof(log));
+                if (log == null)
+                {
+                    throw new ArgumentNullException(nameof(log));
+                }
+
                 _log = log;
             }
 
