@@ -46,7 +46,7 @@ namespace SqlStreamStore.Server
             var provider = _configuration.Provider?.ToLowerInvariant()
                            ?? inmemory;
 
-            Log.Information($"Creating stream store for provider '{provider}'");
+            Log.Information("Creating stream store for provider {provider}", provider);
 
             if (!s_factories.TryGetValue(provider, out var factory))
             {
@@ -170,13 +170,14 @@ END;
         private static void SchemaCreationFailed(Func<string> getSchemaCreationScript, Exception ex)
             => Log.Warning(
                 new StringBuilder()
-                    .Append($"Could not create schema: {ex.Message}")
+                    .Append("Could not create schema: {ex}")
                     .AppendLine()
                     .Append(
                         "Does your connection string have enough permissions? If not, run the following sql script as a privileged user:")
                     .AppendLine()
-                    .Append(getSchemaCreationScript())
+                    .Append("{script}")
                     .ToString(),
-                ex);
+                ex,
+                getSchemaCreationScript());
     }
 }
