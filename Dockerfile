@@ -27,10 +27,7 @@ ARG LIBRARY_VERSION=1.2.0
 
 WORKDIR /app
 
-COPY ./*.sln .git ./
-
-RUN dotnet tool install -g minver-cli --version 1.0.0 && \
-    /root/.dotnet/tools/minver > .version
+COPY ./*.sln ./
 
 WORKDIR /app/src
 
@@ -73,6 +70,11 @@ WORKDIR /app/src
 COPY ./src .
 
 WORKDIR /app
+
+COPY ./*.sln .git ./
+
+RUN dotnet tool install -g minver-cli --version 1.0.0 && \
+    /root/.dotnet/tools/minver > .version
 
 RUN dotnet run --project build/build.csproj -- --runtime=${RUNTIME} --library-version=${LIBRARY_VERSION}
 
