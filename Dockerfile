@@ -1,4 +1,4 @@
-ARG CONTAINER_RUNTIME_VERSION=2.2.1
+ARG CONTAINER_RUNTIME_VERSION=2.2.4
 ARG CONTAINER_RUNTIME=alpine3.8
 
 FROM node:10.12.0-alpine AS build-javascript
@@ -20,7 +20,7 @@ RUN yarn && \
     yarn react-scripts-ts build && \
     echo ${CLIENT_VERSION} > /app/.clientversion
 
-FROM microsoft/dotnet:2.2.104-sdk-stretch AS build-dotnet
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.203-stretch AS build-dotnet
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
 ARG RUNTIME=alpine-x64
 ARG LIBRARY_VERSION=1.2.0
@@ -62,7 +62,7 @@ WORKDIR /app
 
 RUN dotnet run --project build/build.csproj -- --runtime=${RUNTIME} --library-version=${LIBRARY_VERSION}
 
-FROM microsoft/dotnet:${CONTAINER_RUNTIME_VERSION}-runtime-deps-${CONTAINER_RUNTIME} AS runtime
+FROM mcr.microsoft.com/dotnet/core/runtime-deps:${CONTAINER_RUNTIME_VERSION}-${CONTAINER_RUNTIME} AS runtime
 
 WORKDIR /app
 
