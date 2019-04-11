@@ -12,9 +12,10 @@ static class Program
 
     public static void Main(string[] args)
     {
-        const string clean = nameof(Clean);
-        const string build = nameof(Build);
-        const string publish = nameof(Publish);
+        const string clean = nameof(clean);
+        const string build = nameof(build);
+        const string test = nameof(test);
+        const string publish = nameof(publish);
 
         var runtime = "alpine-x64";
         var libraryVersion = "1.2.0-beta.*";
@@ -43,8 +44,13 @@ static class Program
             Build(libraryVersion));
 
         Target(
-            publish,
+            test,
             DependsOn(build),
+            Test);
+
+        Target(
+            publish,
+            DependsOn(test),
             Publish(runtime, libraryVersion));
 
         Target("default", DependsOn(publish));
@@ -68,6 +74,10 @@ static class Program
     private static Action Build(string libraryVersion) => () => Run(
         "dotnet",
         $"build SqlStreamStore.Server.sln --configuration=Release /p:LibraryVersion={libraryVersion}");
+
+    private static readonly Action Test = () => Run(
+        "dotnet",
+        $"test --configuration=Release --no-build");
 
     private static Action Publish(string runtime, string libraryVersion) => () => Run(
         "dotnet",

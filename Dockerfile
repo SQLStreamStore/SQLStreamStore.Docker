@@ -38,6 +38,12 @@ COPY ./src/*/*.csproj ./src/Directory.Build.props ./
 
 RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 
+WORKDIR /app/tests
+
+COPY ./tests/*/*.csproj ./
+
+RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
+
 WORKDIR /app
 
 COPY ./NuGet.Config ./
@@ -50,6 +56,10 @@ COPY ./src .
 
 COPY --from=build-javascript /app/node_modules/${CLIENT_PACKAGE}/build /app/src/SqlStreamStore.Server/Browser/build
 
+WORKDIR /app/tests
+
+COPY ./tests .
+
 WORKDIR /app/build
 
 COPY ./build/build.csproj .
@@ -57,6 +67,10 @@ COPY ./build/build.csproj .
 RUN dotnet restore
 
 COPY ./build .
+
+WORKDIR /app/src
+
+COPY ./src .
 
 WORKDIR /app
 
