@@ -31,6 +31,7 @@ namespace SqlStreamStore.Server
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
             .AddResponseCompression(options => options.MimeTypes = new[] { "application/hal+json" })
+            .AddRouting()
             .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app
