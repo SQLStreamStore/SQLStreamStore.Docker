@@ -31,26 +31,14 @@ namespace SqlStreamStore.Server
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
             .AddResponseCompression(options => options.MimeTypes = new[] { "application/hal+json" })
+            .AddRouting()
             .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app
             .UseResponseCompression()
             .Use(VaryAccept)
-            .Use(CatchAndDisplayErrors)
             .UseSqlStreamStoreBrowser()
             .UseSqlStreamStoreHal(_streamStore, _options);
-
-        private static MidFunc CatchAndDisplayErrors => async (context, next) =>
-        {
-            try
-            {
-                await next();
-            }
-            catch(Exception ex)
-            {
-                Log.Warning(ex, "Error during request.");
-            }
-        };
 
         private static MidFunc VaryAccept => (context, next) =>
         {
