@@ -3,7 +3,7 @@ version: '3.1'
 services:
   sql-stream-store:
     container_name: sss-example-server
-    image: sqlstreamstore/server:1.2.0-beta.3.12-alpine3.8
+    image: sqlstreamstore/server:1.2.0-beta.3.19-alpine3.9
     ports:
       - "5000:80"
     networks:
