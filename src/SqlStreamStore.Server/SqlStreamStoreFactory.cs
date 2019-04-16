@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 using Npgsql;
 using Serilog;
 using SqlStreamStore.Infrastructure;
@@ -21,6 +22,7 @@ namespace SqlStreamStore.Server
 
         private const string postgres = nameof(postgres);
         private const string mssql = nameof(mssql);
+        private const string mysql = nameof(mysql);
         private const string inmemory = nameof(inmemory);
 
         private static readonly IDictionary<string, CreateStreamStore> s_factories
@@ -28,7 +30,8 @@ namespace SqlStreamStore.Server
             {
                 [inmemory] = CreateInMemoryStreamStore,
                 [postgres] = CreatePostgresStreamStore,
-                [mssql] = CreateMssqlStreamStore
+                [mssql] = CreateMssqlStreamStore,
+                [mysql] = CreateMySqlStreamStore
             };
 
         public SqlStreamStoreFactory(SqlStreamStoreServerConfiguration configuration)
@@ -93,6 +96,44 @@ BEGIN
     CREATE DATABASE [{connectionStringBuilder.InitialCatalog}]
 END;
 ",
+                        connection))
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    }
+                }
+
+                await streamStore.CreateSchemaIfNotExists(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                throw;
+            }
+
+            return streamStore;
+        }
+
+        private static async Task<IStreamStore> CreateMySqlStreamStore(
+            string connectionString,
+            string _,
+            CancellationToken cancellationToken)
+        {
+            var connectionStringBuilder = new MySqlConnectionStringBuilder(connectionString);
+            var settings = new MySqlStreamStoreSettings(connectionString);
+
+            var streamStore = new MySqlStreamStore(settings);
+
+            try
+            {
+                using (var connection = new MySqlConnection(new MySqlConnectionStringBuilder(connectionString)
+                {
+                    Database = null
+                }.ConnectionString))
+                {
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                    using (var command = new MySqlCommand(
+                        $"CREATE DATABASE IF NOT EXISTS `{connectionStringBuilder.Database}`",
                         connection))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
