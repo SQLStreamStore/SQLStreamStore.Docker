@@ -1,0 +1,33 @@
+version: '3.1'
+
+services:
+  sql-stream-store:
+    container_name: sss-example-server
+    #image: sqlstreamstore/server:1.2.0-beta.3.21-alpine3.9
+    image: sql-stream-store-server
+    ports:
+      - "5000:80"
+    networks:
+      - app-network
+      - db-network
+    environment:
+      - SQLSTREAMSTORE_PROVIDER=mysql
+      - SQLSTREAMSTORE_CONNECTION_STRING=Host=database;Port=3306;User Id=root;Database=example;Pooling=false;
+    depends_on:
+      - database
+
+  database:
+    container_name: sss-example-mysql
+    image: mysql:5.6
+    ports:
+      - "3306:3306"
+    networks:
+      - db-network
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1
+
+networks:
+  app-network:
+    driver: bridge
+  db-network:
+    driver: bridge
