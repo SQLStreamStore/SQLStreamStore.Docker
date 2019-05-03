@@ -4,7 +4,6 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using SqlStreamStore;
 using SqlStreamStore.HAL;
 using SqlStreamStore.Server;
@@ -15,8 +14,7 @@ namespace SQLStreamStore.Server.Tests
     public class SqlStreamStoreServerStartupTests : IDisposable
     {
         private readonly InMemoryStreamStore _streamStore;
-        private readonly IWebHost _host;
-        private TestServer _server;
+        private readonly TestServer _server;
         private readonly HttpClient _httpClient;
 
         public SqlStreamStoreServerStartupTests()
@@ -52,7 +50,7 @@ namespace SQLStreamStore.Server.Tests
         public void Dispose()
         {
             _streamStore?.Dispose();
-            _host?.Dispose();
+            _server?.Dispose();
             _httpClient?.Dispose();
         }
     }
