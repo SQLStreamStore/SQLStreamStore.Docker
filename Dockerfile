@@ -3,7 +3,7 @@ ARG CONTAINER_RUNTIME=alpine3.8
 
 FROM node:10.12.0-alpine AS build-javascript
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
-ARG CLIENT_VERSION=0.9.2
+ARG CLIENT_VERSION=0.9.3
 ARG NPM_REGISTRY=https://www.myget.org/F/sqlstreamstore/npm/
 
 ENV REACT_APP_CLIENT_VERSION=${CLIENT_VERSION}
