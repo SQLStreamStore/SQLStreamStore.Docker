@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 using Npgsql;
 using Serilog;
 using static SqlStreamStore.Server.Constants;
@@ -49,10 +50,9 @@ namespace SqlStreamStore.Server
                 {
                     await streamStore.CreateSchemaIfNotExists(cancellationToken);
                 }
-                catch (SqlException ex)
+                catch (MySqlException ex)
                 {
                     SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
-                    throw;
                 }
             }
         }
@@ -68,7 +68,6 @@ namespace SqlStreamStore.Server
                 catch (SqlException ex)
                 {
                     SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
-                    throw;
                 }
             }
         }
@@ -84,13 +83,13 @@ namespace SqlStreamStore.Server
                 catch (NpgsqlException ex)
                 {
                     SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
-                    throw;
                 }
             }
         }
 
         private static void SchemaCreationFailed(Func<string> getSchemaCreationScript, Exception ex)
-            => Log.Error(
+        {
+            Log.Error(
                 new StringBuilder()
                     .Append("Could not create schema: {ex}")
                     .AppendLine()
@@ -101,5 +100,7 @@ namespace SqlStreamStore.Server
                     .ToString(),
                 ex,
                 getSchemaCreationScript());
+            Environment.Exit(1);
+        }
     }
 }

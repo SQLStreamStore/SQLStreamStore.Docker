@@ -42,6 +42,15 @@ namespace SqlStreamStore.Server
         private async Task InitializeMySql(CancellationToken cancellationToken)
         {
             var connectionStringBuilder = new MySqlConnectionStringBuilder(_configuration.ConnectionString);
+
+            var cmdText = $"CREATE DATABASE IF NOT EXISTS `{connectionStringBuilder.Database}`";
+
+            Log.Information(
+                "Creating database '{database}' at server '{server}' with the statement: {cmdText}",
+                connectionStringBuilder.Database,
+                connectionStringBuilder.Server,
+                cmdText);
+
             using (var connection = new MySqlConnection(
                 new MySqlConnectionStringBuilder(_configuration.ConnectionString)
                 {
@@ -51,7 +60,7 @@ namespace SqlStreamStore.Server
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using (var command = new MySqlCommand(
-                    $"CREATE DATABASE IF NOT EXISTS `{connectionStringBuilder.Database}`",
+                    cmdText,
                     connection))
                 {
                     await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
@@ -62,6 +71,19 @@ namespace SqlStreamStore.Server
         private async Task InitializeMsSql(CancellationToken cancellationToken)
         {
             var connectionStringBuilder = new SqlConnectionStringBuilder(_configuration.ConnectionString);
+
+            var cmdText = $@"
+IF  NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{connectionStringBuilder.InitialCatalog}')
+BEGIN
+    CREATE DATABASE [{connectionStringBuilder.InitialCatalog}]
+END;
+";
+            Log.Information(
+                "Creating database '{database}' at server '{server}' with the statement: {cmdText}",
+                connectionStringBuilder.InitialCatalog,
+                connectionStringBuilder.DataSource,
+                cmdText);
+
             using (var connection = new SqlConnection(
                 new SqlConnectionStringBuilder(_configuration.ConnectionString)
                 {
@@ -71,12 +93,7 @@ namespace SqlStreamStore.Server
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using (var command = new SqlCommand(
-                    $@"
-IF  NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{connectionStringBuilder.InitialCatalog}')
-BEGIN
-    CREATE DATABASE [{connectionStringBuilder.InitialCatalog}]
-END;
-",
+                    cmdText,
                     connection))
                 {
                     await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
@@ -87,6 +104,15 @@ END;
         private async Task InitializePostgres(CancellationToken cancellationToken)
         {
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder(_configuration.ConnectionString);
+
+            var cmdText = $"CREATE DATABASE {connectionStringBuilder.Database}";
+
+            Log.Information(
+                "Creating database '{database}' at server '{server}' with the statement: {cmdText}",
+                connectionStringBuilder.Database,
+                connectionStringBuilder.Host,
+                cmdText);
+
             using (var connection = new NpgsqlConnection(
                 new NpgsqlConnectionStringBuilder(_configuration.ConnectionString)
                 {
@@ -109,7 +135,7 @@ END;
                 if (!await DatabaseExists())
                 {
                     using (var command = new NpgsqlCommand(
-                        $"CREATE DATABASE {connectionStringBuilder.Database}",
+                        cmdText,
                         connection))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
