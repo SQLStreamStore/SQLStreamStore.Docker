@@ -50,10 +50,14 @@ namespace SqlStreamStore.Server
                     case "initialize":
                     case "init":
                         await RunInitialization();
-                        break;
+                        return 0;
+                    case "initialize-database":
+                    case "init-database":
+                        await RunDatabaseInitialization();
+                        return 0;
                     default:
                         await RunServer();
-                        break;
+                        return 0;
                 }
             }
             catch (Exception ex)
@@ -65,8 +69,6 @@ namespace SqlStreamStore.Server
             {
                 Log.CloseAndFlush();
             }
-
-            return 0;
         }
 
         private async Task RunServer()
@@ -92,6 +94,9 @@ namespace SqlStreamStore.Server
         }
 
         private Task RunInitialization()
+            => new SqlStreamStoreInitializer(_configuration).Initialize(_cts.Token);
+
+        private Task RunDatabaseInitialization()
             => new DatabaseInitializer(_configuration).Initialize(_cts.Token);
 
         public void Dispose()
