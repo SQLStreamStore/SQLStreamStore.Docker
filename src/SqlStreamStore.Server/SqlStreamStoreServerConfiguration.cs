@@ -23,11 +23,14 @@ namespace SqlStreamStore.Server
         private readonly ConfigurationData _configuration;
         private readonly IDictionary<string, (string source, string value)> _values;
 
+        public IDictionary Environment { get; }
+        public string[] Args { get; }
+
         public bool UseCanonicalUris => _configuration.UseCanonicalUris;
         public LogEventLevel LogLevel => _configuration.LogLevel;
         public string ConnectionString => _configuration.ConnectionString;
         public string Schema => _configuration.Schema;
-        public string Provider => _configuration.Provider;
+        public string Provider => _configuration.Provider.ToLowerInvariant();
 
         public SqlStreamStoreServerConfiguration(
             IDictionary environment,
@@ -37,6 +40,9 @@ namespace SqlStreamStore.Server
                 throw new ArgumentNullException(nameof(environment));
             if (args == null)
                 throw new ArgumentNullException(nameof(args));
+
+            Environment = environment;
+            Args = args;
 
             _values = new Dictionary<string, (string source, string value)>();
 

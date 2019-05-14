@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -44,25 +45,19 @@ namespace SqlStreamStore.Server
         {
             try
             {
-                using (var streamStore = await _factory.Create(_cts.Token))
-                using (var host = new WebHostBuilder()
-                    .SuppressStatusMessages(true)
-                    .UseKestrel()
-                    .UseStartup(new SqlStreamStoreServerStartup(
-                        streamStore,
-                        new SqlStreamStoreMiddlewareOptions
-                        {
-                            UseCanonicalUrls = _configuration.UseCanonicalUris,
-                            ServerAssembly = typeof(Program).Assembly
-                        }))
-                    .UseSerilog()
-                    .Build())
+                switch (_configuration.Args.FirstOrDefault())
                 {
-                    await Task.WhenAll(
-                        host.RunAsync(_cts.Token),
-                        host.WaitForShutdownAsync(_cts.Token));
-
-                    return 0;
+                    case "initialize":
+                    case "init":
+                        await RunInitialization();
+                        return 0;
+                    case "initialize-database":
+                    case "init-database":
+                        await RunDatabaseInitialization();
+                        return 0;
+                    default:
+                        await RunServer();
+                        return 0;
                 }
             }
             catch (Exception ex)
@@ -75,6 +70,34 @@ namespace SqlStreamStore.Server
                 Log.CloseAndFlush();
             }
         }
+
+        private async Task RunServer()
+        {
+            using (var streamStore = _factory.Create())
+            using (var host = new WebHostBuilder()
+                .SuppressStatusMessages(true)
+                .UseKestrel()
+                .UseStartup(new SqlStreamStoreServerStartup(
+                    streamStore,
+                    new SqlStreamStoreMiddlewareOptions
+                    {
+                        UseCanonicalUrls = _configuration.UseCanonicalUris,
+                        ServerAssembly = typeof(Program).Assembly
+                    }))
+                .UseSerilog()
+                .Build())
+            {
+                await Task.WhenAll(
+                    host.RunAsync(_cts.Token),
+                    host.WaitForShutdownAsync(_cts.Token));
+            }
+        }
+
+        private Task RunInitialization()
+            => new SqlStreamStoreInitializer(_configuration).Initialize(_cts.Token);
+
+        private Task RunDatabaseInitialization()
+            => new DatabaseInitializer(_configuration).Initialize(_cts.Token);
 
         public void Dispose()
         {
