@@ -6,15 +6,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using SqlStreamStore.HAL;
 using SqlStreamStore.Server.Browser;
+using MidFunc = System.Func<
+    Microsoft.AspNetCore.Http.HttpContext,
+    System.Func<System.Threading.Tasks.Task>,
+    System.Threading.Tasks.Task
+>;
 
 namespace SqlStreamStore.Server
 {
-    using MidFunc = System.Func<
-        Microsoft.AspNetCore.Http.HttpContext,
-        System.Func<System.Threading.Tasks.Task>,
-        System.Threading.Tasks.Task
-    >;
-
     internal class SqlStreamStoreServerStartup : IStartup
     {
         private readonly IStreamStore _streamStore;
@@ -29,11 +28,12 @@ namespace SqlStreamStore.Server
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
-            .AddResponseCompression(options => options.MimeTypes = new[] { "application/hal+json" })
+            .AddResponseCompression(options => options.MimeTypes = new[] {"application/hal+json"})
             .AddRouting()
             .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app
+            .Map("/health", inner => inner.UseHealthProbe(_streamStore))
             .UseResponseCompression()
             .Use(VaryAccept)
             .UseSqlStreamStoreBrowser()
