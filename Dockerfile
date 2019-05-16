@@ -1,5 +1,5 @@
-ARG CONTAINER_RUNTIME_VERSION=2.2.4
-ARG CONTAINER_RUNTIME=alpine3.8
+ARG CONTAINER_RUNTIME_VERSION=2.2.5
+ARG CONTAINER_RUNTIME=alpine3.9
 
 FROM node:10.12.0-alpine AS build-javascript
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
@@ -20,7 +20,7 @@ RUN yarn && \
     yarn react-scripts-ts build && \
     echo ${CLIENT_VERSION} > /app/.clientversion
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2.203-stretch AS build-dotnet
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.204-stretch AS build-dotnet
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
 ARG RUNTIME=alpine-x64
 ARG LIBRARY_VERSION=1.2.0
