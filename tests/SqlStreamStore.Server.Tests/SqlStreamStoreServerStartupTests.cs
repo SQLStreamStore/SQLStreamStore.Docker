@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -39,13 +40,34 @@ namespace SQLStreamStore.Server.Tests
         [Fact]
         public async Task StartsUp()
         {
-            using (await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/")
+            using (var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/")
             {
                 Headers = {Accept = {new MediaTypeWithQualityHeaderValue("application/hal+json")}}
             }))
             {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+
+            using (var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/health/ready")))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            }
+
+            using (var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/health/live")))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
             }
         }
+
+        [Fact]
+        public async Task ServiceUnavailableWhenNotReady()
+        {
+            _streamStore.Dispose();
+            using (var response = await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/health/ready")))
+            {
+                Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+            }
+        }        
 
         public void Dispose()
         {
