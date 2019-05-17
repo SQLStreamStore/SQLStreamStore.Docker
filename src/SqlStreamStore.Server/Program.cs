@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Serilog;
+using Serilog.Events;
 using SqlStreamStore.HAL;
 
 namespace SqlStreamStore.Server
@@ -31,7 +32,7 @@ namespace SqlStreamStore.Server
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(configuration.LogLevel)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
             Log.Information(configuration.ToString());
