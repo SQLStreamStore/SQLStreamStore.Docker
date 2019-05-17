@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.DependencyInjection;
 using SqlStreamStore.HAL;
 using SqlStreamStore.Server.Browser;
@@ -16,6 +19,13 @@ namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreServerStartup : IStartup
     {
+        private static readonly IEnumerable<string> s_CompressableMimeTypes = ResponseCompressionDefaults
+            .MimeTypes.Concat(new[]
+            {
+                "application/hal+json",
+                "text/markdown"
+            });
+
         private readonly IStreamStore _streamStore;
         private readonly SqlStreamStoreMiddlewareOptions _options;
 
@@ -28,7 +38,7 @@ namespace SqlStreamStore.Server
         }
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
-            .AddResponseCompression(options => options.MimeTypes = new[] {"application/hal+json"})
+            .AddResponseCompression(options => options.MimeTypes = s_CompressableMimeTypes)
             .AddRouting()
             .BuildServiceProvider();
 
