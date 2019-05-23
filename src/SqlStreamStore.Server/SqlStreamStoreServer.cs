@@ -9,8 +9,10 @@ using SqlStreamStore.HAL;
 
 namespace SqlStreamStore.Server
 {
-    internal class Program : IDisposable
+    internal class SqlStreamStoreServer : IDisposable
     {
+        private static readonly ILogger s_Log = Log.ForContext<SqlStreamStoreServer>();
+
         private readonly CancellationTokenSource _cts;
         private readonly SqlStreamStoreServerConfiguration _configuration;
         private readonly SqlStreamStoreFactory _factory;
@@ -21,22 +23,24 @@ namespace SqlStreamStore.Server
                 Environment.GetEnvironmentVariables(),
                 args);
 
-            using (var program = new Program(configuration))
+            using (var server = new SqlStreamStoreServer(configuration))
             {
-                return await program.Run();
+                return await server.Run();
             }
         }
 
-        private Program(SqlStreamStoreServerConfiguration configuration)
+        private SqlStreamStoreServer(SqlStreamStoreServerConfiguration configuration)
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(configuration.LogLevel)
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Console(
+                    outputTemplate:
+                    "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
-            Log.Information(configuration.ToString());
+            s_Log.Information(configuration.ToString());
 
             _configuration = configuration;
             _cts = new CancellationTokenSource();
@@ -64,7 +68,7 @@ namespace SqlStreamStore.Server
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Host terminated unexpectedly.");
+                s_Log.Fatal(ex, "Host terminated unexpectedly.");
                 return 1;
             }
             finally
@@ -84,7 +88,7 @@ namespace SqlStreamStore.Server
                     new SqlStreamStoreMiddlewareOptions
                     {
                         UseCanonicalUrls = _configuration.UseCanonicalUris,
-                        ServerAssembly = typeof(Program).Assembly
+                        ServerAssembly = typeof(SqlStreamStoreServer).Assembly
                     }))
                 .UseSerilog()
                 .Build())

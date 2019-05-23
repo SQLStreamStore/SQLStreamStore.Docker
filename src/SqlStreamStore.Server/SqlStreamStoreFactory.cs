@@ -6,6 +6,8 @@ namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreFactory
     {
+        private static readonly ILogger s_Log = Log.ForContext<SqlStreamStoreFactory>();
+
         private readonly SqlStreamStoreServerConfiguration _configuration;
 
         public SqlStreamStoreFactory(SqlStreamStoreServerConfiguration configuration)
@@ -22,7 +24,7 @@ namespace SqlStreamStore.Server
         {
             var provider = _configuration.Provider;
 
-            Log.Information("Creating stream store for provider {provider}.", provider);
+            s_Log.Information("Creating stream store for provider {provider}.", provider);
 
             switch (provider)
             {
