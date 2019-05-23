@@ -41,20 +41,7 @@ namespace SqlStreamStore.Server
             }
         }
 
-        public InMemoryStreamStore CreateInMemoryStreamStore()
-        {
-            if (_configuration.Schema != default)
-            {
-                LogNotSupported(mysql, nameof(_configuration.Schema));
-            }
-
-            if (_configuration.DisableDeletionTracking)
-            {
-                LogNotSupported(mysql, nameof(_configuration.DisableDeletionTracking));
-            }
-
-            return new InMemoryStreamStore();
-        }
+        public InMemoryStreamStore CreateInMemoryStreamStore() => new InMemoryStreamStore();
 
         public MsSqlStreamStoreV3 CreateMsSqlStreamStore()
         {
@@ -72,17 +59,10 @@ namespace SqlStreamStore.Server
         }
 
         public MySqlStreamStore CreateMySqlStreamStore()
-        {
-            if (_configuration.Schema != default)
-            {
-                LogNotSupported(mysql, nameof(_configuration.Schema));
-            }
-
-            return new MySqlStreamStore(new MySqlStreamStoreSettings(_configuration.ConnectionString)
+            => new MySqlStreamStore(new MySqlStreamStoreSettings(_configuration.ConnectionString)
             {
                 DisableDeletionTracking = _configuration.DisableDeletionTracking
             });
-        }
 
         public PostgresStreamStore CreatePostgresStreamStore()
         {
@@ -98,11 +78,5 @@ namespace SqlStreamStore.Server
 
             return new PostgresStreamStore(settings);
         }
-
-        private static void LogNotSupported(string provider, string configurationKey) =>
-            s_Log.Warning(
-                "Configuration key '{configurationKey}' is not supported for provider {provider}. It will be ignored.",
-                configurationKey,
-                provider);
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.CommandLine;
 using Serilog.Events;
 
 namespace SqlStreamStore.Server
@@ -21,7 +22,6 @@ namespace SqlStreamStore.Server
             .ToArray();
 
         private readonly ConfigurationData _configuration;
-        private readonly IDictionary<string, (string source, string value)> _values;
 
         public IDictionary Environment { get; }
         public string[] Args { get; }
@@ -46,65 +46,15 @@ namespace SqlStreamStore.Server
             Environment = environment;
             Args = args;
 
-            _values = new Dictionary<string, (string source, string value)>();
-
-            void Log(string logName, IDictionary<string, string> data)
-            {
-                foreach (var (key, value) in data)
-                {
-                    _values[key] = (
-                        logName,
-                        s_sensitiveKeys.Contains(key)
-                            ? new string('*', 8)
-                            : value);
-                }
-            }
-
             _configuration = new ConfigurationData(
                 new ConfigurationBuilder()
-                    .Add(new Default(Log))
-                    .Add(new CommandLine(args, Log))
-                    .Add(new EnvironmentVariables(environment, Log))
+                    .Add(new DefaultSource())
+                    .Add(new CommandLineSource(args))
+                    .Add(new EnvironmentVariablesSource(environment))
                     .Build());
         }
 
-        public override string ToString()
-        {
-            const string delimiter = " │ ";
-
-            var column0Width = _values.Keys.Count > 0 ? _values.Keys.Max(x => x?.Length ?? 0) : 0;
-            var column1Width = _values.Values.Count > 0 ? _values.Values.Max(_ => _.value?.Length ?? 0) : 0;
-            var column2Width = _values.Values.Count > 0 ? _values.Values.Max(_ => _.source?.Length ?? 0) : 0;
-
-            return new[]
-                {
-                    new[]
-                    {
-                        delimiter,
-                        "Argument",
-                        "Value",
-                        "Source"
-                    },
-                    new[]
-                    {
-                        "─┼─",
-                        new string('─', column0Width),
-                        new string('─', column1Width),
-                        new string('─', column2Width)
-                    }
-                }
-                .Concat(
-                    s_allKeys.Select(key => new[] {delimiter, key, _values[key].value, _values[key].source}))
-                .Aggregate(
-                    new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
-                    (builder, values) => builder
-                        .Append((values[1] ?? string.Empty).PadRight(column0Width, ' '))
-                        .Append(values[0])
-                        .Append((values[2] ?? string.Empty).PadRight(column1Width, ' '))
-                        .Append(values[0])
-                        .AppendLine(values[3]))
-                .ToString();
-        }
+        public override string ToString() => _configuration.ToString();
 
         private static string Computerize(string value) =>
             string.Join(
@@ -133,40 +83,66 @@ namespace SqlStreamStore.Server
 
                 _configuration = configuration;
             }
-        }
 
-        private class Default : IConfigurationSource
-        {
-            private readonly Action<string, IDictionary<string, string>> _log;
-
-            public Default(Action<string, IDictionary<string, string>> log)
+            public override string ToString()
             {
-                if (log == null)
+                var values = new Dictionary<string, (string source, string value)>();
+
+                foreach (var provider in _configuration.Providers)
                 {
-                    throw new ArgumentNullException(nameof(log));
+                    var source = provider.GetType().Name; 
+                    foreach (var key in provider.GetChildKeys(Enumerable.Empty<string>(), default))
+                    {
+                        if (provider.TryGet(key, out var value))
+                            values[key] = (source, value);
+                    }   
                 }
 
-                _log = log;
-            }
+                const string delimiter = " │ ";
 
+                var column0Width = values.Keys.Count > 0 ? values.Keys.Max(x => x?.Length ?? 0) : 0;
+                var column1Width = values.Values.Count > 0 ? values.Values.Max(_ => _.value?.Length ?? 0) : 0;
+                var column2Width = values.Values.Count > 0 ? values.Values.Max(_ => _.source?.Length ?? 0) : 0;
+
+                return new[]
+                    {
+                        new[]
+                        {
+                            delimiter,
+                            "Argument",
+                            "Value",
+                            "Source"
+                        },
+                        new[]
+                        {
+                            "─┼─",
+                            new string('─', column0Width),
+                            new string('─', column1Width),
+                            new string('─', column2Width)
+                        }
+                    }
+                    .Concat(
+                        s_allKeys.Select(key => new[] {delimiter, key, values[key].value, values[key].source}))
+                    .Aggregate(
+                        new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
+                        (builder, v) => builder
+                            .Append((v[1] ?? string.Empty).PadRight(column0Width, ' '))
+                            .Append(v[0])
+                            .Append((v[2] ?? string.Empty).PadRight(column1Width, ' '))
+                            .Append(v[0])
+                            .AppendLine(v[3]))
+                    .ToString();
+            }
+        }
+
+        private class DefaultSource : IConfigurationSource
+        {
             public IConfigurationProvider Build(IConfigurationBuilder builder) =>
-                new DefaultConfigurationProvider(_log);
+                new Default();
         }
 
-        private class DefaultConfigurationProvider : ConfigurationProvider
+        private class Default : ConfigurationProvider
         {
-            private readonly Action<string, IDictionary<string, string>> _log;
-
-            public DefaultConfigurationProvider(Action<string, IDictionary<string, string>> log)
-            {
-                if (log == null)
-                {
-                    throw new ArgumentNullException(nameof(log));
-                }
-
-                _log = log;
-            }
-
             public override void Load()
             {
                 Data = new Dictionary<string, string>
@@ -178,53 +154,34 @@ namespace SqlStreamStore.Server
                     [nameof(UseCanonicalUris)] = default,
                     [nameof(DisableDeletionTracking)] = default
                 };
-
-                _log(nameof(Default), Data);
             }
         }
 
-        private class CommandLine : IConfigurationSource
+        private class CommandLineSource : IConfigurationSource
         {
             private readonly IEnumerable<string> _args;
-            private readonly Action<string, IDictionary<string, string>> _log;
 
-            public CommandLine(
-                IEnumerable<string> args,
-                Action<string, IDictionary<string, string>> log)
+            public CommandLineSource(IEnumerable<string> args)
             {
                 if (args == null)
                 {
                     throw new ArgumentNullException(nameof(args));
                 }
 
-                if (log == null)
-                {
-                    throw new ArgumentNullException(nameof(log));
-                }
-
                 _args = args;
-                _log = log;
             }
 
             public IConfigurationProvider Build(IConfigurationBuilder builder)
-                => new CommandLineConfigurationProvider(_args, _log);
+                => new CommandLine(_args);
         }
 
-        private class CommandLineConfigurationProvider
-            : Microsoft.Extensions.Configuration.CommandLine.CommandLineConfigurationProvider
+        private class CommandLine : CommandLineConfigurationProvider
         {
-            private readonly Action<string, IDictionary<string, string>> _log;
-
-            public CommandLineConfigurationProvider(IEnumerable<string> args,
-                Action<string, IDictionary<string, string>> log,
-                IDictionary<string, string> switchMappings = null) : base(args, switchMappings)
+            public CommandLine(
+                IEnumerable<string> args,
+                IDictionary<string, string> switchMappings = null) 
+                : base(args, switchMappings)
             {
-                if (log == null)
-                {
-                    throw new ArgumentNullException(nameof(log));
-                }
-
-                _log = log;
             }
 
             public override void Load()
@@ -232,55 +189,38 @@ namespace SqlStreamStore.Server
                 base.Load();
 
                 Data = Data.Keys.ToDictionary(Computerize, x => Data[x]);
-
-                _log(nameof(CommandLine), Data);
             }
         }
 
-        private class EnvironmentVariables : IConfigurationSource
+        private class EnvironmentVariablesSource : IConfigurationSource
         {
             private readonly IDictionary _environment;
-            private readonly Action<string, IDictionary<string, string>> _log;
             public string Prefix { get; set; } = "SQLSTREAMSTORE";
 
-            public EnvironmentVariables(
-                IDictionary environment,
-                Action<string, IDictionary<string, string>> log)
+            public EnvironmentVariablesSource(
+                IDictionary environment)
             {
-                if (log == null)
-                {
-                    throw new ArgumentNullException(nameof(log));
-                }
-
                 if (environment == null)
                 {
                     throw new ArgumentNullException(nameof(environment));
                 }
 
                 _environment = environment;
-                _log = log;
             }
 
             public IConfigurationProvider Build(IConfigurationBuilder builder)
-                => new EnvironmentVariablesConfigurationProvider(Prefix, _environment, _log);
+                => new EnvironmentVariables(Prefix, _environment);
         }
 
-        private class EnvironmentVariablesConfigurationProvider : ConfigurationProvider
+        private class EnvironmentVariables : ConfigurationProvider
         {
             private readonly IDictionary _environment;
-            private readonly Action<string, IDictionary<string, string>> _log;
             private readonly string _prefix;
 
-            public EnvironmentVariablesConfigurationProvider(
+            public EnvironmentVariables(
                 string prefix,
-                IDictionary environment,
-                Action<string, IDictionary<string, string>> log)
+                IDictionary environment)
             {
-                if (log == null)
-                {
-                    throw new ArgumentNullException(nameof(log));
-                }
-
                 if (environment == null)
                 {
                     throw new ArgumentNullException(nameof(environment));
@@ -288,7 +228,6 @@ namespace SqlStreamStore.Server
 
                 _prefix = $"{prefix}_";
                 _environment = environment;
-                _log = log;
             }
 
             public override void Load()
@@ -302,8 +241,6 @@ namespace SqlStreamStore.Server
                             value = (string) entry.Value
                         })
                     .ToDictionary(x => x.key, x => x.value);
-
-                _log(nameof(EnvironmentVariables), Data);
             }
         }
 
