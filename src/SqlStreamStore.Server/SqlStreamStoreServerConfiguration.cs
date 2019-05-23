@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -86,17 +87,7 @@ namespace SqlStreamStore.Server
 
             public override string ToString()
             {
-                var values = new Dictionary<string, (string source, string value)>();
-
-                foreach (var provider in _configuration.Providers)
-                {
-                    var source = provider.GetType().Name; 
-                    foreach (var key in provider.GetChildKeys(Enumerable.Empty<string>(), default))
-                    {
-                        if (provider.TryGet(key, out var value))
-                            values[key] = (source, value);
-                    }   
-                }
+                var values = ProtectConfiguration(CollectConfiguration());
 
                 const string delimiter = " │ ";
 
@@ -122,7 +113,7 @@ namespace SqlStreamStore.Server
                         }
                     }
                     .Concat(
-                        s_allKeys.Select(key => new[] {delimiter, key, values[key].value, values[key].source}))
+                        values.Keys.Select(key => new[] {delimiter, key, values[key].value, values[key].source}))
                     .Aggregate(
                         new StringBuilder().AppendLine("SQL Stream Store Configuration:"),
                         (builder, v) => builder
@@ -132,6 +123,58 @@ namespace SqlStreamStore.Server
                             .Append(v[0])
                             .AppendLine(v[3]))
                     .ToString();
+            }
+
+            private static string ProtectConfigurationString(string connectionString)
+            {
+                var builder = new DbConnectionStringBuilder(false)
+                {
+                    ConnectionString = connectionString
+                };
+
+                var sensitiveKeys = new[]
+                {
+                    "Password",
+                    "Pwd",
+                };
+
+
+                foreach (var key in sensitiveKeys)
+                {
+                    if (builder.ContainsKey(key))
+                    {
+                        builder[key] = "******";
+                    }
+                }
+
+                return builder.ConnectionString;
+            }
+
+            private IDictionary<string, (string source, string value)> ProtectConfiguration(
+                IDictionary<string, (string source, string value)> values)
+                => values.ToDictionary(
+                    x => x.Key,
+                    x => x.Key == nameof(ConnectionString)
+                        ? (x.Value.source, ProtectConfigurationString(x.Value.value))
+                        : x.Value);
+
+            private IDictionary<string, (string source, string value)> CollectConfiguration()
+            {
+                var values = new Dictionary<string, (string source, string value)>();
+
+                foreach (var provider in _configuration.Providers)
+                {
+                    var source = provider.GetType().Name;
+                    foreach (var key in provider.GetChildKeys(Enumerable.Empty<string>(), default))
+                    {
+                        if (provider.TryGet(key, out var value))
+                        {
+                            values[key] = (source, value);
+                        }
+                    }
+                }
+
+                return values;
             }
         }
 
@@ -179,7 +222,7 @@ namespace SqlStreamStore.Server
         {
             public CommandLine(
                 IEnumerable<string> args,
-                IDictionary<string, string> switchMappings = null) 
+                IDictionary<string, string> switchMappings = null)
                 : base(args, switchMappings)
             {
             }
