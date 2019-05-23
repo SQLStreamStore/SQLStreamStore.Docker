@@ -32,6 +32,8 @@ namespace SqlStreamStore.Server
         public string Schema => _configuration.Schema;
         public string Provider => _configuration.Provider.ToLowerInvariant();
 
+        public bool DisableDeletionTracking => _configuration.DisableDeletionTracking;
+
         public SqlStreamStoreServerConfiguration(
             IDictionary environment,
             string[] args)
@@ -120,6 +122,7 @@ namespace SqlStreamStore.Server
             [Sensitive] public string ConnectionString => _configuration.GetValue<string>(nameof(ConnectionString));
             public string Schema => _configuration.GetValue<string>(nameof(Schema));
             public string Provider => _configuration.GetValue<string>(nameof(Provider));
+            public bool DisableDeletionTracking => _configuration.GetValue<bool>(nameof(DisableDeletionTracking));
 
             public ConfigurationData(IConfigurationRoot configuration)
             {
@@ -172,7 +175,8 @@ namespace SqlStreamStore.Server
                     [nameof(Provider)] = "inmemory",
                     [nameof(LogLevel)] = nameof(LogEventLevel.Information),
                     [nameof(Schema)] = default,
-                    [nameof(UseCanonicalUris)] = default
+                    [nameof(UseCanonicalUris)] = default,
+                    [nameof(DisableDeletionTracking)] = default
                 };
 
                 _log(nameof(Default), Data);
