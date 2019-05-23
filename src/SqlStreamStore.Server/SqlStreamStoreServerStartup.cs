@@ -39,7 +39,7 @@ namespace SqlStreamStore.Server
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
             .AddResponseCompression(options => options.MimeTypes = s_CompressableMimeTypes)
-            .AddRouting()
+            .AddSqlStreamStoreHal()
             .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app

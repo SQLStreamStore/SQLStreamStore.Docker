@@ -6,7 +6,7 @@ using MySql.Data.MySqlClient;
 using Npgsql;
 using Serilog;
 using SqlStreamStore.Infrastructure;
-
+using static SqlStreamStore.Server.Constants;
 namespace SqlStreamStore.Server
 {
     internal class DatabaseInitializer
@@ -27,11 +27,11 @@ namespace SqlStreamStore.Server
         {
             switch (_configuration.Provider)
             {
-                case Constants.mssql:
+                case mssql:
                     return InitializeMsSql(cancellationToken);
-                case Constants.mysql:
+                case mysql:
                     return InitializeMySql(cancellationToken);
-                case Constants.postgres:
+                case postgres:
                     return InitializePostgres(cancellationToken);
                 default:
                     Log.Warning("Provider {provider} has no database initializer.", _configuration.Provider);

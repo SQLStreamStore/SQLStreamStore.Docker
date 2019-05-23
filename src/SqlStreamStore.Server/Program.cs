@@ -31,6 +31,7 @@ namespace SqlStreamStore.Server
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(configuration.LogLevel)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
