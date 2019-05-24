@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.CommandLine;
@@ -13,15 +12,6 @@ namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreServerConfiguration
     {
-        private static readonly string[] s_sensitiveKeys = typeof(ConfigurationData).GetProperties()
-            .Where(property => property.GetCustomAttributes<SensitiveAttribute>().Any())
-            .Select(property => property.Name)
-            .ToArray();
-
-        private static readonly string[] s_allKeys = typeof(ConfigurationData).GetProperties()
-            .Select(property => property.Name)
-            .ToArray();
-
         private readonly ConfigurationData _configuration;
 
         public IDictionary Environment { get; }
@@ -70,7 +60,7 @@ namespace SqlStreamStore.Server
 
             public bool UseCanonicalUris => _configuration.GetValue<bool>(nameof(UseCanonicalUris));
             public LogEventLevel LogLevel => _configuration.GetValue(nameof(LogLevel), LogEventLevel.Information);
-            [Sensitive] public string ConnectionString => _configuration.GetValue<string>(nameof(ConnectionString));
+            public string ConnectionString => _configuration.GetValue<string>(nameof(ConnectionString));
             public string Schema => _configuration.GetValue<string>(nameof(Schema));
             public string Provider => _configuration.GetValue<string>(nameof(Provider));
             public bool DisableDeletionTracking => _configuration.GetValue<bool>(nameof(DisableDeletionTracking));
@@ -125,7 +115,7 @@ namespace SqlStreamStore.Server
                     .ToString();
             }
 
-            private static string ProtectConfigurationString(string connectionString)
+            private static string ProtectConnectionString(string connectionString)
             {
                 var builder = new DbConnectionStringBuilder(false)
                 {
@@ -155,7 +145,7 @@ namespace SqlStreamStore.Server
                 => values.ToDictionary(
                     x => x.Key,
                     x => x.Key == nameof(ConnectionString)
-                        ? (x.Value.source, ProtectConfigurationString(x.Value.value))
+                        ? (x.Value.source, ProtectConnectionString(x.Value.value))
                         : x.Value);
 
             private IDictionary<string, (string source, string value)> CollectConfiguration()
@@ -191,7 +181,7 @@ namespace SqlStreamStore.Server
                 Data = new Dictionary<string, string>
                 {
                     [nameof(ConnectionString)] = default,
-                    [nameof(Provider)] = "inmemory",
+                    [nameof(Provider)] = Constants.inmemory,
                     [nameof(LogLevel)] = nameof(LogEventLevel.Information),
                     [nameof(Schema)] = default,
                     [nameof(UseCanonicalUris)] = default,
@@ -285,10 +275,6 @@ namespace SqlStreamStore.Server
                         })
                     .ToDictionary(x => x.key, x => x.value);
             }
-        }
-
-        private class SensitiveAttribute : Attribute
-        {
         }
     }
 }
