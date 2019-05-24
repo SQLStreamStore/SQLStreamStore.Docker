@@ -6,6 +6,8 @@ namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreFactory
     {
+        private static readonly ILogger s_Log = Log.ForContext<SqlStreamStoreFactory>();
+
         private readonly SqlStreamStoreServerConfiguration _configuration;
 
         public SqlStreamStoreFactory(SqlStreamStoreServerConfiguration configuration)
@@ -22,7 +24,7 @@ namespace SqlStreamStore.Server
         {
             var provider = _configuration.Provider;
 
-            Log.Information("Creating stream store for provider {provider}.", provider);
+            s_Log.Information("Creating stream store for provider {provider}.", provider);
 
             switch (provider)
             {
@@ -39,12 +41,14 @@ namespace SqlStreamStore.Server
             }
         }
 
-        public InMemoryStreamStore CreateInMemoryStreamStore()
-            => new InMemoryStreamStore();
+        public InMemoryStreamStore CreateInMemoryStreamStore() => new InMemoryStreamStore();
 
         public MsSqlStreamStoreV3 CreateMsSqlStreamStore()
         {
-            var settings = new MsSqlStreamStoreV3Settings(_configuration.ConnectionString);
+            var settings = new MsSqlStreamStoreV3Settings(_configuration.ConnectionString)
+            {
+                DisableDeletionTracking = _configuration.DisableDeletionTracking
+            };
 
             if (_configuration.Schema != null)
             {
@@ -55,11 +59,17 @@ namespace SqlStreamStore.Server
         }
 
         public MySqlStreamStore CreateMySqlStreamStore()
-            => new MySqlStreamStore(new MySqlStreamStoreSettings(_configuration.ConnectionString));
+            => new MySqlStreamStore(new MySqlStreamStoreSettings(_configuration.ConnectionString)
+            {
+                DisableDeletionTracking = _configuration.DisableDeletionTracking
+            });
 
         public PostgresStreamStore CreatePostgresStreamStore()
         {
-            var settings = new PostgresStreamStoreSettings(_configuration.ConnectionString);
+            var settings = new PostgresStreamStoreSettings(_configuration.ConnectionString)
+            {
+                DisableDeletionTracking = _configuration.DisableDeletionTracking
+            };
 
             if (_configuration.Schema != null)
             {

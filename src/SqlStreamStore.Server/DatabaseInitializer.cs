@@ -6,11 +6,14 @@ using MySql.Data.MySqlClient;
 using Npgsql;
 using Serilog;
 using SqlStreamStore.Infrastructure;
+using static SqlStreamStore.Server.Constants;
 
 namespace SqlStreamStore.Server
 {
     internal class DatabaseInitializer
     {
+        private static readonly ILogger s_Log = Log.ForContext<DatabaseInitializer>();
+
         private readonly SqlStreamStoreServerConfiguration _configuration;
 
         public DatabaseInitializer(SqlStreamStoreServerConfiguration configuration)
@@ -27,14 +30,14 @@ namespace SqlStreamStore.Server
         {
             switch (_configuration.Provider)
             {
-                case Constants.mssql:
+                case mssql:
                     return InitializeMsSql(cancellationToken);
-                case Constants.mysql:
+                case mysql:
                     return InitializeMySql(cancellationToken);
-                case Constants.postgres:
+                case postgres:
                     return InitializePostgres(cancellationToken);
                 default:
-                    Log.Warning("Provider {provider} has no database initializer.", _configuration.Provider);
+                    s_Log.Warning("Provider {provider} has no database initializer.", _configuration.Provider);
                     return Task.CompletedTask;
             }
         }
@@ -45,7 +48,7 @@ namespace SqlStreamStore.Server
 
             var cmdText = $"CREATE DATABASE IF NOT EXISTS `{connectionStringBuilder.Database}`";
 
-            Log.Information(
+            s_Log.Information(
                 "Creating database '{database}' at server '{server}' with the statement: {cmdText}",
                 connectionStringBuilder.Database,
                 connectionStringBuilder.Server,
@@ -78,7 +81,7 @@ BEGIN
     CREATE DATABASE [{connectionStringBuilder.InitialCatalog}]
 END;
 ";
-            Log.Information(
+            s_Log.Information(
                 "Creating database '{database}' at server '{server}' with the statement: {cmdText}",
                 connectionStringBuilder.InitialCatalog,
                 connectionStringBuilder.DataSource,
@@ -107,7 +110,7 @@ END;
 
             var cmdText = $"CREATE DATABASE {connectionStringBuilder.Database}";
 
-            Log.Information(
+            s_Log.Information(
                 "Creating database '{database}' at server '{server}' with the statement: {cmdText}",
                 connectionStringBuilder.Database,
                 connectionStringBuilder.Host,

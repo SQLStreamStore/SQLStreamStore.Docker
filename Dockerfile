@@ -20,7 +20,7 @@ RUN yarn && \
     yarn react-scripts-ts build && \
     echo ${CLIENT_VERSION} > /app/.clientversion
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2.204-stretch AS build-dotnet
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.300-stretch AS build-dotnet
 ARG CLIENT_PACKAGE=@sqlstreamstore/browser
 ARG RUNTIME=alpine-x64
 ARG LIBRARY_VERSION=1.2.0

@@ -11,6 +11,7 @@ namespace SqlStreamStore.Server.Browser
 {
     internal static class SqlStreamStoreBrowserMiddleware
     {
+        private static readonly ILogger s_Log = Log.ForContext(typeof(SqlStreamStoreBrowserMiddleware));
         public static IApplicationBuilder UseSqlStreamStoreBrowser(
             this IApplicationBuilder builder,
             Type rootType = default)
@@ -23,7 +24,7 @@ namespace SqlStreamStore.Server.Browser
             var staticFiles = rootType.Assembly.GetManifestResourceNames()
                 .Where(name => name.StartsWith(rootType.Namespace));
 
-            Log.Debug(
+            s_Log.Debug(
                 "The following embedded resources were found and will be served as static content: {staticFiles}",
                 string.Join(", ", staticFiles));
 

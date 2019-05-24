@@ -12,6 +12,8 @@ namespace SqlStreamStore.Server
 {
     internal class SqlStreamStoreInitializer
     {
+        private static readonly ILogger s_Log = Log.ForContext<SqlStreamStoreInitializer>();
+
         private readonly SqlStreamStoreServerConfiguration _configuration;
         private readonly SqlStreamStoreFactory _streamStoreFactory;
 
@@ -37,7 +39,7 @@ namespace SqlStreamStore.Server
                 case postgres:
                     return InitializePostgresStreamStore(cancellationToken);
                 default:
-                    Log.Warning("Provider {provider} has no initialization.", _configuration.Provider);
+                    s_Log.Warning("Provider {provider} has no initialization.", _configuration.Provider);
                     return Task.CompletedTask;
             }
         }
@@ -89,7 +91,7 @@ namespace SqlStreamStore.Server
 
         private static void SchemaCreationFailed(Func<string> getSchemaCreationScript, Exception ex)
         {
-            Log.Error(
+            s_Log.Error(
                 new StringBuilder()
                     .Append("Could not create schema: {ex}")
                     .AppendLine()
