@@ -13,7 +13,9 @@ namespace SqlStreamStore.Server
     {
         public static IApplicationBuilder UseHealthProbe(
             this IApplicationBuilder builder, IReadonlyStreamStore streamStore)
-            => builder.UseRouter(router => router
+            => builder
+                .Use(GetAndHeadOnly)
+                .UseRouter(router => router
                 .MapMiddlewareGet("ready", inner => inner.Use(Ready(streamStore)))
                 .MapMiddlewareGet("live", inner => inner.Use(Live)));
 
@@ -36,6 +38,21 @@ namespace SqlStreamStore.Server
             }
 
             context.Response.StatusCode = 204;
+        };
+
+        private static MidFunc GetAndHeadOnly => (context, next) =>
+        {
+            switch (context.Request.Method)
+            {
+                case "HEAD":
+                    context.Request.Method = "GET";
+                    return next();
+                case "GET":
+                    return next();
+                default:
+                    context.Response.StatusCode = 405;
+                    return Task.CompletedTask;
+            }
         };
     }
 }
