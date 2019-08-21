@@ -1,0 +1,15 @@
+name: CI
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: filter
+        uses: actions/bin/filter@master
+        args: "action 'opened|synchronize|reopened'"
+      - name: checkout
+        uses: actions/checkout@master
+      - name: build
+        run: "build.sh"
