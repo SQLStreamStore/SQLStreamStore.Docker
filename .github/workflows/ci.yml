@@ -8,8 +8,9 @@ jobs:
     steps:
       - name: filter
         uses: actions/bin/filter@master
-        args: "action 'opened|synchronize|reopened'"
+        with:
+          action: "opened|synchronize|reopened"
       - name: checkout
         uses: actions/checkout@master
       - name: build
-        run: "build.sh"
+        run: "./build.sh"
