@@ -1,15 +1,12 @@
 name: CI
-
-on: [pull_request]
-
+on:
+  push:
+    branches:
+      - refs/pull/*/merge
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: filter
-        uses: actions/bin/filter@master
-        with:
-          action: "opened|synchronize|reopened"
       - name: checkout
         uses: actions/checkout@master
       - name: build
