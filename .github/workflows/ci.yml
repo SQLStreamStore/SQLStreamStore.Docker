@@ -1,6 +1,10 @@
 name: Build
 
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   continuous-integration:
@@ -28,6 +32,7 @@ jobs:
     name: continuous-integration/${{ matrix.env.container-runtime }}
     steps:
       - name: filter
+        if: github.event_name == 'pull_request'
         uses: actions/bin/filter@master
         with:
           action: "opened|synchronize|reopened"
