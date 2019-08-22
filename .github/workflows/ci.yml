@@ -1,10 +1,6 @@
 name: Build
 
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+on: [push, pull_request]
 
 jobs:
   continuous-integration:
@@ -52,7 +48,7 @@ jobs:
           - DOCKER_USERNAME
           - DOCKER_PASSWORD
       - name: Leaky
-        run: echo $DOCKER_USERNAME
+        run: env
       - name: Docker Push
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.repository == 'SQLStreamStore/SQLStreamStore.Docker'
         run: docker push sqlstreamstore/server
