@@ -37,9 +37,4 @@ else
     docker tag $LOCAL $MAJOR_MINOR_PATCH_PRE
 fi
 
-if [[ -n $DOCKER_USER ]]; then
-    echo "${DOCKER_PASS}" | docker login --username "${DOCKER_USER}" --password-stdin
-    docker push $REMOTE_IMAGE
-fi
-
 docker images --filter=reference="${REMOTE_IMAGE}"

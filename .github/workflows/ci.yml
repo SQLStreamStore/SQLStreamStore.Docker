@@ -31,17 +31,28 @@ jobs:
     runs-on: ubuntu-latest
     name: continuous-integration/github/${{ matrix.env.container-runtime }}
     steps:
-      - name: filter
+      - name: Filter
         if: github.event_name == 'pull_request'
         uses: actions/bin/filter@master
         with:
           action: "opened|synchronize|reopened"
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@master
-      - name: build
+      - name: Build
         run: "./build.sh"
         env:
+          REMOTE_IMAGE: sqlstreamstore/server
           LIBRARY_VERSION: ${{ matrix.env.library-version }}
           CONTAINER_RUNTIME_VERSION: ${{ matrix.env.container-runtime-version }}
           CONTAINER_RUNTIME: ${{ matrix.env.container-runtime }}
           RUNTIME: ${{ matrix.env.runtime }}
+      - name: Docker Login
+        uses: actions/docker/login@master
+        secrets:
+          - DOCKER_USERNAME
+          - DOCKER_PASSWORD
+      - name: Leaky
+        run: echo $DOCKER_USERNAME
+      - name: Docker Push
+        if: github.event_name == 'push'
+        run: docker push sqlstreamstore/server
