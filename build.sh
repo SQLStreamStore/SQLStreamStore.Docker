@@ -12,7 +12,6 @@ LOCAL="${LOCAL_IMAGE}:latest"
 REMOTE_IMAGE="sqlstreamstore/server"
 
 docker build \
-    --build-arg MYGET_API_KEY=$MYGET_API_KEY \
     --build-arg CONTAINER_RUNTIME_VERSION=${CONTAINER_RUNTIME_VERSION:-2.2.5} \
     --build-arg CONTAINER_RUNTIME=${CONTAINER_RUNTIME} \
     --build-arg RUNTIME=${RUNTIME:-alpine-x64} \
@@ -20,7 +19,6 @@ docker build \
     --build-arg CLIENT_VERSION=${CLIENT_VERSION} \
     --tag ${LOCAL} \
     .
-
 
 SEMVER_REGEX="^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
 
