@@ -13,7 +13,7 @@ REMOTE_IMAGE="sqlstreamstore/server"
 
 docker build \
     --build-arg MYGET_API_KEY=$MYGET_API_KEY \
-    --build-arg CONTAINER_RUNTIME_VERSION=${CONTAINER_RUNTIME_VERSION:-2.2.5} \
+    --build-arg CONTAINER_RUNTIME_VERSION=${CONTAINER_RUNTIME_VERSION:-2.2.6} \
     --build-arg CONTAINER_RUNTIME=${CONTAINER_RUNTIME} \
     --build-arg RUNTIME=${RUNTIME:-alpine-x64} \
     --build-arg LIBRARY_VERSION=${LIBRARY_VERSION} \
