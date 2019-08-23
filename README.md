@@ -1,4 +1,4 @@
-# SQL Stream Store HTTP Server [![Build Status](https://travis-ci.org/SQLStreamStore/SQLStreamStore.Docker.svg?branch=master)](https://travis-ci.org/SQLStreamStore/SQLStreamStore.Docker)
+# SQL Stream Store HTTP Server [![Build Status](https://github.com/SQLStreamStore/SQLStreamStore.Docker/workflows/Build/badge.svg)](https://github.com/SQLStreamStore/SQLStreamStore.Docker/actions?workflowID=Build)
 
 Fully RESTful HTTP Server for [SQL Stream Store](https://github.com/SQLStreamStore/SQLStreamStore). Uses [application/hal+json](https://tools.ietf.org/html/draft-kelly-json-hal-08) for resource navigation, with [JSON Hyper-Schema](https://json-schema.org/latest/json-schema-hypermedia.html) as [embedded resources](https://tools.ietf.org/html/draft-kelly-json-hal-08#section-4.1.2).
 
