@@ -42,11 +42,13 @@ jobs:
           CONTAINER_RUNTIME: ${{ matrix.env.container-runtime }}
           RUNTIME: ${{ matrix.env.runtime }}
       - name: Docker Login
-        uses: actions/docker/login@master
+        uses: actions/docker/login@fe7ed3c
         if: github.event_name == 'push'
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       - name: Docker Push
+        uses: actions/docker/cli@fe7ed3c
         if: github.event_name == 'push'
-        run: docker push sqlstreamstore/server
+        with:
+          args: push sqlstreamstore/server
