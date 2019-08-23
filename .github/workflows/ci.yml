@@ -12,36 +12,41 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - library-version: 1.2.0-beta.4
+          - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: alpine3.9
             runtime: alpine-x64
-          - library-version: 1.2.0-beta.4
+          - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: alpine3.8
             runtime: alpine-x64
-          - library-version: 1.2.0-beta.4
+          - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: stretch-slim
             runtime: debian.9-x64
-          - library-version: 1.2.0-beta.4
+          - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: bionic
             runtime: ubuntu.18.04-x64
     runs-on: ubuntu-latest
     name: continuous-integration/github/${{ matrix.env.container-runtime }}
     steps:
-      - name: filter
-        if: github.event_name == 'pull_request'
-        uses: actions/bin/filter@master
-        with:
-          action: "opened|synchronize|reopened"
       - name: checkout
         uses: actions/checkout@master
       - name: build
         run: "./build.sh"
         env:
+          REMOTE_IMAGE: sqlstreamstore/server
           LIBRARY_VERSION: ${{ matrix.env.library-version }}
           CONTAINER_RUNTIME_VERSION: ${{ matrix.env.container-runtime-version }}
           CONTAINER_RUNTIME: ${{ matrix.env.container-runtime }}
           RUNTIME: ${{ matrix.env.runtime }}
+      - name: Docker Login
+        uses: actions/docker/login@master
+        if: github.event_name == 'push'
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      - name: Docker Push
+        if: github.event_name == 'push'
+        run: docker push sqlstreamstore/server
