@@ -36,7 +36,17 @@ jobs:
       - name: build
         run: "./build.sh"
         env:
+          REMOTE_IMAGE: sqlstreamstore/server
           LIBRARY_VERSION: ${{ matrix.env.library-version }}
           CONTAINER_RUNTIME_VERSION: ${{ matrix.env.container-runtime-version }}
           CONTAINER_RUNTIME: ${{ matrix.env.container-runtime }}
           RUNTIME: ${{ matrix.env.runtime }}
+      - name: Docker Login
+        uses: actions/docker/login@master
+        if: github.event_name == 'push'
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      - name: Docker Push
+        if: github.event_name == 'push'
+        run: docker push sqlstreamstore/server
