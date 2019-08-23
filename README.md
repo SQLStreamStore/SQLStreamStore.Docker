@@ -1,3 +1,4 @@
+foo
 # SQL Stream Store HTTP Server [![Build Status](https://travis-ci.org/SQLStreamStore/SQLStreamStore.HAL.svg?branch=master)](https://travis-ci.org/SQLStreamStore/SQLStreamStore.HAL)
 
 Fully RESTful HTTP Server for [SQL Stream Store](https://github.com/SQLStreamStore/SQLStreamStore). Uses [application/hal+json](https://tools.ietf.org/html/draft-kelly-json-hal-08) for resource navigation, with [JSON Hyper-Schema](https://json-schema.org/latest/json-schema-hypermedia.html) as [embedded resources](https://tools.ietf.org/html/draft-kelly-json-hal-08#section-4.1.2).
