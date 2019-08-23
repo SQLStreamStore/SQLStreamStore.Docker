@@ -16,8 +16,8 @@ namespace SqlStreamStore.Server
             => builder
                 .Use(GetAndHeadOnly)
                 .UseRouter(router => router
-                .MapMiddlewareGet("ready", inner => inner.Use(Ready(streamStore)))
-                .MapMiddlewareGet("live", inner => inner.Use(Live)));
+                    .MapMiddlewareGet("ready", inner => inner.Use(Ready(streamStore)))
+                    .MapMiddlewareGet("live", inner => inner.Use(Live)));
 
         private static MidFunc Live => (context, next) =>
         {
