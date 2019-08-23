@@ -31,11 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     name: continuous-integration/github/${{ matrix.env.container-runtime }}
     steps:
-      - name: filter
-        if: github.event_name == 'pull_request'
-        uses: actions/bin/filter@master
-        with:
-          action: "opened|synchronize|reopened"
       - name: checkout
         uses: actions/checkout@master
       - name: build
