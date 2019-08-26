@@ -69,8 +69,8 @@ jobs:
       - name: Publish Docker Hub Readme
         uses: peter-evans/dockerhub-description@v2.0.0
         env:
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKERHUB_REPOSITORY: sqlstreamstore/server
           README_FILEPATH: ./README.dockerhub.md
         if: github.event_name == 'push'
