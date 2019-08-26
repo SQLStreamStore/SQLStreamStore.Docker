@@ -61,6 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: continuous-integration
     steps:
+      - name: checkout
+        uses: actions/checkout@master
       - name: Generate Docker Tag List
         uses: ./.github/actions/docker-tag-list
         if: github.event_name == 'push'
