@@ -7,20 +7,6 @@ on:
       - master
 
 jobs:
-  docker-hub-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate Docker Tag List
-        uses: ./.github/actions/docker-tag-list
-        if: github.event_name == 'push'
-      - name: Publish Docker Hub Readme
-        uses: peter-evans/dockerhub-description@v2.0.0
-        env:
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKERHUB_REPOSITORY: sqlstreamstore/server
-          README_FILEPATH: ./README.dockerhub.md
-        if: github.event_name == 'push'
   continuous-integration:
     strategy:
       fail-fast: false
@@ -70,3 +56,19 @@ jobs:
         if: github.event_name == 'push'
         with:
           args: push sqlstreamstore/server
+
+  docker-hub-docs:
+    runs-on: ubuntu-latest
+    needs: continuous-integration
+    steps:
+      - name: Generate Docker Tag List
+        uses: ./.github/actions/docker-tag-list
+        if: github.event_name == 'push'
+      - name: Publish Docker Hub Readme
+        uses: peter-evans/dockerhub-description@v2.0.0
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_REPOSITORY: sqlstreamstore/server
+          README_FILEPATH: ./README.dockerhub.md
+        if: github.event_name == 'push'
