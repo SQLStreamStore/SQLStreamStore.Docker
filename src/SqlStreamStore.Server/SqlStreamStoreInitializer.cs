@@ -52,9 +52,10 @@ namespace SqlStreamStore.Server
                 {
                     await streamStore.CreateSchemaIfNotExists(cancellationToken);
                 }
-                catch (MySqlException ex)
+                catch (MySqlException)
                 {
-                    SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                    SchemaCreationFailed(streamStore.GetSchemaCreationScript);
+                    throw;
                 }
             }
         }
@@ -67,9 +68,10 @@ namespace SqlStreamStore.Server
                 {
                     await streamStore.CreateSchemaIfNotExists(cancellationToken);
                 }
-                catch (SqlException ex)
+                catch (SqlException)
                 {
-                    SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                    SchemaCreationFailed(streamStore.GetSchemaCreationScript);
+                    throw;
                 }
             }
         }
@@ -82,27 +84,26 @@ namespace SqlStreamStore.Server
                 {
                     await streamStore.CreateSchemaIfNotExists(cancellationToken);
                 }
-                catch (NpgsqlException ex)
+                catch (NpgsqlException)
                 {
-                    SchemaCreationFailed(streamStore.GetSchemaCreationScript, ex);
+                    SchemaCreationFailed(streamStore.GetSchemaCreationScript);
+                    throw;
                 }
             }
         }
 
-        private static void SchemaCreationFailed(Func<string> getSchemaCreationScript, Exception ex)
+        private static void SchemaCreationFailed(Func<string> getSchemaCreationScript)
         {
             s_Log.Error(
                 new StringBuilder()
-                    .Append("Could not create schema: {ex}")
+                    .Append("Could not create schema.")
                     .AppendLine()
                     .Append(
                         "Does your connection string have enough permissions? If not, run the following sql script as a privileged user:")
                     .AppendLine()
                     .Append("{script}")
                     .ToString(),
-                ex,
                 getSchemaCreationScript());
-            Environment.Exit(1);
         }
     }
 }
