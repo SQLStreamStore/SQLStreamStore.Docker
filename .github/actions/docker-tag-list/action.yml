@@ -1,0 +1,5 @@
+name: Docker Tag List
+description: Generates a list of docker tags created by this build.
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
