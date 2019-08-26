@@ -7,6 +7,20 @@ on:
       - master
 
 jobs:
+  docker-hub-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Docker Tag List
+        uses: ./.github/actions/docker-tag-list
+        if: github.event_name == 'push'
+      - name: Publish Docker Hub Readme
+        uses: peter-evans/dockerhub-description@v2.0.0
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKERHUB_REPOSITORY: sqlstreamstore/server
+          README_FILEPATH: ./README.dockerhub.md
+        if: github.event_name == 'push'
   continuous-integration:
     strategy:
       fail-fast: false
@@ -16,18 +30,22 @@ jobs:
             container-runtime-version: 2.2.5
             container-runtime: alpine3.9
             runtime: alpine-x64
+            os-version: Alpine 3.9
           - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: alpine3.8
             runtime: alpine-x64
+            os-version: Alpine 3.8
           - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: stretch-slim
             runtime: debian.9-x64
+            os-version: Debian 9
           - library-version: 1.2.0-beta.5
             container-runtime-version: 2.2.5
             container-runtime: bionic
             runtime: ubuntu.18.04-x64
+            os-version: Ubuntu 18.04
     runs-on: ubuntu-latest
     name: continuous-integration/github/${{ matrix.env.container-runtime }}
     steps:
