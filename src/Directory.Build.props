@@ -8,6 +8,6 @@
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="1.0.0" />
+    <PackageReference Include="MinVer" Version="2.3.0" />
   </ItemGroup>
 </Project>
