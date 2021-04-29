@@ -1,0 +1,17 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: Microsoft.Extensions.FileProviders.Embedded
+    versions:
+    - 5.0.2
+  - dependency-name: Microsoft.AspNetCore.TestHost
+    versions:
+    - 5.0.2
+  - dependency-name: Serilog.AspNetCore
+    versions:
+    - 3.4.0
